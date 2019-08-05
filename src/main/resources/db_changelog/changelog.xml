@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="create-tables" author="r.kolbovich">
+        <sqlFile encoding="utf8"
+                 path="scripts/000_create_tables.sql"
+                 relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="create-procedures" author="r.kolbovich">
+        <sqlFile encoding="utf8"
+                 path="scripts/001_create_procedures.sql"
+                 relativeToChangelogFile="true"
+                 endDelimiter=";;"/>
+    </changeSet>
+
+    <include file="db.changelog-0.1.xml" relativeToChangelogFile="true"/>
+    <include file="db.changelog-0.2.xml" relativeToChangelogFile="true"/>
+    <include file="db.changelog-0.3.xml" relativeToChangelogFile="true"/>
+    <include file="db.changelog-0.4.xml" relativeToChangelogFile="true"/>
+    <include file="db.changelog-0.5.xml" relativeToChangelogFile="true"/>
+    <include file="db.changelog-0.6.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

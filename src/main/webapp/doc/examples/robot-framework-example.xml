@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generated="20171211 15:43:27.544" generator="Rebot 3.0.1 (Python 2.7.5 on linux2)">
+	<suite source="/checkout/tors/test/megafon/test/system_test/BPMF-465_Collection_Of_Data_Traffic_And_Tariffing/SMS_To_Own_Network_Balance_To_Send_Is_Enough.robot" id="s1-s1-s1-s1-s1-s1" name="SMS To Own Network Balance To Send Is Enough">
+		<kw type="setup" name="Suite Setup" library="resource">
+			<doc>Suite_setup</doc>
+			<kw name="Comment" library="BuiltIn">
+				<doc>Displays the given messages in the log file as keyword arguments.</doc>
+				<arguments>
+					<arg>Получение параметров стенда</arg>
+				</arguments>
+				<status status="PASS" endtime="20171211 15:41:40.518" starttime="20171211 15:41:40.472"/>
+			</kw>
+			<kw name="Get Bis Greenfield Db Name" library="Parameters">
+				<doc>Получение БД Bis Greenfield.</doc>
+				<assign>
+					<var>${BIS_GREENFIELD_DB_NAME}</var>
+				</assign>
+				<status status="PASS" endtime="20171211 15:41:40.733" starttime="20171211 15:41:40.532"/>
+			</kw>
+		</kw>
+		<kw type="teardown" name="Suite Teardown" library="resource">
+			<doc>Suite_teardown</doc>
+		</kw>
+		<test id="s1-s1-s1-s1-s1-s1-t1" name="Sms To Own Network Balance To Send Is Enough">
+			<kw type="setup" name="Test Setup">
+				<doc>Проверка предусловий, получение необходимых для теста данных и установка соединений с БД</doc>
+				<kw name="Comment" library="BuiltIn">
+					<doc>Displays the given messages in the log file as keyword arguments.</doc>
+					<arguments>
+						<arg>Проверка наличия необходимых прав у пользователя</arg>
+					</arguments>
+					<status status="PASS" endtime="20171211 15:41:58.927" starttime="20171211 15:41:58.889"/>
+				</kw>
+			</kw>
+			<doc>[Smoke] [Online] SMS в свою сеть: Баланса для отправки достаточно
+
+*TestRail: *
+[https://testrail.billing.ru/testrail/index.php?/cases/view/674635 | C674635]</doc>
+			<tags>
+				<tag>base</tag>
+				<tag>bis</tag>
+				<tag>brt</tag>
+				<tag>ccm_portal</tag>
+				<tag>hrs</tag>
+				<tag>mf-used</tag>
+				<tag>onebss</tag>
+				<tag>start-release=7.10</tag>
+				<tag>system-test</tag>
+				<tag>testrailid=674635</tag>
+			</tags>
+			<timeout value="26 minutes"/>
+			<status status="FAIL" endtime="20171211 15:43:04.165" critical="yes" starttime="20171211 15:41:58.841">Setup failed:
+Resolving variable '${second_subs["MSISDN"]}' failed: TypeError: 'generator' object has no attribute '__getitem__'</status>
+		</test>
+		<doc>[Smoke] [Online] SMS в свою сеть: Баланса для отправки достаточно</doc>
+		<status status="FAIL" endtime="20171211 15:43:27.023" starttime="20171211 15:41:37.656"/>
+	</suite>
+	<doc>BPMF-465 Сбор данных трафика и тарификация</doc>
+	<status status="FAIL" endtime="20171211 15:43:27.044" starttime="20171211 15:41:37.653"/>
+	<statistics>
+		<total>
+			<stat fail="1" pass="0">Critical Tests</stat>
+			<stat fail="1" pass="0">All Tests</stat>
+		</total>
+		<tag>
+			<stat info="non-critical" fail="0" pass="0">noncritical</stat>
+			<stat fail="1" pass="0">base</stat>
+			<stat fail="1" pass="0">bis</stat>
+			<stat fail="1" pass="0">brt</stat>
+			<stat fail="1" pass="0">ccm_portal</stat>
+			<stat fail="1" pass="0">hrs</stat>
+			<stat fail="1" pass="0">mf-used</stat>
+			<stat fail="1" pass="0">onebss</stat>
+			<stat fail="1" pass="0">start-release=7.10</stat>
+			<stat fail="1" pass="0">system-test</stat>
+			<stat fail="1" pass="0">testrailid=674635</stat>
+		</tag>
+		<suite>
+			<stat fail="1" id="s1" name="Test" pass="0">Test</stat>
+			<stat fail="1" id="s1-s1" name="Megafon" pass="0">Test.Megafon</stat>
+			<stat fail="1" id="s1-s1-s1" name="Test" pass="0">Test.Megafon.Test</stat>
+			<stat fail="1" id="s1-s1-s1-s1" name="System Test" pass="0">Test.Megafon.Test.System Test</stat>
+			<stat fail="1" id="s1-s1-s1-s1-s1" name="BPMF-465 Collection Of Data Traffic And Tariffing" pass="0">Test.Megafon.Test.System Test.BPMF-465 Collection Of Data Traffic And Tariffing</stat>
+			<stat fail="1" id="s1-s1-s1-s1-s1-s1" name="SMS To Own Network Balance To Send Is Enough" pass="0">Test.Megafon.Test.System Test.BPMF-465 Collection Of Data Traffic And Tariffing.SMS To Own Network Balance To Send Is Enough</stat>
+		</suite>
+	</statistics>
+	<errors>
+		<msg timestamp="20171211 15:41:39.501" level="WARN">Imported library 'http.client' contains no keywords.</msg>
+		<msg timestamp="20171211 15:43:26.312" level="ERROR">[TestRailListener] http error on case_id = 674635
+400 Client Error: Bad Request for url: http://testrail.billing.ru/testrail/index.php?/api/v2/add_result_for_case/23536/674635</msg>
+	</errors>
+</robot>

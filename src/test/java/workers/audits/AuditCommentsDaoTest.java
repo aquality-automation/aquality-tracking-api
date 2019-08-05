@@ -1,0 +1,56 @@
+package workers.audits;
+
+import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import main.exceptions.RPException;
+import main.model.db.dao.audit.AuditCommentsDao;
+import main.model.dto.AuditCommentDto;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.testng.Assert.assertEquals;
+import static testUtils.FileUtils.getResourceFileAsString;
+import static testUtils.Validations.assertSQLToParams;
+
+public class AuditCommentsDaoTest extends AuditCommentsDao {
+
+    private String currentSql;
+    private List<Pair<String, String>> currentParameters;
+    private List<AuditCommentDto> resultList;
+
+    @BeforeMethod
+    public void cleanUpResults(){
+        resultList = new ArrayList<>();
+    }
+
+    @Test
+    public void searchAllTest() throws RPException {
+        List<AuditCommentDto> result = searchAll(new AuditCommentDto());
+        assertSQLToParams(currentSql, currentParameters);
+        assertEquals(result.size(), 1000);
+    }
+
+    @Test
+    public void insertTest() throws RPException {
+        resultList.add(new AuditCommentDto());
+        create(new AuditCommentDto());
+        assertSQLToParams(currentSql, currentParameters);
+    }
+
+
+    @Override
+    protected JSONArray CallStoredProcedure(String sql, List<Pair<String, String>> parameters){
+        currentSql = sql;
+        currentParameters = parameters;
+        try {
+            return new JSONArray(getResourceFileAsString("entities/auditComments.json"));
+        } catch ( JSONException e) {
+            e.printStackTrace();
+        }
+        return new JSONArray();
+    }
+}

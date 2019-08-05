@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Suite Dashboards 2.3" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            CREATE TABLE `suite_dashboard` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            `project_id` INT NOT NULL,
+            `detailed` INT(1) NOT NULL DEFAULT 0,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `project_suite_dashboard_idx` (`project_id` ASC),
+            CONSTRAINT `project_suite_dashboard`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+
+            #
+
+            CREATE TABLE `suite_2_dashboard` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `suite_id` INT NOT NULL,
+            `dashboard_id` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `suite_2_dashboard_dashboards_idx` (`dashboard_id` ASC),
+            INDEX `suite_2_dashboard_suite_idx` (`suite_id` ASC),
+            CONSTRAINT `suite_2_dashboard_dashboards`
+            FOREIGN KEY (`dashboard_id`)
+            REFERENCES `suite_dashboard` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            CONSTRAINT `suite_2_dashboard_suite`
+            FOREIGN KEY (`suite_id`)
+            REFERENCES `test_suites` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+
+            #
+
+            DROP procedure IF EXISTS `SELECT_SUITE_DASHBOARD`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_SUITE_DASHBOARD` (
+            In request_id varchar(11),
+            In request_project_id varchar(11)
+            )
+            BEGIN
+            select * from suite_dashboard where (id = request_id OR request_id = '')
+            AND (project_id = request_project_id OR request_project_id = '');
+            END
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_SUITE_DASHBOARD`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_SUITE_DASHBOARD` (
+            IN request_id varchar(11),
+            IN request_project_id varchar(11),
+            IN request_name varchar(45),
+            IN request_detailed varchar(1)
+            )
+            BEGIN
+            INSERT INTO suite_dashboard (id, name, project_id, detailed)
+            VALUES (IF(request_id ='',null,request_id), request_name, request_project_id, request_detailed)
+
+            ON DUPLICATE KEY UPDATE
+            name= IF(request_name = '', name, request_name),
+            project_id = IF(request_project_id = '', project_id, request_project_id),
+            detailed = IF(request_detailed = '', detailed, request_detailed)
+            ;
+
+            SET @created_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from suite_dashboard where id = @created_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `REMOVE_SUITE_DASHBOARD`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_SUITE_DASHBOARD` (
+            In request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM suite_dashboard WHERE id=request_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `SELECT_SUITES_FROM_DASHBOARD`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_SUITES_FROM_DASHBOARD` (
+            In request_dashboard_id varchar(11)
+            )
+            BEGIN
+            select * from suite_2_dashboard where (dashboard_id = request_dashboard_id OR request_dashboard_id = '');
+            END
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_SUITE_TO_DASHBOARD`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_SUITE_TO_DASHBOARD` (
+            In request_dashboard_id varchar(11),
+            In request_suite_id varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM suite_2_dashboard
+            where dashboard_id = request_dashboard_id AND suite_id = request_suite_id)
+            THEN
+            INSERT INTO suite_2_dashboard (dashboard_id, suite_id)
+            VALUES (request_dashboard_id, request_suite_id);
+            END IF;
+
+            SELECT * FROM suite_2_dashboard WHERE dashboard_id = request_dashboard_id AND suite_id = request_suite_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `REMOVE_SUITE_FROM_DASHBOARD`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_SUITE_FROM_DASHBOARD` (
+            IN request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM suite_2_dashboard WHERE id=request_id;
+            END
+
+            #
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="add entities" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            INSERT INTO `users` (`first_name`, `second_name`, `user_name`, `email`, `auditor`, `password`, `last_session_id`, `admin`, `manager`, `audit_admin`, `ldap_user`, `unit_coordinator`, `audit_notifications`, `head`, `account_manager`)
+            VALUES ('admin', 'admin', 'admin', 'admin@whatever.com', '1', '4b43ec32130957a8012c11d635004b48', '1', '1', '1', '1', '0', '1', '1', '1', '1');
+
+            #
+
+            INSERT INTO `customer` (`name`, `coordinator_id`, `accounting`) VALUES ('-', '2', '0');
+        </sql>
+    </changeSet>
+    <changeSet id="add update results after resolution removed" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `REMOVE_RESULT_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_RESULT_RESOLUTION` (
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            DELETE FROM result_resolution
+            WHERE id=request_id;
+
+            UPDATE test_results SET test_resolution_id = 1 Where id > 5 AND test_resolution_id IS NULL;
+            END
+
+            #
+        </sql>
+    </changeSet>
+
+    <changeSet id="add FOREIGN key to test results" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TEMPORARY TABLE removed_resolutions SELECT tr.id FROM test_results AS tr
+            LEFT JOIN result_resolution AS rr
+            ON tr.test_resolution_id = rr.id WHERE rr.id IS NULL;
+
+            #
+
+            SET SQL_SAFE_UPDATES = 0;
+
+            #
+
+            UPDATE test_results SET test_resolution_id = NULL
+            WHERE id IN (Select * from removed_resolutions);
+
+            #
+
+            SET SQL_SAFE_UPDATES = 1;
+
+            #
+
+            ALTER TABLE `test_results`
+            ADD INDEX `test_result_test_resolution_idx` (`test_resolution_id` ASC);
+
+            #
+
+            ALTER TABLE `test_results`
+            ADD CONSTRAINT `test_result_test_resolution`
+            FOREIGN KEY (`test_resolution_id`)
+            REFERENCES `result_resolution` (`id`)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE;
+
+            #
+
+            DROP TEMPORARY TABLE removed_resolutions;
+        </sql>
+    </changeSet>
+    <changeSet id="add update results after resolution removed fix for id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `REMOVE_RESULT_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_RESULT_RESOLUTION` (
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            DELETE FROM result_resolution
+            WHERE id=request_id;
+
+            UPDATE test_results SET test_resolution_id = 1 Where test_resolution_id IS NULL;
+            END
+
+            #
+        </sql>
+    </changeSet>
+
+
+
+
+
+</databaseChangeLog>

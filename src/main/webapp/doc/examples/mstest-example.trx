@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TestRun id="bf2de89a-ec7b-40e0-8998-285a5da0d2e6" name="tester@TESTER-PC 2017-12-26 19:16:49" runUser="tester-PC\tester" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <TestSettings name="Local" id="f1a407bd-6918-46ca-8535-95aa19ad93db">
+    <Description>These are default test settings for a local test run.</Description>
+    <Deployment userDeploymentRoot="D:\Unifi\bin\TestResults\Reports\NeutralLossSearch_ToleranceFieldDoesNotAllowEntryOfInvalidNumericValues_2017_12_26_19_16_47" useDefaultDeploymentRoot="false" enabled="false" runDeploymentRoot="tester_TESTER-PC 2017-12-26 19_16_49" />
+    <Execution hostProcessPlatform="MSIL">
+      <Timeouts runTimeout="36000000" testTimeout="10800000" />
+      <TestTypeSpecific>
+        <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+          <AssemblyResolution>
+            <TestDirectory useLoadContext="true" />
+          </AssemblyResolution>
+        </UnitTestRunConfig>
+      </TestTypeSpecific>
+      <AgentRule name="LocalMachineDefaultRole">
+      </AgentRule>
+    </Execution>
+    <Properties />
+  </TestSettings>
+  <Times creation="2017-12-26T19:16:49.6291660+03:00" queuing="2017-12-26T19:16:50.1916660+03:00" start="2017-12-26T19:16:50.3322910+03:00" finish="2017-12-26T19:20:34.5929591+03:00" />
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" error="0" failed="1" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" passed="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[debug]Set current culture to 'EN'[/debug]
+[start]12/26/2017 7:16:51 PM[/start]
+[performer]N/A[/performer]
+[app]UNIFI[/app]
+[vers]N/A[/vers]
+[intype]Workstation[/intype]
+[cpu]Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz[/cpu]
+[computername]TESTER-PC[/computername]
+[os]Microsoft Windows 7 Ultimate [/os]
+[currentuser]tester-PC\tester[/currentuser]
+[finish]12/26/2017 7:20:18 PM[/finish]
+</StdOut>
+      <DebugTrace>[UIAutomation] [debug]Set current culture to 'EN'[/debug]
+[UIAutomation] [start]12/26/2017 7:16:51 PM[/start]
+[UIAutomation] [performer]N/A[/performer]
+[UIAutomation] [app]UNIFI[/app]
+[UIAutomation] [vers]N/A[/vers]
+[UIAutomation] [intype]Workstation[/intype]
+[UIAutomation] [cpu]Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz[/cpu]
+[UIAutomation] [computername]TESTER-PC[/computername]
+[UIAutomation] [os]Microsoft Windows 7 Ultimate [/os]
+[UIAutomation] [currentuser]tester-PC\tester[/currentuser]
+[UIAutomation] [finish]12/26/2017 7:20:18 PM[/finish]
+</DebugTrace>
+    </Output>
+  </ResultSummary>
+  <TestDefinitions>
+    <UnitTest name="NeutralLossSearch_ToleranceFieldDoesNotAllowEntryOfInvalidNumericValues" storage="d:\unifi\bin\waters.uiautomation.unifi.uitest.dll" id="e45bc65e-a356-26d7-f55b-7b0b4ea8a1fd">
+      <Description>Neutral Loss Search - Tolerance field does not allow entry of invalid numeric values</Description>
+      <TestCategory>
+        <TestCategoryItem TestCategory="screening" />
+        <TestCategoryItem TestCategory="neutralloss_search" />
+        <TestCategoryItem TestCategory="UIANC130" />
+        <TestCategoryItem TestCategory="elucidation" />
+      </TestCategory>
+      <Execution id="36d7e91d-13ab-4ef4-881a-542dfc850487" />
+      <Properties>
+        <Property>
+          <Key>FeatureTitle</Key>
+          <Value>PP_MSe_Values allowed for Tolerance field</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="D:/Unifi/bin/Waters.UIAutomation.Unifi.UITest.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="Waters.UIAutomation.Unifi.UITest.FeatureFiles.AnalysisCenter.Review.ElucidationToolset.NeutralLossSearch.PP_MSe_ValuesAllowedForToleranceFieldFeature, Waters.UIAutomation.Unifi.UITest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="NeutralLossSearch_ToleranceFieldDoesNotAllowEntryOfInvalidNumericValues" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <TestEntries>
+    <TestEntry testId="e45bc65e-a356-26d7-f55b-7b0b4ea8a1fd" executionId="36d7e91d-13ab-4ef4-881a-542dfc850487" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <Results>
+    <UnitTestResult executionId="36d7e91d-13ab-4ef4-881a-542dfc850487" testId="e45bc65e-a356-26d7-f55b-7b0b4ea8a1fd" testName="NeutralLossSearch_ToleranceFieldDoesNotAllowEntryOfInvalidNumericValues" computerName="TESTER-PC" duration="00:03:26.5139236" startTime="2017-12-26T19:16:50.3947910+03:00" endTime="2017-12-26T19:20:18.8429591+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="36d7e91d-13ab-4ef4-881a-542dfc850487">
+      <Output>
+        <StdOut>[debug]Application launched in 00:00:00.2291921 seconds[/debug]
+[debug]Application Started[/debug]
+[debug]Trying to log in as XXX[/debug]
+[debug]...[/debug]
+[debugimage]Image_2017-12-26_07-20-18-68.png[/debugimage]</StdOut>
+        <DebugTrace>[debug]Application launched in 00:00:00.2291921 seconds[/debug]
+[debug]Application Started[/debug]
+[debug]...[/debug]
+[debugimage]Image_2017-12-26_07-20-18-68.png[/debugimage]
+</DebugTrace>
+        <ErrorInfo>
+          <Message>TestCleanup method Waters.UIAutomation.Unifi.UITest.FeatureFiles.AnalysisCenter.Review.ElucidationToolset.NeutralLossSearch.PP_MSe_ValuesAllowedForToleranceFieldFeature.ScenarioTearDown threw exception. Waters.QualityTools.Automation.Reporting.ReportException: Waters.QualityTools.Automation.Reporting.ReportException: 
+ There were failures in the test. Details below.
+
+EXCEPTION [0] The test step 'The 'Tolerance' field reacts to each parameter as follows after setting it as '1' on Neutral Loss Search elucidation tool:' failed because of errors.
+ - Check if Tooltip exists property equals true for 0.00 data
+ - AreEqual : [Expected:True] [Actual:False] : Assert.AreEqual failed. Expected:&lt;True&gt;. Actual:&lt;False&gt;. 
+
+   at Waters.UIAutomation.Unifi.UITest.StepDefinitions.AnalysisCenter.Review.Tools.ElucidationToolset.ElucidationToolSetSteps.VerifyElucidationTextBox(QETextBox textBox, String oppositeValue, Table table) in D:\Unifi\Waters.UIAutomation.Unifi\Waters.UIAutomation.Unifi.UITest\StepDefinitions\AnalysisCenter\Review\Tools\ElucidationToolset\ElucidationToolSetSteps.cs:line 642
+   at Waters.UIAutomation.Unifi.UITest.StepDefinitions.AnalysisCenter.Review.Tools.ElucidationToolset.SubView.ElucidationToolNeutralLossSteps.FieldReactsToTheTestDataAsFollows(String field, String oppositeValue, Table table) in D:\Unifi\Waters.UIAutomation.Unifi\Waters.UIAutomation.Unifi.UITest\StepDefinitions\AnalysisCenter\Review\Tools\ElucidationToolset\SubView\ElucidationToolNeutralLossSteps.cs:line 94
+   at Waters.UIAutomation.Unifi.UITest.FeatureFiles.AnalysisCenter.Review.ElucidationToolset.NeutralLossSearch.PP_MSe_ValuesAllowedForToleranceFieldFeature.NeutralLossSearch_ToleranceFieldDoesNotAllowEntryOfInvalidNumericValues() in D:\Unifi\Waters.UIAutomation.Unifi\Waters.UIAutomation.Unifi.UITest\FeatureFiles\Analysis Center\Review\Elucidation Toolset\Neutral Loss Search\PP_MSe_Values allowed for Tolerance field.feature:line 24
+
+EXCEPTION [1] The test step 'The 'Tolerance' field reacts to each parameter as follows after setting it as '1' on Neutral Loss Search elucidation tool:' failed because of errors.
+ - Check if Tooltip exists property equals true for 10000.01 data
+ - AreEqual : [Expected:True] [Actual:False] : Assert.AreEqual failed. Expected:&lt;True&gt;. Actual:&lt;False&gt;. 
+
+   at Waters.UIAutomation.Unifi.UITest.StepDefinitions.AnalysisCenter.Review.Tools.ElucidationToolset.ElucidationToolSetSteps.VerifyElucidationTextBox(QETextBox textBox, String oppositeValue, Table table) in D:\Unifi\Waters.UIAutomation.Unifi\Waters.UIAutomation.Unifi.UITest\StepDefinitions\AnalysisCenter\Review\Tools\ElucidationToolset\ElucidationToolSetSteps.cs:line 642
+   at Waters.UIAutomation.Unifi.UITest.StepDefinitions.AnalysisCenter.Review.Tools.ElucidationToolset.SubView.ElucidationToolNeutralLossSteps.FieldReactsToTheTestDataAsFollows(String field, String oppositeValue, Table table) in D:\Unifi\Waters.UIAutomation.Unifi\Waters.UIAutomation.Unifi.UITest\StepDefinitions\AnalysisCenter\Review\Tools\ElucidationToolset\SubView\ElucidationToolNeutralLossSteps.cs:line 94
+   at Waters.UIAutomation.Unifi.UITest.FeatureFiles.AnalysisCenter.Review.ElucidationToolset.NeutralLossSearch.PP_MSe_ValuesAllowedForToleranceFieldFeature.NeutralLossSearch_ToleranceFieldDoesNotAllowEntryOfInvalidNumericValues() in D:\Unifi\Waters.UIAutomation.Unifi\Waters.UIAutomation.Unifi.UITest\FeatureFiles\Analysis Center\Review\Elucidation Toolset\Neutral Loss Search\PP_MSe_Values allowed for Tolerance field.feature:line 24
+
+.</Message>
+          <StackTrace> 
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+</TestRun>

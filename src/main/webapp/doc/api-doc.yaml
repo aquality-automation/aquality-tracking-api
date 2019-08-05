@@ -1,0 +1,1615 @@
+---
+swagger: 2.0
+
+info:
+  description: |
+    Documentation for Report Portal API.
+    Authorization header: Basic cC5wYXJrZXI6ZTEwYWRjMzk0OWJhNTlhYmJlNTZlMDU3ZjIwZjg4M2U=
+  version: '0.0.1'
+  title: 'Report Portal - API documentation'
+
+basePath: '/api'
+
+schemes:
+  - 'http'
+
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    in: header
+    name: 'Authorization'
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: 'final_result'
+    description: 'Operations with Final Results'
+  - name: 'import'
+    description: 'Import operations'
+  - name: 'milestone'
+    description: 'Operations with Milestones'
+  - name: 'project'
+    description: 'Operations with Projects'
+  - name: 'result_resolution'
+    description: 'Operations with Result Resolutions'
+  - name: 'stats'
+    description: 'Operations with Statistics'
+  - name: 'test'
+    description: 'Operations with Tests'
+  - name: 'testresult'
+    description: 'Operations with Test Results'
+  - name: 'testrun'
+    description: 'Operations with Test Runs'
+  - name: 'testsuite'
+    description: 'Operations with Test Suites'
+  - name: 'user'
+    description: 'Operations with UsersServlet'
+
+paths:
+  /final_result/get:
+    post:
+      tags:
+        - 'final_result'
+      summary: 'Get Final Results'
+      description: 'Get list of available Final Results for Test in the system'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              color:
+                type: integer
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            $ref: '#definitions/FinalResult'
+          examples:
+            application/json: |
+              [
+                {
+                  "color": 1,
+                  "name": "Failed",
+                  "id": 1
+                },
+                {
+                  "color": 5,
+                  "name": "Passed",
+                  "id": 2
+                },
+                {
+                  "color": 3,
+                  "name": "Not Executed",
+                  "id": 3
+                },
+                {
+                  "color": 2,
+                  "name": "In Progress",
+                  "id": 4
+                },
+                {
+                  "color": 4,
+                  "name": "Pending",
+                  "id": 5
+                }
+              ]
+  /import:
+    post:
+      tags:
+        - 'import'
+      summary: 'Import Test Run'
+      description: |
+        Import Test Run from file. Following formats are supported:
+        - MSTest. Example file: [link](/api/doc/examples/mstest-example.trx)
+        - Robot Framework. Example file: [link](/api/doc/examples/robot-framework-example.xml)
+        - TestNG. Example file: [link](/api/doc/examples/testng-example.xml)
+      consumes:
+        - 'multipart/form-data'
+      parameters:
+        - in: query
+          name: projectId
+          description: 'ID of Project to import Test Run'
+          type: integer
+          required: true
+        - in: query
+          name: format
+          description: 'Format of the file for import'
+          type: string
+          required: true
+          enum: ['MSTest', 'Robot', 'TestNG']
+        - in: formData
+          name: uploadFile0
+          description: 'File for import'
+          type: file
+          required: true
+        - in: query
+          name: singleTestRun
+          description: 'true/false - Import all files into single Test Run (default = false)'
+          type: strings
+        - in: query
+          name: suite
+          description: 'Test Suite name (required only when format = MSTest and singleTestRun = true)'
+          type: string
+        - in: query
+          name: environment
+          description: 'Environment used for Test Run'
+          type: string
+        - in: query
+          name: pattern
+          description: 'Regular expression pattern to identify if test was created before by matches in body (useful to match tests by TestRail ID, for example)'
+          type: string
+        - in: query
+          name: buildName
+          description: 'Build name (required only when singleTestRun = true)'
+          type: string
+        - in: query
+          name: author
+          description: 'Author name (required only when singleTestRun = true)'
+          type: string
+      responses:
+        200:
+          description: 'Valid response'
+  /milestone/get:
+    post:
+      tags:
+        - 'milestone'
+      summary: 'Get Milestones'
+      description: "Get list of available Milestones"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              project_id:
+                type: string
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            $ref: '#definitions/Milestone'
+          examples:
+            application/json: |
+              [
+                {
+                  "project_id": 1,
+                  "name": "Demo Milestone",
+                  "id": 1
+                }
+              ]
+  /milestone/create:
+    post:
+      tags:
+        - 'milestone'
+      summary: 'Create or update Milestone'
+      description: "Create or update Milestone using given data"
+      consumes:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with Milestone data'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              project_id:
+                type: integer
+                description: 'ID of Project associated with Milestone'
+      responses:
+        200:
+          description: 'Milestone was created/updated (ID of created/updated milestone is in the "id" header).'
+  /milestone:
+    delete:
+      tags:
+        - 'milestone'
+      summary: 'Remove Milestone'
+      description: "Remove Milestone by ID"
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          required: true
+        - in: query
+          name: projectId
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Milestone was removed'
+  /project/get:
+    post:
+      tags:
+        - 'project'
+      summary: 'Get Projects'
+      description: "Get list of Projects available for User"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            $ref: '#definitions/Project'
+          examples:
+            application/json: |
+              [
+                {
+                  "name": "Demo Project",
+                  "id": 1
+                }
+              ]
+  /project/create:
+    post:
+      tags:
+        - 'project'
+      summary: 'Create or update Project'
+      description: "Create or update Project using given data"
+      consumes:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with project data'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+      responses:
+        200:
+          description: 'Project was created/updated (ID of created/updated project is in the "id" header).'
+        409:
+          description: 'Project was not created! Probably this name already in use.'
+        403:
+          description: 'Project was not created! Unknown error.'
+  /project:
+    delete:
+      tags:
+        - 'project'
+      summary: 'Remove Project'
+      description: "Remove Project by ID"
+      parameters:
+        - in: query
+          name: projectId
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Project was removed'
+  /result_resolution:
+    get:
+      tags:
+        - 'result_resolution'
+      summary: 'Get Result Resolutions'
+      description: 'Get list of all Result Resolutions in the system'
+      parameters:
+        - in: query
+          name: projectId
+          description: 'Get resolutions available only for project with given `projectId`'
+          type: integer
+      produces:
+        - 'application/json'
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            type: array
+            items:
+              $ref: '#definitions/ResultResolution'
+          examples:
+            application/json: |
+              [
+                {
+                  "color": 3,
+                  "name": "Not Assigned",
+                  "id": 1
+                },
+                {
+                  "color": 1,
+                  "name": "Application Issue",
+                  "id": 2
+                },
+                {
+                  "color": 2,
+                  "name": "Environment Issue",
+                  "id": 3
+                },
+                {
+                  "color": 2,
+                  "name": "Test Issue",
+                  "id": 4
+                },
+                {
+                  "color": 2,
+                  "name": "Test Design Issue",
+                  "id": 5
+                },
+                {
+                  "color": 1,
+                  "project_id": 1,
+                  "name": "Demo resolution",
+                  "id": 6
+                }
+              ]
+    post:
+      tags:
+        - 'result_resolution'
+      summary: 'Create or modify Result Resolution'
+      description: 'Create new Result Resolution or modify existing'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with Result Resolution data'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              color:
+                type: integer
+              project_id:
+                type: integer
+      responses:
+        200:
+          description: 'Result Resolution was created/updated'
+    delete:
+      tags:
+        - 'result_resolution'
+      summary: 'Remove Result Resolution'
+      description: 'Remove existing Result Resolution'
+      parameters:
+        - in: query
+          name: id
+          description: 'ID of the Result Resolution for removal'
+          type: integer
+          required: true
+        - in: query
+          name: projectId
+          description: 'ID of the Project holding Result Resolution'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Result Resolution was removed'
+  /stats/testrun:
+    post:
+      tags:
+        - 'stats'
+      summary: 'Get statistics for Test Runs of Test Suite'
+      description: 'Test Runs stats for Test Suite'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'Test Run ID'
+      responses:
+        200:
+          description: 'Test Suite stats'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'Test Run ID'
+              start_time:
+                type: string
+                description: 'Test Run start time'
+              finish_time:
+                type: string
+                description: 'Test Run finish time'
+              passed:
+                type: integer
+                description: 'Number of passed tests (`final_results` table)'
+              failed:
+                type: integer
+                description: 'Number of failed tests (`final_results` table)'
+              not_executed:
+                type: integer
+                description: 'Number of not executed tests (`final_results` table)'
+              in_progress:
+                type: integer
+                description: 'Number of tests in progress (`final_results` table)'
+              pending:
+                type: integer
+                description: 'Number of pending tests (`final_results` table)'
+              total:
+                type: integer
+                description: 'Total number of tests in Test Run'
+              app_issue:
+                type: integer
+                description: 'Number of tests having "Application Issue" resolution (`result_resolution` table)'
+              warning:
+                type: integer
+                description: 'Number of tests having "Environment Issue", "Test Issue" or "Test Design Issue" resolution (`result_resolution` table)'
+              not_assigned:
+                type: integer
+                description: 'Number of failed tests not assigned to anyone'
+              other:
+                type: integer
+                description: 'Strange algorithm is used in to calculate this, need to check with Vlad'
+          examples:
+            application/json: |
+              [
+                {
+                  "id": 1,
+                  "start_time": "2017-12-01 00:00:01.0",
+                  "finish_time": "2017-12-01 01:00:01.0",
+                  "passed": 1,
+                  "failed": 1,
+                  "not_executed": 0,
+                  "in_progress": 0,
+                  "pending": 0,
+                  "total": 2,
+                  "app_issue": 1
+                  "warning": 0,
+                  "not_assigned": 1,
+                  "other": 0,
+                }
+              ]
+  /suite/get:
+    post:
+      tags:
+        - 'testsuite'
+      summary: 'Get Test Suites'
+      description: "Get list of Test Suites by search criteria"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: withChildren
+          description: '1/0 - Flag for including Suite Tests in the response'
+          type: integer
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              project_id:
+                type: integer
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            $ref: '#definitions/TestSuite'
+          examples:
+            application/json: |
+              [
+                {
+                  "project_id": 1,
+                  "name": "All Tests",
+                  "id": 1
+                }
+              ]
+            application/json (withChildren = 1): |
+              [
+                {
+                  "project_id": 1,
+                  "name": "All tests",
+                  "id": 1,
+                  "tests": [
+                    {
+                      "test_suite_id": 3,
+                      "manual_duration": null,
+                      "project_id": 1,
+                      "name": "Neutral Loss Search - Tolerance field does not allow entry of invalid numeric values",
+                      "developer": null,
+                      "id": 5,
+                      "body": null,
+                      "results": [
+                        {
+                          "test_run_id": 3,
+                          "debug": 0,
+                          "test": {
+                            "test_suite_id": 3,
+                            "manual_duration": null,
+                            "project_id": 1,
+                            "name": "Neutral Loss Search - Tolerance field does not allow entry of invalid numeric values",
+                            "developer": null,
+                            "id": 5,
+                            "body": null,
+                            "results": null
+                          },
+                          "log": null,
+                          "final_result": {
+                            "color": 1,
+                            "name": "Failed",
+                            "id": 1
+                          },
+                          "project_id": 1,
+                          "finish_date": 1514316018000,
+                          "assigned_user": null,
+                          "comment": null,
+                          "id": 5,
+                          "fail_reason": "TestCleanup method ... threw exception...",
+                          "updated": 1514456869000,
+                          "test_resolution": {
+                            "color": 3,
+                            "project_id": null,
+                            "name": "Not Assigned",
+                            "id": 1
+                          },
+                          "final_result_updated": 1514316018000,
+                          "start_date": 1514315810000
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+  /suite/create:
+    post:
+      tags:
+        - 'testsuite'
+      summary: 'Create or update Test Suite'
+      description: "Create or update Test Suite using given data"
+      consumes:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with Test Suite data'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              project_id:
+                type: integer
+      responses:
+        200:
+          description: 'Test Suite was created/updated (ID of created/updated Test Suite is in the "id" header).'
+  /suite:
+    delete:
+      tags:
+        - 'testsuite'
+      summary: 'Remove Test Suite'
+      description: "Remove Test Suite by ID"
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          required: true
+        - in: query
+          name: projectId
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Test Suite was removed'
+  /test/get:
+    post:
+      tags:
+        - 'test'
+      summary: 'Get Tests'
+      description: "Get list of Tests by search criteria"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: withChildren
+          description: '1/0 - Flag for including test results in the response'
+          type: integer
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              body:
+                type: string
+              test_suite_id:
+                type: integer
+              project_id:
+                type: integer
+              developer:
+                type: integer
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            type: array
+            items:
+              $ref: '#definitions/Test'
+          examples:
+            application/json: |
+              [
+                {
+                  "test_suite_id": 1,
+                  "manual_duration": null,
+                  "project_id": 1,
+                  "name": "Demo test 1",
+                  "developer": null,
+                  "id": 1,
+                  "body": null
+                }
+              ]
+            application/json (withChildren = 1): |
+              [
+                {
+                  "test_suite_id": 1,
+                  "manual_duration": null,
+                  "project_id": 1,
+                  "name": "Demo test 1",
+                  "developer": null,
+                  "id": 1,
+                  "body": null,
+                  "results": [
+                    {
+                      "test_run_id": 1,
+                      "debug": 0,
+                      "test": {
+                        "test_suite_id": 1,
+                        "manual_duration": null,
+                        "project_id": 1,
+                        "name": "Demo test 1",
+                        "developer": null,
+                        "id": 1,
+                        "body": null,
+                        "results": null
+                      },
+                      "log": "Test log...",
+                      "final_result": {
+                        "color": 1,
+                        "name": "Failed",
+                        "id": 1
+                      },
+                      "project_id": 1,
+                      "finish_date": 1512086461000,
+                      "assigned_user": {
+                        "viewer": 1,
+                        "manager": 1,
+                        "project_id": 1,
+                        "admin": 1,
+                        "user": {
+                          "manager": 1,
+                          "pass": "e10adc3949ba59abbe56e057f20f883e",
+                          "user_name": "p.parker",
+                          "session_code": null,
+                          "second_name": "parker",
+                          "admin": 1,
+                          "session_created": null,
+                          "id": 1,
+                          "first_name": "peter",
+                          "updated": null
+                        },
+                        "engineer": 1
+                      },
+                      "comment": "Test result comment",
+                      "id": 1,
+                      "fail_reason": "1",
+                      "updated": null,
+                      "test_resolution": {
+                        "color": 3,
+                        "project_id": null,
+                        "name": "Not Assigned",
+                        "id": 1
+                      },
+                      "final_result_updated": null,
+                      "start_date": 1512086401000
+                    }
+                  ]
+                }
+              ]
+  /test/create:
+    post:
+      tags:
+        - 'test'
+      summary: 'Create or update Test'
+      description: "Create or update Test using given data"
+      consumes:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with Test data'
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              body:
+                type: string
+              test_suite_id:
+                type: integer
+              project_id:
+                type: integer
+              manual_duration:
+                type: string
+              developer:
+                type: integer
+      responses:
+        200:
+          description: 'Test was created/updated (ID of created/updated Test is in the "id" header).'
+  /test:
+    delete:
+      tags:
+        - 'test'
+      summary: 'Remove Test'
+      description: "Remove Test by ID"
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          required: true
+        - in: query
+          name: projectId
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Test was removed'
+  /testresult/get:
+    post:
+      tags:
+        - 'testresult'
+      summary: 'Get Test Results'
+      description: "Get list of Test Results by search criteria"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              final_result:
+                type: object
+                properties:
+                  id:
+                    type: integer
+              test_run_id:
+                type: integer
+              test_resolution:
+                type: object
+                properties:
+                  id:
+                    type: integer
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            $ref: '#definitions/TestResult'
+          examples:
+            application/json: |
+              [
+                {
+                  "test_run_id": 1,
+                  "debug": 0,
+                  "test": {
+                    "test_suite_id": 1,
+                    "manual_duration": null,
+                    "project_id": 1,
+                    "name": "Demo test 1",
+                    "developer": null,
+                    "id": 1,
+                    "body": null,
+                    "results": null
+                  },
+                  "log": "Test log...",
+                  "final_result": {
+                    "color": 1,
+                    "name": "Failed",
+                    "id": 1
+                  },
+                  "project_id": 1,
+                  "finish_date": 1512086461000,
+                  "assigned_user": {
+                    "viewer": 1,
+                    "manager": 1,
+                    "project_id": 1,
+                    "admin": 1,
+                    "user": {
+                      "manager": 1,
+                      "pass": "e10adc3949ba59abbe56e057f20f883e",
+                      "user_name": "p.parker",
+                      "session_code": null,
+                      "second_name": "parker",
+                      "admin": 1,
+                      "session_created": null,
+                      "id": 1,
+                      "first_name": "peter",
+                      "updated": null
+                    },
+                    "engineer": 1
+                  },
+                  "comment": "Test result comment",
+                  "id": 1,
+                  "fail_reason": "1",
+                  "updated": null,
+                  "test_resolution": {
+                    "color": 3,
+                    "project_id": null,
+                    "name": "Not Assigned",
+                    "id": 1
+                  },
+                  "final_result_updated": null,
+                  "start_date": 1512086401000
+                }
+              ]
+  /testresult/create:
+    post:
+      tags:
+        - 'testresult'
+      summary: 'Create or update Test Result'
+      description: "Create or update Test Result using given data"
+      consumes:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with Test Result data'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              project_id:
+                type: integer
+                description: 'ID of related Project'
+              test:
+                type: object
+                description: 'Related test'
+                properties:
+                  id:
+                    type: integer
+              final_result:
+                type: object
+                description: 'Final Result assigned after investigation. Option from table `final_results`'
+                properties:
+                  id:
+                    type: integer
+              comment:
+                type: string
+                description: 'Comment regarding Test Result'
+              test_run_id:
+                type: integer
+                description: 'ID of related Test Run'
+              test_resolution:
+                type: object
+                description: 'Test resolution (reason why test failed). Option from table `result_resolution`'
+                properties:
+                  id:
+                    type: integer
+              debug:
+                type: integer
+                description: 'Debug flag'
+              updated:
+                type: string
+                description: 'Test Result last update date (format: yyyy-MM-dd HH:mm:ss)'
+              log:
+                type: string
+                description: 'Log of the Test'
+              start_date:
+                type: string
+                description: 'Test start date (format: yyyy-MM-dd HH:mm:ss)'
+              finish_date:
+                type: string
+                description: 'Test finish date (format: yyyy-MM-dd HH:mm:ss)'
+              final_result_updated:
+                type: string
+                description: 'Test Final Result last update date (format: yyyy-MM-dd HH:mm:ss)'
+              fail_reason:
+                type: string
+                description: 'Description of the fail reason'
+              assigned_user:
+                type: object
+                description: 'User assigned to investigate Test Result'
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+      responses:
+        200:
+          description: 'Test Run was created/updated'
+  /testresult:
+    delete:
+      tags:
+        - 'testresult'
+      summary: 'Remove Test Run'
+      description: "Remove Test Run by ID"
+      parameters:
+        - in: query
+          name: id
+          description: 'ID of the Test Run for removal'
+          type: integer
+          required: true
+        - in: query
+          name: projectId
+          description: 'ID of the Project holding Test Run'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Test Run was removed'
+  /testrun/get:
+    post:
+      tags:
+        - 'testrun'
+      summary: 'Get Test Runs'
+      description: "Get list of Test Runs by search criteria"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: withChildren
+          description: '1/0 - Flag for including test details in the response'
+          type: integer
+        - in: body
+          name: filter
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'ID of the Test Run'
+              build_name:
+                type: string
+                description: 'Build name'
+              milestone_id:
+                type: integer
+                description: 'ID of related Milestone'
+              test_suite_id:
+                type: integer
+                description: 'ID of related Test Suite'
+              project_id:
+                type: integer
+                description: 'ID of Project'
+              execution_environment:
+                type: string
+                description: 'Execution environment name'
+              debug:
+                type: integer
+                description: 'Debug flag'
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            $ref: '#definitions/TestRun'
+          examples:
+            application/json: |
+              [
+                {
+                  "start_time": "2017-12-01 00:00:01.0",
+                  "test_suite_id": 1,
+                  "debug": 0,
+                  "project_id": 1,
+                  "author": "Peter",
+                  "milestone_id": 1,
+                  "milestone_name": "Demo Milestone",
+                  "execution_environment": "Staging",
+                  "id": 1,
+                  "testsuite_name": "All tests",
+                  "finish_time": "2017-12-01 01:00:01.0",
+                  "build_name": "Demo build"
+                }
+              ]
+            application/json (withChildren = 1): |
+              [
+                {
+                  "start_time": "2017-12-01 00:00:01.0",
+                  "test_suite_id": 1,
+                  "debug": 0,
+                  "project_id": 1,
+                  "author": "Peter",
+                  "milestone_id": 1,
+                  "milestone_name": "Demo Milestone",
+                  "execution_environment": "Staging",
+                  "id": 1,
+                  "testsuite_name": "All tests",
+                  "finish_time": "2017-12-01 01:00:01.0",
+                  "build_name": "Demo build",
+                  "testResults": [
+                    {
+                      "test_run_id": 1,
+                      "debug": 0,
+                      "test": {
+                        "test_suite_id": 1,
+                        "manual_duration": null,
+                        "project_id": 1,
+                        "name": "Demo test 2",
+                        "developer": null,
+                        "id": 2,
+                        "body": null,
+                        "results": null
+                      },
+                      "log": "Test log...",
+                      "final_result": {
+                        "color": 5,
+                        "name": "Passed",
+                        "id": 2
+                      },
+                      "project_id": 1,
+                      "finish_date": 1512086521000,
+                      "assigned_user": {
+                        "viewer": 1,
+                        "manager": 1,
+                        "project_id": 1,
+                        "admin": 1,
+                        "user": {
+                          "manager": 1,
+                          "pass": "e10adc3949ba59abbe56e057f20f883e",
+                          "user_name": "p.parker",
+                          "session_code": null,
+                          "second_name": "parker",
+                          "admin": 1,
+                          "session_created": null,
+                          "id": 1,
+                          "first_name": "peter",
+                          "updated": null
+                        },
+                        "engineer": 1
+                      },
+                      "comment": "Test result comment",
+                      "id": 2,
+                      "fail_reason": "1",
+                      "updated": null,
+                      "test_resolution": {
+                        "color": 1,
+                        "project_id": null,
+                        "name": "Application Issue",
+                        "id": 2
+                      },
+                      "final_result_updated": null,
+                      "start_date": 1512086461000
+                    }
+                  ]
+                }
+              ]
+  /testrun/create:
+    post:
+      tags:
+        - 'testrun'
+      summary: 'Create or update Test Run'
+      description: "Create or update Test Run using given data"
+      consumes:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with Test Run data'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              build_name:
+                type: string
+                description: 'Build name'
+              start_time:
+                type: string
+                description: 'Test run start time (format: yyyy-MM-dd HH:mm:ss)'
+              milestone_id:
+                type: integer
+                description: 'ID of related Milestone'
+              test_suite_id:
+                type: integer
+                description: 'ID of related Test Suite'
+              project_id:
+                type: integer
+                description: 'ID of Project'
+              execution_environment:
+                type: string
+                description: 'Execution environment name'
+              finish_time:
+                type: string
+                description: 'Test run end time (format: yyyy-MM-dd HH:mm:ss)'
+              author:
+                type: string
+                description: 'Person started test run'
+              debug:
+                type: integer
+                description: 'Debug flag'
+      responses:
+        200:
+          description: 'Test Run was created/updated (ID of created/updated Test Run is in the "id" header).'
+  /testrun:
+    delete:
+      tags:
+        - 'testrun'
+      summary: 'Remove Test Run'
+      description: "Remove Test Run by ID"
+      parameters:
+        - in: query
+          name: id
+          description: 'ID of the Test Run for removal'
+          type: integer
+          required: true
+        - in: query
+          name: projectId
+          description: 'ID of the Project holding Test Run'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Test Run was removed'
+  /users:
+    get:
+      tags:
+        - 'user'
+      summary: 'Get UsersServlet'
+      description: 'Get list of all UsersServlet in the system'
+      produces:
+        - 'application/json'
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            type: array
+            items:
+              $ref: '#definitions/User'
+          examples:
+            application/json: |
+              [
+                {
+                  "manager": 1,
+                  "pass": "e10adc3949ba59abbe56e057f20f883e",
+                  "user_name": "p.parker",
+                  "session_code": "cC5wYXJrZXI6ZTEwYWRjMzk0OWJhNTlhYmJlNTZlMDU3ZjIwZjg4M2U=",
+                  "second_name": "parker",
+                  "admin": 1,
+                  "session_created": "2017-12-26 12:03:53.0",
+                  "id": 1,
+                  "first_name": "peter",
+                  "updated": "2017-12-26 12:08:17.0"
+                }
+              ]
+    post:
+      tags:
+        - 'user'
+      summary: 'Create or modify User'
+      description: 'Create new user or modify existing'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with user data. If user with given ID already exists, its data will be updated'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              first_name:
+                type: string
+              second_name:
+                type: string
+              user_name:
+                type: string
+              pass:
+                type: string
+              admin:
+                type: integer
+                decription: "1/0 - user will/won't have 'Admin' role"
+              manager:
+                type: integer
+                decription: "1/0 - user will/won't have 'Manager' role"
+      responses:
+        200:
+          description: 'User was created/updated (ID of created/updated user is in the "id" response header).'
+    delete:
+      tags:
+        - 'user'
+      summary: 'Remove User'
+      description: 'Remove existing user'
+      parameters:
+        - in: query
+          name: id
+          description: 'ID of the User for removal'
+          type: string
+      responses:
+        200:
+          description: 'User was removed'
+  /users/auth:
+    get:
+      tags:
+        - 'user'
+      summary: 'Authenticate User'
+      description: 'Get session code for user'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: user
+          description: 'Username'
+          type: string
+          default: 'p.parker'
+        - in: query
+          name: password
+          description: 'MD5 hash of user password'
+          type: string
+          default: 'e10adc3949ba59abbe56e057f20f883e'
+      responses:
+        200:
+          description: 'User data with session_code'
+          schema:
+            $ref: '#definitions/User'
+          examples:
+            application/json: |
+              {
+                  "id": 1,
+                  "first_name": "peter",
+                  "second_name": "parker",
+                  "user_name": "p.parker",
+                  "pass": "",
+                  "updated": "2017-12-26 11:58:04.0",
+                  "session_code": "cC5wYXJrZXI6ZTEwYWRjMzk0OWJhNTlhYmJlNTZlMDU3ZjIwZjg4M2U=",
+                  "session_created": "2017-12-26 11:58:04.0",
+                  "admin": 1,
+                  "manager": 1
+              }
+  /users/isAuthorized:
+    get:
+      tags:
+        - 'user'
+      summary: "Get User's current session"
+      description: "Get User's current session"
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: user
+          description: 'Username'
+          type: string
+          default: 'p.parker'
+        - in: query
+          name: password
+          description: 'MD5 hash of user password'
+          type: string
+          default: 'e10adc3949ba59abbe56e057f20f883e'
+      responses:
+        200:
+          description: 'List of Projects for current User'
+          schema:
+            $ref: '#definitions/User'
+          examples:
+            application/json: |
+              {
+                  "id": 1,
+                  "first_name": "peter",
+                  "second_name": "parker",
+                  "user_name": "p.parker",
+                  "pass": "",
+                  "updated": "2017-12-26 12:02:46.0",
+                  "session_code": "cC5wYXJrZXI6ZTEwYWRjMzk0OWJhNTlhYmJlNTZlMDU3ZjIwZjg4M2U=",
+                  "session_created": "2017-12-26 12:02:46.0",
+                  "admin": 1,
+                  "manager": 1
+              }
+  /users/permissions:
+    get:
+      tags:
+        - 'user'
+      summary: 'Get User Permissions for Projects'
+      description: 'Get list of Projects and Permissions for currently authorized user'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: projectId
+          description: 'Optional filter by Project ID'
+          type: integer
+      responses:
+        200:
+          description: 'List of Projects for current User'
+          examples:
+            application/json: |
+              [
+                {
+                  "viewer": 0,
+                  "manager": 0,
+                  "project_id": 1,
+                  "admin": 0,
+                  "user": {
+                    "manager": 1,
+                    "pass": "e10adc3949ba59abbe56e057f20f883e",
+                    "user_name": "p.parker",
+                    "session_code": "cC5wYXJrZXI6ZTEwYWRjMzk0OWJhNTlhYmJlNTZlMDU3ZjIwZjg4M2U=",
+                    "second_name": "parker",
+                    "admin": 1,
+                    "session_created": "2017-12-26 12:14:25.0",
+                    "id": 1,
+                    "first_name": "peter",
+                    "updated": "2017-12-26 12:14:25.0"
+                  },
+                  "engineer": 0
+                }
+              ]
+    post:
+      tags:
+        - 'user'
+      summary: 'Add User to Project'
+      description: 'Add User to Project. If user is already added to given project, permissions will be updated accordingly.'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: data
+          description: 'JSON with user permissions settings for project'
+          schema:
+            type: object
+            properties:
+              user:
+                type: object
+                properties:
+                  id:
+                    type: integer
+              project_id:
+                type: integer
+              admin:
+                type: integer
+                decription: "1/0 - user will/won't have 'Admin' role"
+              manager:
+                type: integer
+                decription: "1/0 - user will/won't have 'Manager' role"
+              engineer:
+                type: integer
+                decription: "1/0 - user will/won't have 'Engineer' role"
+              viewer:
+                type: integer
+                decription: "1/0 - user will/won't have 'Engineer' role"
+      responses:
+        200:
+          description: 'Permissions were granted/modified'
+    delete:
+      tags:
+        - 'user'
+      summary: 'Remove User from Project'
+      description: 'Remove User from Project'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: projectId
+          description: 'ID of the Project'
+          type: integer
+          required: true
+        - in: query
+          name: userId
+          description: 'ID of the User'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'User was removed'
+
+definitions:
+  FinalResult:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      color:
+        type: integer
+  Milestone:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        project_id:
+          type: integer
+  Project:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+  TestSuite:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      project_id:
+        type: integer
+      tests:
+        type: array
+        description: 'List of Tests in Suite. Optional.'
+        items:
+          $ref: '#definitions/Test'
+  TestRun:
+    type: object
+    properties:
+      id:
+        type: integer
+      build_name:
+        type: string
+      milestone_id:
+        type: integer
+      test_suite_id:
+        type: integer
+      project_id:
+        type: integer
+      execution_environment:
+        type: string
+      start_time:
+        type: string
+      finish_time:
+        type: string
+      author:
+        type: string
+      debug:
+        type: integer
+      testResults:
+        type: array
+        description: 'List of Test Results in Suite. Optional.'
+        items:
+          $ref: '#definitions/TestResult'
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+      first_name:
+        type: string
+      second_name:
+        type: string
+      user_name:
+        type: string
+      pass:
+        type: string
+        description: 'MD5 hash of user password'
+      updated:
+        type: integer
+        description: 'Last update date'
+      session_code:
+        type: string
+        description: 'Code of the user session'
+      session_created:
+        type: string
+        description: 'Date of the user session start'
+      admin:
+        type: string
+        description: 'Indication that user has Admin role'
+      manager:
+        type: string
+        description: 'Indication that user has Manager role'
+  ProjectUser:
+    type: object
+    properties:
+      user:
+        type: object
+        $ref: '#definitions/User'
+      project_id:
+        type: integer
+      admin:
+        type: integer
+      manager:
+        type: integer
+      engineer:
+        type: integer
+      viewer:
+        type: integer
+  ResultResolution:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      color:
+        type: integer
+      project_id:
+        type: integer
+  Test:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      body:
+        type: string
+      test_suite_id:
+        type: integer
+      project_id:
+        type: integer
+      manual_duration:
+        type: string
+      developer:
+        type: integer
+      results:
+        type: array
+        description: 'List of Test Results for Test. Optional.'
+        items:
+          $ref: '#definitions/TestResult'
+  TestResult:
+    type: object
+    properties:
+      id:
+        type: integer
+      project_id:
+        type: integer
+        description: 'ID of related Project'
+      test:
+        $ref: '#definitions/Test'
+      final_result:
+        $ref: '#definitions/FinalResult'
+      comment:
+        type: string
+        description: 'Comment regarding Test Result'
+      test_run_id:
+        type: integer
+        description: 'ID of related Test Run'
+      test_resolution:
+        $ref: '#definitions/ResultResolution'
+      debug:
+        type: integer
+        description: 'Debug flag'
+      updated:
+        type: string
+        description: 'Test Result last update date (format: yyyy-MM-dd HH:mm:ss)'
+      log:
+        type: string
+        description: 'Log of the Test'
+      start_date:
+        type: string
+        description: 'Test start date (format: yyyy-MM-dd HH:mm:ss)'
+      finish_date:
+        type: string
+        description: 'Test finish date (format: yyyy-MM-dd HH:mm:ss)'
+      final_result_updated:
+        type: string
+        description: 'Test Final Result last update date (format: yyyy-MM-dd HH:mm:ss)'
+      fail_reason:
+        type: string
+        description: 'Description of the fail reason'
+      assigned_user:
+        $ref: '#definitions/ProjectUser'

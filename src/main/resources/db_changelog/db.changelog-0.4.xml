@@ -1,0 +1,1577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="AppSettingsToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_APP_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_ldap_auth VARCHAR(1),
+            IN request_base_auth VARCHAR(1),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            INSERT INTO union_reporting.app_settings (ldap_auth, base_auth, id)
+            VALUES (
+            request_ldap_auth,
+            request_base_auth,
+            request_id
+            )
+            ON DUPLICATE KEY UPDATE
+            ldap_auth= IF(request_ldap_auth = '', ldap_auth, request_ldap_auth),
+            base_auth = IF(request_base_auth = '', base_auth, request_base_auth)
+            ;
+
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_APP_SETTINGS`(
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            SELECT * FROM union_reporting.app_settings;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="ProjectsToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            DECLARE EXIT HANDLER FOR SQLSTATE '42000'
+            SELECT 'No Permissions';
+            IF (1!=(SELECT admin From union_reporting.users WHERE id = UID) AND 1!=(SELECT manager From union_reporting.users WHERE id = UID)) THEN
+            CALL raise_error;
+            END IF;
+
+            INSERT INTO union_reporting.projects (id, name, customer_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id)
+            ;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_PROJECT`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(10),
+            IN request_customer_id VARCHAR(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            SELECT DISTINCT proj.*
+            FROM union_reporting.projects as proj
+            LEFT JOIN union_reporting.user_roles as us_r ON proj.id = us_r.project_id
+            LEFT JOIN union_reporting.customer as cus_r ON proj.customer_id = cus_r.id
+            WHERE (request_id = '' OR proj.id=request_id)
+            AND (request_name = '' OR proj.name=request_name)
+            AND (request_customer_id = '' OR proj.customer_id=request_customer_id)
+            AND (UID = ''
+            OR user_id=UID
+            OR 1=(SELECT admin From union_reporting.users WHERE id = UID)
+            OR 1=(SELECT head From union_reporting.users WHERE id = UID)
+            OR 1=(SELECT unit_coordinator From union_reporting.users WHERE id = UID)
+            OR 1=(SELECT manager From union_reporting.users WHERE id = UID)
+            OR 1=(SELECT auditor From union_reporting.users WHERE id = UID)
+            OR 1=(SELECT audit_admin From union_reporting.users WHERE id = UID)
+            OR account_manager_id = UID
+            );
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_PROJECT`(
+            IN UID VARCHAR(10),
+            IN request_id VARCHAR(10)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID AND admin = 1)
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            DELETE FROM union_reporting.projects
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="ImportTokenToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_IMPORT_TOKEN`(
+            IN UID VARCHAR(10),
+            IN request_import_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.admin = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            Update union_reporting.projects Set  import_token=request_import_token Where id = request_project_id;
+
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_IMPORT_TOKEN`(
+            IN UID VARCHAR(10),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            IF(UID != '1')
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            SELECT id, import_token FROM projects where id = request_project_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="MilestoneToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_MILESTONE`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(500),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            INSERT INTO union_reporting.milestones (id, name, project_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            request_project_id)
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            project_id = request_project_id
+            ;
+            Select * from milestones Where id=LAST_INSERT_ID();
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_MILESTONE`(
+            IN UID VARCHAR(11),
+            IN request_id VARCHAR(500),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(5000)
+            )
+            BEGIN
+            SELECT *
+            FROM union_reporting.milestones
+            WHERE (request_id= '' OR id=request_id)
+            AND (request_name = '' OR name=request_name)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            ;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_MILESTONE`(
+            IN UID VARCHAR(10),
+            IN request_id varchar(10)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1
+            OR (union_reporting.user_roles.project_id = (SELECT project_id from milestones where id = request_id)
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            DELETE FROM union_reporting.milestones
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_AUDIT`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_status_id varchar(11),
+            In request_created varchar(100),
+            In request_started varchar(100),
+            In request_progress_finished varchar(100),
+            In request_due_date varchar(100),
+            In request_submitted varchar(100),
+            In request_result varchar(3),
+            In request_summary mediumtext,
+            In request_service_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            Declare AA INT(1);
+            SET AA = (SELECT audit_admin From union_reporting.users WHERE id = UID);
+
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)
+            AND !EXISTS(SELECT * From union_reporting.auditor_assignments WHERE UID = UID AND request_id=request_id)) THEN
+            CALL raise_error;
+            END IF;
+
+            INSERT INTO union_reporting.audits (`id`, `project_id`, `started`, `progress_finished`, `due_date`, `submitted`, `result`, `summary`, `service_type_id`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_project_id,
+            IF(request_started='',null,FROM_UNIXTIME(request_started)),
+            IF(request_progress_finished='',null,FROM_UNIXTIME(request_progress_finished)),
+            IF(request_due_date='',DATE_ADD((select submitted from (select max(submitted) as submitted from union_reporting.audits where project_id = request_project_id) as `tmp`), INTERVAL +6 MONTH ),FROM_UNIXTIME(request_due_date)),
+            IF(request_submitted='',null,FROM_UNIXTIME(request_submitted)),
+            IF(request_result='',null,request_result),
+            IF(request_summary='',null,request_summary),
+            IF(request_service_id='', 1, request_service_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            status_id = IF(request_status_id='' OR (request_status_id = 4 AND AA = 0),status_id,request_status_id),
+            result = IF(request_result='',result,request_result),
+            created = IF(request_created='',created,FROM_UNIXTIME(request_created)),
+            started = IF(request_started='',started,FROM_UNIXTIME(request_started)),
+            progress_finished = IF(request_progress_finished='',progress_finished,FROM_UNIXTIME(request_progress_finished)),
+            due_date = IF(request_due_date!='' AND AA=1,FROM_UNIXTIME(request_due_date),due_date),
+            submitted = IF(request_submitted='',submitted,FROM_UNIXTIME(request_submitted)),
+            summary = IF(request_summary='',summary,IF(request_summary='$blank', null, request_summary)),
+            service_type_id = IF(request_service_id='',service_type_id, request_service_id)
+            ;
+
+            Select * from union_reporting.audits Where id=LAST_INSERT_ID();
+
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_AUDIT`(
+            In request_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)) THEN
+            signal sqlstate '23515';
+            END IF;
+
+            DELETE FROM union_reporting.audits
+            WHERE id=request_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_AUDIT`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_status_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+
+            IF NOT EXISTS (
+            SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = IF(request_project_id='', (Select project_id from union_reporting.audits where id=request_id and (status_id = 4 OR status_id = 3)), request_project_id)
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            SELECT *
+            FROM union_reporting.audits
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            AND (request_status_id = '' OR status_id=request_status_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditAttachmentToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_AUDIT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_AUDIT_ATTACH`(
+            In request_id varchar(11),
+            In request_audit_id varchar(11),
+            In request_path varchar(255),
+            In UID varchar(11)
+            )
+            BEGIN
+
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)
+            AND !EXISTS(SELECT * From union_reporting.auditor_assignments WHERE user_id = user_id AND audit_id=audit_id)) THEN
+            signal sqlstate '23515';
+            END IF;
+
+            IF 4 = (Select status_id from union_reporting.audits where id = request_audit_id)
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            INSERT INTO union_reporting.audit_attachments (`audit_id`, `path`)
+            VALUES (request_audit_id, request_path);
+
+            Select * from audit_attachments Where id=LAST_INSERT_ID();
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_AUDIT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_AUDIT_ATTACH`(
+            In request_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)
+            AND !EXISTS(SELECT * From union_reporting.auditor_assignments WHERE UID = UID AND audit_id=audit_id)) THEN
+            signal sqlstate '23515';
+            END IF;
+
+            DELETE FROM union_reporting.audit_attachments
+            WHERE id=request_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_AUDIT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_AUDIT_ATTACH`(
+            In request_id varchar(11),
+            In request_audit_id varchar(11),
+            In UID varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = (SELECT project_id FROM audits Where id = request_audit_id)
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN signal sqlstate '23515';
+            END IF;
+
+            SELECT *
+            FROM union_reporting.audit_attachments
+            WHERE (request_audit_id = '' OR audit_id=request_audit_id) AND (request_id = '' OR id=request_id)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditCommentToUID" author="v.kostyukevich">
+    <sql endDelimiter="#">
+        DROP procedure IF EXISTS `union_reporting`.`INSERT_AUDIT_COMMENT`;
+
+        #
+
+        CREATE PROCEDURE `union_reporting`.`INSERT_AUDIT_COMMENT`(
+        IN request_id varchar(11),
+        IN request_audit_id varchar(11),
+        IN request_user_id VARCHAR(11),
+        IN comment_body Text,
+        IN UID VARCHAR(11)
+        )
+        BEGIN
+        DECLARE EXIT HANDLER FOR SQLSTATE '42000'
+        IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+        right join union_reporting.users on union_reporting.user_roles.user_id = id
+        where id = UID
+        AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1
+        OR (union_reporting.user_roles.project_id = (SELECT project_id FROM audits Where id = request_audit_id)
+        AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+        THEN
+        signal sqlstate '23515';
+        END IF;
+
+        INSERT INTO union_reporting.audit_comments (`id`, `audit_id`, `user_id`, `body`)
+        VALUES (
+        IF(request_id='',null,request_id),
+        request_audit_id,
+        request_user_id,
+        comment_body
+        )
+        ON DUPLICATE KEY UPDATE
+        body = IF(comment_body='',body,comment_body)
+        ;
+
+        Select * from audit_comments Where id=LAST_INSERT_ID();
+
+        END
+
+        #
+
+        DROP procedure IF EXISTS `union_reporting`.`SELECT_AUDIT_COMMENT`;
+
+        #
+
+        CREATE PROCEDURE `union_reporting`.`SELECT_AUDIT_COMMENT`(
+        In request_audit_id varchar(11),
+        In request_user_id varchar(11),
+        In UID VARCHAR(11)
+        )
+        BEGIN
+        IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+        right join union_reporting.users on union_reporting.user_roles.user_id = id
+        where id = UID
+        AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+        OR (union_reporting.user_roles.project_id = (SELECT project_id FROM audits Where id = request_audit_id)
+        AND (user_roles.admin = 1 OR user_roles.manager = 1))))
+        THEN
+        signal sqlstate '23515';
+        END IF;
+
+        SELECT * From union_reporting.audit_comments
+        WHERE (request_audit_id = '' OR audit_id=request_audit_id)
+        AND (request_user_id  = '' OR user_id=request_user_id)
+        ORDER BY created DESC
+        ;
+
+        END
+
+    </sql>
+    <rollback>
+    </rollback>
+</changeSet>
+
+    <changeSet id="AuditorToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            DECLARE EXIT HANDLER FOR SQLSTATE '42000'
+            SELECT 'No Permissions';
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)) THEN
+            CALL raise_error;
+            END IF;
+
+            INSERT INTO union_reporting.auditor_assignments (`audit_id`, `user_id`)
+            VALUES (
+            request_audit_id,
+            request_user_id
+            );
+
+            Select * from auditor_assignments Where id=LAST_INSERT_ID();
+
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            DECLARE EXIT HANDLER FOR SQLSTATE '42000'
+            SELECT 'No Permissions';
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)) THEN
+            CALL raise_error;
+            END IF;
+
+            DELETE FROM union_reporting.auditor_assignments
+            WHERE audit_id=request_audit_id AND user_id=request_user_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = (SELECT project_id FROM audits Where id = request_audit_id)
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            SELECT union_reporting.users.*
+            FROM union_reporting.auditor_assignments
+            LEFT JOIN union_reporting.users ON union_reporting.auditor_assignments.user_id=union_reporting.users.id
+            WHERE (request_audit_id = '' OR union_reporting.auditor_assignments.audit_id=request_audit_id)
+            AND (request_user_id  = '' OR union_reporting.auditor_assignments.user_id=request_user_id)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditStatisticToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_AUDIT_STATS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_AUDIT_STATS`(
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1))
+            THEN signal sqlstate '23515';
+            END IF;
+
+            select
+            projects.*,
+            submitted.result,
+            submitted.id as last_submitted_id,
+            submitted.submitted as last_submitted_date,
+            created.service_type_id,
+            created.id as last_created_id,
+            created.due_date as last_created_due_date,
+            created.status_id,
+            audit_statuses.name as status_name from projects
+
+            LEFT JOIN
+            ((SELECT a.*
+            FROM `audits` a
+            LEFT JOIN `audits` b
+            ON a.project_id = b.project_id AND a.service_type_id = b.service_type_id AND a.created &lt; b.created
+                                                                                                     WHERE b.created is NULL) as created
+            ) ON projects.id = created.project_id
+
+            LEFT JOIN (
+            (SELECT a.*
+            FROM `audits` a
+            LEFT JOIN `audits` b
+            ON a.project_id = b.project_id AND a.service_type_id = b.service_type_id AND a.submitted &lt; b.submitted
+                                                                                                       WHERE b.submitted is NULL AND a.submitted is NOT NULL) as submitted
+            ) ON projects.id = submitted.project_id AND submitted.service_type_id = created.service_type_id
+
+            LEFT JOIN audit_statuses ON created.status_id = audit_statuses.id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditStatusToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_AUDIT_STATUS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_AUDIT_STATUS`(
+            In request_id varchar(11),
+            In UID varchar(11)
+            )
+            BEGIN
+            SELECT *
+            FROM union_reporting.audit_statuses
+            WHERE (request_id = '' OR id=request_id)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CreateEmailSettings" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            CREATE TABLE `union_reporting`.`email_settings` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `host` VARCHAR(100) NULL,
+            `user` VARCHAR(100) NULL,
+            `password` VARCHAR(1000) NULL,
+            `enabled` INT(1) NOT NULL DEFAULT 0,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_user VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            INSERT INTO email_settings (id,host, user, password, enabled)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled)
+            ;
+
+            Select * from email_settings Where id=(Select MAX(id) from email_settings);
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_EMAIL_SETTINGS`(
+            IN UID VARCHAR(11),
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            SELECT * FROM email_settings where (request_id = '' OR email_settings.id=request_id);
+            END
+
+            #
+
+            INSERT INTO `union_reporting`.`email_settings` (`id`, `enabled`) VALUES ('1', '0');
+
+        </sql>
+        <rollback>
+            DROP TABLE `union_reporting`.`email_settings`;
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_EMAIL_SETTINGS`;
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_EMAIL_SETTINGS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditSettings" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `union_reporting`.`app_settings`
+            ADD COLUMN `audits` INT(1) NOT NULL DEFAULT 1 AFTER `base_auth`;
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_APP_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_ldap_auth VARCHAR(1),
+            IN request_base_auth VARCHAR(1),
+            IN request_audits VARCHAR(1),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            INSERT INTO union_reporting.app_settings (audits, ldap_auth, base_auth, id)
+            VALUES (
+            request_audits,
+            request_ldap_auth,
+            request_base_auth,
+            request_id
+            )
+            ON DUPLICATE KEY UPDATE
+            ldap_auth= IF(request_ldap_auth = '', ldap_auth, request_ldap_auth),
+            base_auth = IF(request_base_auth = '', base_auth, request_base_auth),
+            audits = IF(request_audits = '', audits, request_audits)
+            ;
+
+            Select * from app_settings Where id=(Select MAX(id) from app_settings);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="FromEmailSettings" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `union_reporting`.`email_settings`
+            ADD COLUMN `from_email` VARCHAR(100) NOT NULL AFTER `enabled`;
+
+            #
+
+            ALTER TABLE `union_reporting`.`email_settings`
+            ADD COLUMN `port` INT(4) NOT NULL AFTER `from_email`;
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port)
+            ;
+
+            Select * from email_settings Where id=(Select MAX(id) from email_settings);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="BodyPatternToUID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_BODY_PATTERN`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_BODY_PATTERN`(
+            IN request_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_name VARCHAR(100),
+            IN UID varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.admin = 1 OR users.manager = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            INSERT INTO union_reporting.body_patterns (`id`, `name`, `project_id`) VALUES (
+            If(request_id ='', null, request_id),
+            request_name,
+            IF(request_project_id='', null, request_project_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            project_id = IF(request_project_id='', project_id, request_project_id)
+            ;
+
+            Select * from union_reporting.body_patterns Where id=LAST_INSERT_ID();
+
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_BODY_PATTERN`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_BODY_PATTERN`(
+            IN request_id VARCHAR(11),
+            IN UID varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.admin = 1 OR users.manager = 1
+            OR (union_reporting.user_roles.project_id = (Select project_id FROM union_reporting.body_patterns WHERE id = request_id)
+            AND (user_roles.admin = 1 OR user_roles.manager = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            DELETE FROM union_reporting.body_patterns
+            WHERE id=request_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_BODY_PATTERN`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_BODY_PATTERN`(
+            IN request_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_name VARCHAR(100),
+            IN UID varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.admin = 1 OR users.manager = 1 OR users.auditor = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            SELECT *
+            FROM union_reporting.body_patterns
+            WHERE (request_project_id = '' OR project_id = request_project_id)
+            AND (request_id = '' OR id = request_id)
+            AND (request_name = '' OR name = request_name);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuthEmailSettings" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `union_reporting`.`email_settings`
+            ADD COLUMN `use_auth` INT(1) NOT NULL DEFAULT 0 AFTER `port`;
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN request_use_auth varchar(1),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where users.id = UID
+            AND (users.admin = 1))
+            THEN
+            signal SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You have no permissions!';
+            END IF;
+
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port, use_auth)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port,
+            request_use_auth
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port),
+            use_auth = IF (request_use_auth='', use_auth, request_use_auth)
+            ;
+
+            Select * from email_settings Where id=(Select MAX(id) from email_settings);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="INSERT_CUSTOMER_to_UID" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_CUSTOMER`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_CUSTOMER`(
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(150),
+            IN request_coordinator_id VARCHAR(11),
+            IN request_accounting VARCHAR(1),
+            IN request_account_manager_id VARCHAR(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID
+            AND (users.unit_coordinator = 1 OR users.head = 1 OR users.account_manager = 1))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID
+            AND (users.unit_coordinator = 1 OR users.head = 1))
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer
+            where id = request_id AND account_manager_id = UID)
+            THEN
+            signal sqlstate '23515';
+            END IF;
+            END IF;
+
+
+            INSERT INTO union_reporting.customer (id, name, coordinator_id, accounting, account_manager_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_coordinator_id='',null,request_coordinator_id),
+            IF(request_accounting='',0,request_accounting),
+            IF(request_account_manager_id='',null,request_account_manager_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            coordinator_id = IF(request_coordinator_id='',coordinator_id,request_coordinator_id),
+            accounting = IF(request_accounting='',accounting,request_accounting),
+            account_manager_id = IF(request_account_manager_id='',account_manager_id, IF(request_account_manager_id='0',null,request_account_manager_id))
+            ;
+
+
+            Select * from union_reporting.customer Where id=LAST_INSERT_ID();
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_CUSTOMER`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_CUSTOMER`(
+            IN request_id VARCHAR(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+
+            SELECT id, ANY_VALUE(name) as name, ANY_VALUE(coordinator_id) as coordinator_id, ANY_VALUE(accounting) as accounting, ANY_VALUE(account_manager_id) as account_manager_id, ANY_VALUE(created) as created, sum(proj_id_with_customer.proj_id IS NOT NULL) as projects_count
+            FROM (
+            SELECT customer.*, projects.id as proj_id FROM union_reporting.customer
+            LEFT JOIN union_reporting.projects ON customer.id=projects.customer_id
+            UNION
+            SELECT customer.*, projects.id as proj_id  FROM union_reporting.customer
+            RIGHT JOIN union_reporting.projects ON customer.id=projects.customer_id
+            ) as proj_id_with_customer
+
+            WHERE proj_id_with_customer.id IS NOT NULL AND (request_id = '' OR id=request_id)
+            AND (proj_id_with_customer.account_manager_id = UID
+            OR 1 = (SELECT head From union_reporting.users WHERE id = UID)
+            OR 1 = (SELECT admin From union_reporting.users WHERE id = UID)
+            OR 1 = (SELECT manager From union_reporting.users WHERE id = UID)
+            OR 1 = (SELECT unit_coordinator From union_reporting.users WHERE id = UID)
+            OR 1 = UID
+            OR (SELECT user_id FROM customer_account_members WHERE user_id = UID AND customer_id = proj_id_with_customer.id)
+
+            ) group by proj_id_with_customer.id;
+
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_CUSTOMER`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_CUSTOMER`(
+            IN request_id VARCHAR(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID
+            AND (users.unit_coordinator = 1 OR users.head = 1))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            DELETE FROM union_reporting.customer WHERE id=request_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_CUSTOMER_COMMENT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_CUSTOMER_COMMENT`(
+            IN request_customer_id varchar(11),
+            IN request_user_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID AND (users.unit_coordinator = 1 OR users.head = 1))
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer WHERE id = request_customer_id AND account_manager_id = UID)
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer_account_members WHERE customer_id = request_customer_id AND user_id = UID)
+            THEN
+            signal sqlstate '23515';
+            END IF;
+            END IF;
+            END IF;
+
+            SELECT * From union_reporting.customer_comments
+            WHERE (request_customer_id = '' OR customer_id=request_customer_id)
+            And (request_user_id = '' OR user_id=request_user_id)
+            ORDER BY created DESC;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_CUSTOMER_ATTACHMENT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_CUSTOMER_ATTACHMENT`(
+            In request_id varchar(11),
+            In request_customer_id varchar(11),
+            In UID varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID AND (users.unit_coordinator = 1 OR users.head = 1))
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer WHERE id = request_customer_id AND account_manager_id = UID)
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer_account_members WHERE customer_id = request_customer_id AND user_id = UID)
+            THEN
+            signal sqlstate '23515';
+            END IF;
+            END IF;
+            END IF;
+
+            SELECT *
+            FROM union_reporting.customer_attachment
+            WHERE (request_customer_id = '' OR customer_id=request_customer_id) AND (request_id = '' OR id=request_id);
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_CUSTOMER_MEMBER`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_CUSTOMER_MEMBER`(
+            In request_id varchar(11),
+            In request_customer_id varchar(11),
+            In UID varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.users
+            where id = UID AND (users.unit_coordinator = 1 OR users.head = 1 OR UID = 1))
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer WHERE id = request_customer_id AND account_manager_id = UID)
+            THEN
+            IF NOT EXISTS (SELECT * FROM union_reporting.customer_account_members WHERE customer_id = request_customer_id AND user_id = UID)
+            THEN
+            signal sqlstate '23515';
+            END IF;
+            END IF;
+            END IF;
+
+
+            SELECT union_reporting.users.*, customer_id FROM union_reporting.customer_account_members
+            LEFT JOIN union_reporting.users ON union_reporting.customer_account_members.user_id = union_reporting.users.id
+            WHERE (request_customer_id = '' OR customer_id=request_customer_id) AND (request_id = '' OR user_id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="SELECT_RESULTS_STAT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_RESULTS_STAT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_RESULTS_STAT`(
+            In request_project_id varchar(11),
+            In request_testrun_started_from_date varchar(25),
+            In request_testrun_started_to_date varchar(25),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            Select 	test_results.test_run_id,
+            test_runs.start_time as test_run_started,
+            tests.name,
+            final_results.name as status,
+            result_resolution.name as resolution,
+            assigneetbl.user_name as assignee,
+            dev.user_name as developer
+
+            FROM test_results
+            LEFT JOIN final_results ON final_result_id = final_results.id
+            LEFT JOIN result_resolution ON test_resolution_id = result_resolution.id
+            LEFT JOIN tests ON test_id = tests.id
+            LEFT JOIN test_runs ON test_run_id = test_runs.id
+            LEFT JOIN users as assigneetbl ON assignee = assigneetbl.id
+            LEFT JOIN users as dev ON tests.developer_id = dev.id
+
+            where test_results.project_id = request_project_id AND test_runs.start_time &gt;=  CAST(request_testrun_started_from_date AS DATETIME) AND test_runs.start_time &lt;=  CAST(request_testrun_started_to_date AS DATETIME);
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="SELECT_RESULTS_STAT_Fix_01" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_RESULTS_STAT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_RESULTS_STAT`(
+            In request_project_id varchar(11),
+            In request_testrun_started_from_date varchar(25),
+            In request_testrun_started_to_date varchar(25),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            Select 	test_results.test_run_id,
+            test_runs.start_time as test_run_started,
+            tests.name,
+            final_results.name as status,
+            result_resolution.name as resolution,
+            assigneetbl.user_name as assignee,
+            dev.user_name as developer
+
+            FROM test_results
+            LEFT JOIN final_results ON final_result_id = final_results.id
+            LEFT JOIN result_resolution ON test_resolution_id = result_resolution.id
+            LEFT JOIN tests ON test_id = tests.id
+            LEFT JOIN test_runs ON test_run_id = test_runs.id
+            LEFT JOIN users as assigneetbl ON assignee = assigneetbl.id
+            LEFT JOIN users as dev ON tests.developer_id = dev.id
+
+            where test_results.project_id = request_project_id
+            AND (request_testrun_started_from_date='' OR test_runs.start_time &gt;=  CAST(request_testrun_started_from_date AS DATETIME))
+            AND (request_testrun_started_to_date='' OR test_runs.start_time &lt;=  CAST(request_testrun_started_to_date AS DATETIME));
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="AuditCommentToUID_Fix" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_AUDIT_COMMENT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_AUDIT_COMMENT`(
+            IN request_id varchar(11),
+            IN request_audit_id varchar(11),
+            IN request_user_id VARCHAR(11),
+            IN request_body Text,
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            DECLARE EXIT HANDLER FOR SQLSTATE '42000'
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = UID
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1
+            OR (union_reporting.user_roles.project_id = (SELECT project_id FROM audits Where id = request_audit_id)
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            INSERT INTO union_reporting.audit_comments (`id`, `audit_id`, `user_id`, `body`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_audit_id,
+            UID,
+            request_body
+            )
+            ON DUPLICATE KEY UPDATE
+            body = IF(request_body='',body,request_body)
+            ;
+
+            Select * from audit_comments Where id=LAST_INSERT_ID();
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Fix Empty Ex Env" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_TESTRUN`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_TESTRUN`(
+            IN request_user_id VARCHAR(10),
+            IN testrun_id VARCHAR(10),
+            IN testrun_build_name VARCHAR(500),
+            IN testrun_starttime VARCHAR(500),
+            IN testrun_execution_environment VARCHAR(500),
+            IN testrun_milestone_id VARCHAR(10),
+            IN testrun_test_suite_id VARCHAR(10),
+            IN testrun_project_id VARCHAR(10),
+            IN testrun_finishtime VARCHAR(500),
+            IN testrun_author VARCHAR(500),
+            IN testrun_label_id VARCHAR(11),
+            IN testrun_debug VARCHAR(1)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1
+            OR (union_reporting.user_roles.project_id = testrun_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            INSERT INTO union_reporting.test_runs (
+            id,
+            build_name,
+            start_time,
+            milestone_id,
+            test_suite_id,
+            project_id,
+            execution_environment,
+            finish_time,
+            author,
+            label_id,
+            debug)
+            VALUES (
+            IF(testrun_id = '', null,testrun_id),
+            testrun_build_name,
+            if(testrun_starttime = '', FROM_UNIXTIME('0'), FROM_UNIXTIME(testrun_starttime)),
+            IF(testrun_milestone_id = '', null, testrun_milestone_id),
+            IF(testrun_test_suite_id = '', null, testrun_test_suite_id),
+            IF(testrun_project_id = '', 0, testrun_project_id),
+            IF(testrun_execution_environment = '', execution_environment, IF(testrun_execution_environment = '$blank', '', testrun_execution_environment)),
+            If(testrun_finishtime = '', null, FROM_UNIXTIME(testrun_finishtime)),
+            IF(testrun_author = '', null, testrun_author),
+            IF(testrun_label_id = '', 1, testrun_label_id),
+            IF(testrun_debug = '', '0', testrun_debug)
+            )
+            ON DUPLICATE KEY UPDATE
+            build_name = IF(testrun_build_name = '', build_name, testrun_build_name),
+            start_time = IF(testrun_starttime = '', start_time, FROM_UNIXTIME(testrun_starttime)),
+            milestone_id = IF(testrun_milestone_id = '', milestone_id, IF(testrun_milestone_id = '0', null, testrun_milestone_id)),
+            test_suite_id = IF(testrun_test_suite_id = '', test_suite_id, testrun_test_suite_id),
+            project_id = IF(testrun_project_id = '',project_id, testrun_project_id ),
+            execution_environment = IF(testrun_execution_environment = '', execution_environment, IF(testrun_execution_environment = '$blank', '', testrun_execution_environment)),
+            finish_time = If(testrun_finishtime = '', finish_time, FROM_UNIXTIME(testrun_finishtime)),
+            author = IF(testrun_author = '', author, IF(testrun_author = '$blank', '', testrun_author)),
+            label_id = IF(testrun_label_id = '', label_id, testrun_label_id),
+            debug = IF(testrun_debug = '', debug, testrun_debug);
+
+            SET @result_id = IF(testrun_id = '', LAST_INSERT_ID(), testrun_id);
+
+            SELECT * from union_reporting.test_runs where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Fix Audit Creation and Date" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_AUDIT`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_status_id varchar(11),
+            In request_created varchar(100),
+            In request_started varchar(100),
+            In request_progress_finished varchar(100),
+            In request_due_date varchar(100),
+            In request_submitted varchar(100),
+            In request_result varchar(3),
+            In request_summary mediumtext,
+            In request_service_id varchar(11),
+            IN UID VARCHAR(11)
+            )
+            BEGIN
+            Declare AA INT(1);
+            SET AA = (SELECT audit_admin From union_reporting.users WHERE id = UID);
+
+            IF (1!=(SELECT audit_admin From union_reporting.users WHERE id = UID)
+            AND !EXISTS(SELECT * From union_reporting.auditor_assignments WHERE UID = UID AND request_id=request_id)) THEN
+            CALL raise_error;
+            END IF;
+
+            INSERT INTO union_reporting.audits (`id`, `project_id`, `started`, `progress_finished`, `due_date`, `submitted`, `result`, `summary`, `service_type_id`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_project_id,
+            IF(request_started='',null,FROM_UNIXTIME(request_started)),
+            IF(request_progress_finished='',null,FROM_UNIXTIME(request_progress_finished)),
+            IF(request_due_date='',DATE_ADD((select submitted from (select max(submitted) as submitted from union_reporting.audits where project_id = request_project_id) as `tmp`), INTERVAL +6 MONTH ),FROM_UNIXTIME(request_due_date)),
+            IF(request_submitted='',null,FROM_UNIXTIME(request_submitted)),
+            IF(request_result='',null,request_result),
+            IF(request_summary='',null,request_summary),
+            IF(request_service_id='', 1, request_service_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            status_id = IF(request_status_id='' OR (request_status_id = 4 AND AA = 0),status_id,request_status_id),
+            result = IF(request_result='',result,request_result),
+            created = IF(request_created='',created,FROM_UNIXTIME(request_created)),
+            started = IF(request_started='',started,FROM_UNIXTIME(request_started)),
+            progress_finished = IF(request_progress_finished='',progress_finished,FROM_UNIXTIME(request_progress_finished)),
+            due_date = IF(request_due_date!='' AND AA=1,FROM_UNIXTIME(request_due_date),due_date),
+            submitted = IF(request_submitted='',submitted,FROM_UNIXTIME(request_submitted)),
+            summary = IF(request_summary='',summary,IF(request_summary='$blank', null, request_summary)),
+            service_type_id = IF(request_service_id='',service_type_id, request_service_id)
+            ;
+
+            SET @audit_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+
+            SELECT * from union_reporting.audits where id = @audit_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,3210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="SELECT_APP_SETTINGS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_APP_SETTINGS`()
+            BEGIN
+            SELECT * FROM app_settings;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_APP_SETTINGS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_APP_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_ldap_auth VARCHAR(1),
+            IN request_base_auth VARCHAR(1),
+            IN request_audits VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO app_settings (audits, ldap_auth, base_auth, id)
+            VALUES ( request_audits, request_ldap_auth, request_base_auth, request_id )
+
+            ON DUPLICATE KEY UPDATE
+            ldap_auth= IF(request_ldap_auth = '', ldap_auth, request_ldap_auth),
+            base_auth = IF(request_base_auth = '', base_auth, request_base_auth),
+            audits = IF(request_audits = '', audits, request_audits)
+            ;
+
+            Select * from app_settings Where id=(Select MAX(id) from app_settings);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_USERS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_USERS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_USERS`(
+            IN request_id VARCHAR(10),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_user_name VARCHAR(100),
+            IN request_unit_coordinator VARCHAR(11),
+            IN request_account_manager VARCHAR(11)
+            )
+            BEGIN
+            SELECT
+            users.id as id,
+            first_name,
+            second_name,
+            user_name,
+            updated,
+            password,
+            session_code,
+            sessions.created as session_created,
+            admin,
+            manager,
+            auditor,
+            audit_admin,
+            email,
+            ldap_user,
+            unit_coordinator,
+            audit_notifications,
+            head,
+            account_manager
+            FROM union_reporting.users as users
+            LEFT JOIN union_reporting.user_sessions as sessions
+            ON users.last_session_id = sessions.id
+            WHERE (request_id= '' OR users.id=request_id)
+            AND (request_first_name= '' OR first_name=request_first_name)
+            AND (request_second_name = '' OR second_name=request_second_name)
+            AND (request_user_name = '' OR user_name=request_user_name)
+            AND (request_unit_coordinator ='' OR request_unit_coordinator=unit_coordinator)
+            AND (request_account_manager ='' OR request_account_manager=account_manager)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_USER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_USER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_USER`(
+            In request_id varchar(10),
+            IN request_user_name VARCHAR(100),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_password VARCHAR(100),
+            IN request_admin VARCHAR(1),
+            IN request_manager VARCHAR(1),
+            IN request_auditor VARCHAR(1),
+            IN request_audit_admin VARCHAR(1),
+            IN request_unit_coordinator VARCHAR(1),
+            IN request_email VARCHAR(150),
+            IN request_ldap_user VARCHAR(1),
+            IN request_head VARCHAR(1),
+            IN request_account_manager VARCHAR(1),
+            IN request_audit_notifications VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO union_reporting.users (id, first_name, second_name, user_name, pass, admin, manager, auditor, audit_admin, email, ldap_user,unit_coordinator,audit_notifications,head,account_manager)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_first_name,
+            request_second_name,
+            request_user_name,
+            request_password,
+            IF(request_admin='',0,request_admin),
+            IF(request_manager='',0,request_manager),
+            IF(request_auditor='',0,request_auditor),
+            IF(request_audit_admin='',0,request_audit_admin),
+            request_email,
+            IF(request_ldap_user='',0,request_ldap_user),
+            IF(request_unit_coordinator='',0,request_unit_coordinator),
+            IF(request_audit_notifications='',1,request_audit_notifications),
+            IF(request_head='',0,request_head),
+            IF(request_account_manager='',0,request_account_manager)
+            )
+            ON DUPLICATE KEY UPDATE
+            user_name = IF(request_user_name = '', user_name, request_user_name),
+            first_name = IF(request_first_name = '', first_name, request_first_name),
+            second_name = IF(request_second_name = '', second_name, request_second_name),
+            pass = IF(request_password = '', pass, request_password),
+            admin = IF(request_admin = '', admin, request_admin),
+            manager = IF(request_manager = '', manager, request_manager),
+            auditor = IF(request_auditor='', auditor, request_auditor),
+            audit_admin = IF(request_audit_admin='',audit_admin,request_audit_admin),
+            email = IF(request_email='', email, request_email),
+            ldap_user = IF(request_ldap_user='', ldap_user, request_ldap_user),
+            head = IF(request_head='', head, request_head),
+            account_manager = IF(request_account_manager='', account_manager, request_account_manager),
+            unit_coordinator = IF(request_unit_coordinator='',unit_coordinator,request_unit_coordinator),
+            audit_notifications = IF(request_audit_notifications='',audit_notifications,request_audit_notifications)
+            ;
+
+            SET @audit_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+
+            SELECT * from union_reporting.audits where id = @audit_id;
+
+            END
+
+            #
+
+            ALTER TABLE `users`
+            CHANGE COLUMN `pass` `password` VARCHAR(150) NOT NULL ;
+
+            #
+
+            DROP TRIGGER IF EXISTS users_BEFORE_UPDATE
+
+            #
+
+            CREATE TRIGGER `users_BEFORE_UPDATE` BEFORE UPDATE ON `users` FOR EACH ROW
+            BEGIN
+
+            IF NEW.id = 1 AND (
+            NEW.user_name != OLD.user_name
+            OR NEW.first_name != OLD.first_name
+            OR NEW.second_name != OLD.second_name
+            OR NEW.password != OLD.password
+            OR NEW.email != OLD.email
+            OR NEW.admin != OLD.admin
+            OR NEW.manager != OLD.manager
+            OR NEW.auditor != OLD.auditor
+            OR NEW.audit_admin != OLD.audit_admin)
+            THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'This user is not editable!';
+            END IF;
+
+
+            IF (NEW.id = '' OR NEW.id = null)
+            THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'This user is already created!';
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_SESSION 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_SESSION`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_SESSION`(
+            IN request_user_id VARCHAR(100),
+            IN request_session_code VARCHAR(100)
+            )
+            BEGIN
+            INSERT INTO user_sessions (user_id, session_code)
+            VALUES (
+            request_user_id,
+            request_session_code)
+            ;
+
+            SET @result_id = (SELECT LAST_INSERT_ID());
+            UPDATE users SET last_session_id = @result_id where id = request_user_id;
+            SELECT * from user_sessions where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_PROJECT_USERS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_PROJECT_USERS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_PROJECT_USERS`(
+            IN request_project_id VARCHAR(11),
+            IN request_user_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT * FROM user_roles
+            WHERE (request_project_id= '' OR project_id=request_project_id)
+            AND (request_user_id='' OR user_id = request_user_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDIT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDIT`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_status_id varchar(11),
+            In request_created varchar(100),
+            In request_started varchar(100),
+            In request_progress_finished varchar(100),
+            In request_due_date varchar(100),
+            In request_submitted varchar(100),
+            In request_result varchar(3),
+            In request_summary mediumtext,
+            In request_service_id varchar(11))
+            BEGIN
+
+            INSERT INTO audits (`id`, `project_id`, `started`, `progress_finished`, `due_date`, `submitted`, `result`, `summary`, `service_type_id`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_project_id,
+            IF(request_started='',null,FROM_UNIXTIME(request_started)),
+            IF(request_progress_finished='',null,FROM_UNIXTIME(request_progress_finished)),
+            IF(request_due_date='',DATE_ADD((select submitted from (select max(submitted) as submitted from audits where project_id = request_project_id) as `tmp`), INTERVAL +6 MONTH ),FROM_UNIXTIME(request_due_date)),
+            IF(request_submitted='',null,FROM_UNIXTIME(request_submitted)),
+            IF(request_result='',null,request_result),
+            IF(request_summary='',null,request_summary),
+            IF(request_service_id='', 1, request_service_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            status_id = IF(request_status_id='' OR (request_status_id = 4 AND AA = 0),status_id,request_status_id),
+            result = IF(request_result='',result,request_result),
+            created = IF(request_created='',created,FROM_UNIXTIME(request_created)),
+            started = IF(request_started='',started,FROM_UNIXTIME(request_started)),
+            progress_finished = IF(request_progress_finished='',progress_finished,FROM_UNIXTIME(request_progress_finished)),
+            due_date = IF(request_due_date!='' AND AA=1,FROM_UNIXTIME(request_due_date),due_date),
+            submitted = IF(request_submitted='',submitted,FROM_UNIXTIME(request_submitted)),
+            summary = IF(request_summary='',summary,IF(request_summary='$blank', null, request_summary)),
+            service_type_id = IF(request_service_id='',service_type_id, request_service_id)
+            ;
+
+            SET @audit_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from audits where id = @audit_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDIT_ATTACH 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_AUDIT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDIT_ATTACH`(
+            In request_audit_id varchar(11),
+            In request_path varchar(255)
+            )
+            BEGIN
+            INSERT INTO union_reporting.audit_attachments (`audit_id`, `path`)
+            VALUES (request_audit_id, request_path);
+
+            Select * from audit_attachments Where id=LAST_INSERT_ID();
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDIT_COMMENT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_AUDIT_COMMENT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDIT_COMMENT`(
+            IN request_id varchar(11),
+            IN request_audit_id varchar(11),
+            IN request_user_id VARCHAR(11),
+            IN request_body Text)
+            BEGIN
+            INSERT INTO audit_comments (`id`, `audit_id`, `user_id`, `body`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_audit_id,
+            UID,
+            request_body
+            )
+            ON DUPLICATE KEY UPDATE
+            body = IF(request_body='',body,request_body)
+            ;
+
+            SET @result_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from audit_comments where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDITOR 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11))
+            BEGIN
+            INSERT INTO auditor_assignments (`audit_id`, `user_id`)
+            VALUES (
+            request_audit_id,
+            request_user_id
+            );
+
+            SET @result_id = (SELECT LAST_INSERT_ID());
+            SELECT * from auditor_assignments where id = @result_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_PROJECT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_PROJECT`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(10),
+            IN request_customer_id VARCHAR(11),
+            IN request_user_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT DISTINCT proj.*
+            FROM projects as proj
+            LEFT JOIN user_roles as us_r ON proj.id = us_r.project_id
+            LEFT JOIN customer as cus_r ON proj.customer_id = cus_r.id
+            WHERE (request_id = '' OR proj.id=request_id)
+            AND (request_name = '' OR proj.name=request_name)
+            AND (request_customer_id = '' OR proj.customer_id=request_customer_id)
+            AND (request_user_id = ''
+            OR user_id=request_user_id
+            OR 1=(SELECT admin From users WHERE id = request_user_id)
+            OR 1=(SELECT head From users WHERE id = request_user_id)
+            OR 1=(SELECT unit_coordinator From users WHERE id = request_user_id)
+            OR 1=(SELECT manager From users WHERE id = request_user_id)
+            OR 1=(SELECT auditor From users WHERE id = request_user_id)
+            OR 1=(SELECT audit_admin From users WHERE id = request_user_id)
+            OR account_manager_id = request_user_id
+            );
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_CUSTOMER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_CUSTOMER`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_CUSTOMER`(
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            Select * from customer
+            Where (request_id = '' OR id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_AUDIT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDIT`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_status_id varchar(11)
+            )
+            BEGIN
+            SELECT *
+            FROM audits
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            AND (request_status_id = '' OR status_id=request_status_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_AUDIT_STATUS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_AUDIT_STATUS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDIT_STATUS`(
+            In request_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM audit_statuses
+            WHERE (request_id = '' OR id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_AUDITOR 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11)
+            )
+            BEGIN
+            SELECT users.* FROM auditor_assignments
+            LEFT JOIN users ON auditor_assignments.user_id=users.id
+            WHERE (request_audit_id = '' OR auditor_assignments.audit_id=request_audit_id)
+            AND (request_user_id  = '' OR auditor_assignments.user_id=request_user_id)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_PROJECT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11)
+            )
+            BEGIN
+
+            INSERT INTO union_reporting.projects (id, name, customer_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TESTRUN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_TESTRUN`;
+            #
+            DROP procedure IF EXISTS `SELECT_TEST_RUN`;
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_execution_environment VARCHAR(500),
+            IN request_debug VARCHAR(1),
+            IN request_label_id VARCHAR(11),
+            IN request_limit INT(10)
+            )
+            BEGIN
+
+            SELECT
+            runs.id,
+            build_name,
+            start_time,
+            milestone_id,
+            mil.name as milestone_name,
+            test_suite_id,
+            suite.name as testsuite_name,
+            runs.project_id,
+            execution_environment,
+            finish_time,
+            updated,
+            author,
+            label_id,
+            debug
+
+            FROM union_reporting.test_runs as runs
+            LEFT JOIN union_reporting.milestones as mil ON runs.milestone_id = mil.id
+            LEFT JOIN union_reporting.test_suites as suite ON runs.test_suite_id = suite.id
+
+            WHERE (request_id= '' OR runs.id=request_id)
+            AND (request_build_name = '' OR build_name=request_build_name)
+            AND (request_milestone_id = '' OR milestone_id=request_milestone_id OR IF(request_milestone_id=0, milestone_id IS NULL, request_milestone_id = ''))
+            AND (request_test_suite_id = '' OR test_suite_id=request_test_suite_id)
+            AND (request_project_id = '' OR runs.project_id=request_project_id)
+            AND (request_execution_environment = '' OR execution_environment=request_execution_environment)
+            AND (request_debug = '' OR runs.debug=request_debug)
+            AND (request_label_id = '' OR runs.label_id=request_label_id)
+            ORDER BY finish_time DESC
+            LIMIT request_limit
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_SUITE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_SUITE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_SUITE`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(10),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT *
+            FROM union_reporting.test_suites
+            WHERE (request_name = '' OR name = request_name)
+            AND (request_id = '' OR id = request_id)
+            AND project_id = request_project_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RUN_STATS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_TEST_RUN_STATS`;
+
+            #
+            DROP procedure IF EXISTS `SELECT_TESTRUN_STATS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN_STATS`(
+            IN request_testrun_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_execution_environment VARCHAR(500),
+            IN request_debug VARCHAR(1)
+            )
+            BEGIN
+            SELECT
+            trn.id,
+            trn.build_name,
+            trn.project_id,
+            trn.test_suite_id,
+            trn.start_time,
+            trn.finish_time,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+
+            from union_reporting.test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            WHERE (request_testrun_id= '' OR trn.id=request_testrun_id)
+            AND (request_build_name = '' OR build_name=request_build_name)
+            AND (request_milestone_id = '' OR milestone_id=request_milestone_id)
+            AND (request_test_suite_id = '' OR test_suite_id=request_test_suite_id)
+            AND (request_project_id = '' OR trn.project_id=request_project_id)
+            AND (request_execution_environment = '' OR execution_environment=request_execution_environment)
+            AND (request_debug = '' OR trn.debug=request_debug)
+
+            GROUP BY trn.id
+            ORDER BY finish_time DESC;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RUN_LABELS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_TEST_RUN_LABELS`;
+
+            #
+            DROP procedure IF EXISTS `SELECT_TESTRUN_LABELS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN_LABELS`(
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT * FROM union_reporting.testrun_labels WHERE request_id = '' OR request_id=id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_MILESTONE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_MILESTONE`(
+            IN request_id VARCHAR(500),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(5000)
+            )
+            BEGIN
+            SELECT *
+            FROM milestones
+            WHERE (request_id= '' OR id=request_id)
+            AND (request_name = '' OR name=request_name)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_AUDIT_COMMENT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_AUDIT_COMMENT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDIT_COMMENT`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11)
+            )
+            BEGIN
+            SELECT * From union_reporting.audit_comments
+            WHERE (request_audit_id = '' OR audit_id=request_audit_id)
+            AND (request_user_id  = '' OR user_id=request_user_id)
+            ORDER BY created DESC
+            ;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_FINAL_RESULT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_FINAL_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_FINAL_RESULT`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT *
+            FROM union_reporting.final_results
+            WHERE (request_name = '' OR name = request_name)
+            AND (request_id = '' OR id = request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_AUDITOR 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `union_reporting`.`auditor_assignments`
+            CHANGE COLUMN `id` `auditor_id` INT(11) NOT NULL AUTO_INCREMENT ;
+
+            #
+
+            DROP procedure IF EXISTS `REMOVE_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_AUDITOR`(In request_auditor_id varchar(11) )
+            BEGIN
+            DELETE FROM auditor_assignments
+            WHERE auditor_id=request_auditor_id;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `SELECT_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM auditor_assignments
+            LEFT JOIN users ON auditor_assignments.user_id=users.id
+            WHERE (request_audit_id = '' OR auditor_assignments.audit_id=request_audit_id)
+            AND (request_user_id  = '' OR auditor_assignments.user_id=request_user_id)
+            ;
+            END
+
+            #
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_AUDIT_STATS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_AUDIT_STATS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDIT_STATS`()
+            BEGIN
+            select
+            projects.*,
+            submitted.result,
+            submitted.id as last_submitted_id,
+            submitted.submitted as last_submitted_date,
+            created.service_type_id,
+            created.id as last_created_id,
+            created.due_date as last_created_due_date,
+            created.status_id,
+            audit_statuses.name as status_name from projects
+
+            LEFT JOIN
+            ((SELECT a.*
+            FROM `audits` a
+            LEFT JOIN `audits` b
+            ON a.project_id = b.project_id AND a.service_type_id = b.service_type_id AND a.created &lt; b.created
+                                                                                                     WHERE b.created is NULL) as created
+            ) ON projects.id = created.project_id
+
+            LEFT JOIN (
+            (SELECT a.*
+            FROM `audits` a
+            LEFT JOIN `audits` b
+            ON a.project_id = b.project_id AND a.service_type_id = b.service_type_id AND a.submitted &lt; b.submitted
+                                                                                                       WHERE b.submitted is NULL AND a.submitted is NOT NULL) as submitted
+            ) ON projects.id = submitted.project_id AND submitted.service_type_id = created.service_type_id
+
+            LEFT JOIN audit_statuses ON created.status_id = audit_statuses.id;
+
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_CUSTOMER_ATTACHMENT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_CUSTOMER_ATTACHMENT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_CUSTOMER_ATTACHMENT`(
+            In request_customer_id varchar(11),
+            In request_path varchar(255))
+            BEGIN
+            INSERT INTO customer_attachment (`customer_id`, `path`)
+            VALUES (request_customer_id, request_path);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_CUSTOMER_ATTACHMENT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_CUSTOMER_ATTACHMENT`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_CUSTOMER_ATTACHMENT`(
+            In request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM customer_attachment
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_CUSTOMER_ATTACHMENT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_CUSTOMER_ATTACHMENT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_CUSTOMER_ATTACHMENT`(
+            In request_id varchar(11),
+            In request_customer_id varchar(11)
+            )
+            BEGIN
+
+            SELECT *
+            FROM customer_attachment
+            WHERE (request_customer_id = '' OR customer_id=request_customer_id) AND (request_id = '' OR id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_CUSTOMER_COMMENT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_CUSTOMER_COMMENT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_CUSTOMER_COMMENT`(
+            IN request_customer_id varchar(11),
+            IN request_user_id varchar(11)
+            )
+            BEGIN
+            SELECT * From customer_comments
+            WHERE (request_customer_id = '' OR customer_id=request_customer_id)
+            And (request_user_id = '' OR user_id=request_user_id)
+            ORDER BY created DESC;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_CUSTOMER_MEMBER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_CUSTOMER_MEMBER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_CUSTOMER_MEMBER`(
+            In request_customer_id varchar(11),
+            In request_id varchar(11)
+            )
+            BEGIN
+            INSERT INTO customer_account_members (`customer_id`, `user_id`)
+            VALUES (request_customer_id, request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_CUSTOMER_MEMBER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `union_reporting`.`customer_account_members`
+            CHANGE COLUMN `id` `member_id` INT(11) NOT NULL AUTO_INCREMENT;
+
+            #
+
+            DROP procedure IF EXISTS `REMOVE_CUSTOMER_MEMBER`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_CUSTOMER_MEMBER`(
+            In request_member_id varchar(11))
+            BEGIN
+            DELETE FROM customer_account_members
+            WHERE member_id=request_member_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_CUSTOMER_MEMBER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_CUSTOMER_MEMBER`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_CUSTOMER_MEMBER`(
+            In request_id varchar(11),
+            In request_customer_id varchar(11)
+            )
+            BEGIN
+
+            SELECT * FROM customer_account_members
+            LEFT JOIN users ON customer_account_members.user_id = users.id
+            WHERE (request_customer_id = '' OR customer_id=request_customer_id) AND (request_id = '' OR user_id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_EMAIL_SETTINGS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN request_use_auth varchar(1))
+            BEGIN
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port, use_auth)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port,
+            request_use_auth
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port),
+            use_auth = IF (request_use_auth='', use_auth, request_use_auth)
+            ;
+
+            Select * from email_settings Where id=(Select MAX(id) from email_settings);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_EMAIL_SETTINGS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_EMAIL_SETTINGS`(IN request_id VARCHAR(11))
+            BEGIN
+            SELECT * FROM email_settings where (request_id = '' OR email_settings.id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_LDAP_SETTING 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_LDAP_SETTING`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_LDAP_SETTING`(
+            In request_ldapAdServer varchar(300),
+            IN request_ldapSearchBaseUsers VARCHAR(300),
+            IN request_security_auntification VARCHAR(45),
+            IN request_userSearchFilter VARCHAR(300),
+            IN request_domain VARCHAR(300),
+            IN request_mailAttribute VARCHAR(45),
+            IN request_firstNameAttribute VARCHAR(45),
+            IN request_lastNameAttribute VARCHAR(45),
+            IN request_userNameAttribute VARCHAR(45),
+            IN request_adminUserName VARCHAR(150),
+            IN request_adminSecret VARCHAR(300),
+            IN request_id VARCHAR(11))
+            BEGIN
+
+            INSERT INTO ldap_settings (ldapAdServer,ldapSearchBaseUsers,security_auntification,userSearchFilter,domain,mailAttribute,firstNameAttribute,lastNameAttribute,userNameAttribute,id,adminUserName,adminSecret)
+            VALUES (
+            request_ldapAdServer,
+            request_ldapSearchBaseUsers,
+            request_security_auntification,
+            request_userSearchFilter,
+            request_domain,
+            request_mailAttribute,
+            request_firstNameAttribute,
+            request_lastNameAttribute,
+            request_userNameAttribute,
+            request_id,
+            request_adminUserName,
+            request_adminSecret
+            )
+            ON DUPLICATE KEY UPDATE
+            ldapAdServer= IF(request_ldapAdServer = '', ldapAdServer, request_ldapAdServer),
+            ldapSearchBaseUsers = IF(request_ldapSearchBaseUsers = '', ldapSearchBaseUsers, request_ldapSearchBaseUsers),
+            security_auntification = IF(request_security_auntification = '', security_auntification, request_security_auntification),
+            userSearchFilter = IF(request_userSearchFilter = '', userSearchFilter, request_userSearchFilter),
+            domain = IF(request_domain = '', domain, request_domain),
+            mailAttribute = IF(request_mailAttribute = '', mailAttribute, request_mailAttribute),
+            firstNameAttribute = IF(request_firstNameAttribute='', firstNameAttribute, request_firstNameAttribute),
+            lastNameAttribute = IF(request_lastNameAttribute='', lastNameAttribute, request_lastNameAttribute),
+            userNameAttribute = IF(request_userNameAttribute='', userNameAttribute, request_userNameAttribute),
+            adminUserName = IF(request_adminUserName='', adminUserName, request_adminUserName),
+            adminSecret = IF(request_adminSecret='', adminSecret, request_adminSecret)
+            ;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_LDAP_SETTING 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LDAP_SETTING`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LDAP_SETTING`()
+            BEGIN
+            SELECT * FROM ldap_settings;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_AUDIT_ATTACH 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_AUDIT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_AUDIT_ATTACH`(
+            In request_id varchar(11),
+            In request_audit_id varchar(11))
+            BEGIN
+            SELECT * FROM audit_attachments
+            WHERE (request_audit_id = '' OR audit_id=request_audit_id) AND (request_id = '' OR id=request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_BODY_PATTERN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_BODY_PATTERN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_BODY_PATTERN`(
+            IN request_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_name VARCHAR(100)
+            )
+            BEGIN
+
+            INSERT INTO body_patterns (`id`, `name`, `project_id`) VALUES (
+            If(request_id ='', null, request_id),
+            request_name,
+            IF(request_project_id='', null, request_project_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            project_id = IF(request_project_id='', project_id, request_project_id)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from body_patterns where id = @insert_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_BODY_PATTERN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_BODY_PATTERN`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_BODY_PATTERN`(IN request_id VARCHAR(11))
+            BEGIN
+            DELETE FROM body_patterns
+            WHERE id=request_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_BODY_PATTERN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_BODY_PATTERN`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_BODY_PATTERN`(
+            IN request_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_name VARCHAR(100)
+            )
+            BEGIN
+            SELECT *
+            FROM body_patterns
+            WHERE (request_project_id = '' OR project_id = request_project_id)
+            AND (request_id = '' OR id = request_id)
+            AND (request_name = '' OR name = request_name);
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_FINAL_RESULT2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_FINAL_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_FINAL_RESULT`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT *
+            FROM final_results
+            WHERE (request_name = '' OR name = request_name)
+            AND (request_id = '' OR id = request_id);
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_IMPORT_TOKEN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_IMPORT_TOKEN`(
+            IN request_import_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set import_token=request_import_token Where id = request_project_id;
+
+            Select id, import_token from projects Where id = request_project_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_IMPORT_TOKEN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_IMPORT_TOKEN`(
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT id, import_token FROM projects where id = request_project_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_MILESTONE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_MILESTONE`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(500)
+            )
+            BEGIN
+            INSERT INTO milestones (id, name, project_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            request_project_id)
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            project_id = request_project_id
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from milestones where id = @insert_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_MILESTONE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_MILESTONE`(
+            IN request_id varchar(10)
+            )
+            BEGIN
+            DELETE FROM milestones
+            WHERE id=request_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_PASSWORD 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PASSWORD`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PASSWORD`(
+            IN request_user_id VARCHAR(11),
+            IN request_old_password VARCHAR(150),
+            IN request_password VARCHAR(150)
+            )
+            BEGIN
+            IF(request_old_password != (SELECT password From users WHERE id = request_user_id))
+            THEN
+            SIGNAL SQLSTATE '23516'
+            SET MESSAGE_TEXT = 'Old password is wrong!';
+            END IF;
+
+            UPDATE users
+            SET password = request_password
+            WHERE id = request_user_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_PROJECT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_PROJECT`(IN request_id VARCHAR(10))
+            BEGIN
+            DELETE FROM projects
+            WHERE id=request_id;
+            END
+
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_PROJECT_USER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PROJECT_USER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT_USER`(
+            IN request_user_id varchar(10),
+            IN request_project_id VARCHAR(10),
+            IN request_admin VARCHAR(1),
+            IN request_manager VARCHAR(1),
+            IN request_engineer VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO user_roles (`user_id`, `project_id`, `admin`, `manager`, `engineer`) VALUES (
+            request_user_id,
+            request_project_id,
+            IF(request_admin='',0,request_admin),
+            IF(request_manager='',0,request_manager),
+            IF(request_engineer='',0,request_engineer)
+            )
+            ON DUPLICATE KEY UPDATE
+            admin = IF(request_admin = '', admin, request_admin),
+            manager = IF(request_manager = '', manager, request_manager),
+            engineer = IF(request_engineer = '', engineer, request_engineer)
+            ;
+
+            SELECT * from user_roles where user_id = request_user_id and project_id = request_project_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_PROJECT_USER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_PROJECT_USER`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_PROJECT_USER`(
+            IN request_user_id varchar(10),
+            IN request_project_id varchar(10)
+            )
+            BEGIN
+            DELETE FROM user_roles
+            WHERE user_id=request_user_id AND project_id=request_project_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_RESULT_RESOLUTION 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_RESULT_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_RESULT_RESOLUTION`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_color VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO result_resolution (`id`, `name`, `color`, `project_id`) VALUES (
+            If(request_id='',null,request_id),
+            request_name,
+            request_color,
+            IF(request_project_id='',null,request_project_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            project_id = IF(request_project_id='',project_id,request_project_id),
+            color = IF(request_color='',color,request_color)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from result_resolution where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_RESULT_RESOLUTION 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_RESULT_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_RESULT_RESOLUTION`(
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            DELETE FROM result_resolution
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_RESULT_RESOLUTION 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_RESULT_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_RESULT_RESOLUTION`(
+            IN request_project_id VARCHAR(11),
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT *
+            FROM result_resolution
+            WHERE ((request_project_id = '' OR project_id = request_project_id) OR project_id is null)
+            AND (request_id = '' OR id = request_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_STATS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_STATS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_STATS`(IN request_id VARCHAR(10) )
+            BEGIN
+            SELECT id, name, developer_id, total_runs, passed, failed, app_issue, autotest_issue, resolution_na
+            FROM
+            tests
+            LEFT JOIN
+            (SELECT
+            tr.test_id,
+            SUM(IF(final_result_id != 3, 1, 0)) AS total_runs,
+            SUM(IF(final_result_id = 1, 1, 0)) AS failed,
+            SUM(IF(final_result_id = 2, 1, 0)) AS passed,
+            SUM(IF(color = 1, 1, 0)) AS app_issue,
+            SUM(IF(color = 2, 1, 0)) AS autotest_issue,
+            SUM(IF(color = 3 AND final_result_id != 2, 1, 0)) AS resolution_na
+            FROM test_results tr
+            INNER JOIN result_resolution AS rr ON test_resolution_id = rr.id
+            GROUP BY test_id)
+            AS results ON tests.id = results.test_id
+            Where (request_id = ''
+            OR id IN (select test_id from suite_tests where suite_id = request_id));
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_TEST_TO_TESTSUITE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_TO_TESTSUITE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_TO_TESTSUITE`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM suite_tests
+            where test_id = request_test_id AND suite_id = request_suite_id)
+            THEN
+            INSERT INTO suite_tests (test_id, suite_id)
+            VALUES (request_test_id, request_suite_id);
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_TEST_FROM_TESTSUITE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_TEST_FROM_TESTSUITE`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_TEST_FROM_TESTSUITE`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11)
+            )
+            BEGIN
+            IF EXISTS (SELECT * FROM suite_tests
+            where test_id = request_test_id AND suite_id = request_suite_id)
+            THEN
+            DELETE FROM suite_tests
+            WHERE test_id = request_test_id AND suite_id = request_suite_id;
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_SUITES 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_SUITES`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_SUITES`(IN request_test_id VARCHAR(11))
+            BEGIN
+            Select test_suites.*
+            FROM suite_tests inner join test_suites on suite_id = test_suites.id
+            where test_id = request_test_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_TEST 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST`(
+            IN request_id VARCHAR(10),
+            IN request_name VARCHAR(500),
+            IN request_body LONGTEXT,
+            IN request_project_id VARCHAR(10),
+            IN request_manual_duration varchar(10),
+            IN request_developer_id VARCHAR(10)
+            )
+            BEGIN
+            INSERT INTO tests (id, name, body, project_id, manual_duration, developer_id)
+            VALUES (
+            IF(request_id ='',null,request_id),
+            request_name,
+            IF(request_body = '', null, request_body),
+            request_project_id,
+            IF(request_manual_duration = '' OR null, null, request_manual_duration),
+            IF(request_developer_id='',null,request_developer_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name=IF(request_name = '' OR null, name, request_name),
+            body = IF(request_body = '', null, request_body),
+            project_id = request_project_id,
+            manual_duration = IF(request_manual_duration = '' OR null, IF(manual_duration = null OR '', null, manual_duration), request_manual_duration),
+            developer_id = IF(request_developer_id='',developer_id,request_developer_id)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from tests where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_TEST 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_TEST`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_TEST`(
+            IN request_id varchar(10)
+            )
+            BEGIN
+            DELETE FROM tests
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST`(
+            IN request_id VARCHAR(10),
+            IN request_name VARCHAR(500),
+            IN request_body LONGTEXT,
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_developer_id VARCHAR(10)
+            )
+            BEGIN
+            Select distinct * From tests
+            WHERE
+            (request_id = '' OR tests.id = request_id)
+            AND (request_name = '' OR name = request_name)
+            AND (request_body = '' OR body = request_body)
+            AND (request_test_suite_id = ''
+            OR id IN (select test_id from suite_tests where suite_id = request_test_suite_id))
+            AND (request_project_id = ''
+            OR project_id = request_project_id)
+            AND (request_developer_id = ''
+            OR developer_id = request_developer_id)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_TESTRESULT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TESTRESULT`;
+
+            #
+            DROP procedure IF EXISTS `INSERT_TEST_RESULT`;
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(500),
+            IN request_final_result_id VARCHAR(500),
+            IN request_comment text,
+            IN request_test_run_id VARCHAR(500),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_log longtext,
+            IN request_debug VARCHAR(1),
+            IN request_finish_date VARCHAR(500),
+            IN request_start_date VARCHAR(500),
+            IN request_final_result_updated VARCHAR(500),
+            IN request_fail_reason mediumtext,
+            IN request_assignee VARCHAR(10)
+            )
+            BEGIN
+            INSERT INTO test_results (project_id, id, test_id, final_request_id, comment, test_run_id, test_resolution_id, log, debug, start_date, finish_date, final_result_updated, fail_reason, assignee)
+            VALUES (
+            request_project_id,
+            IF(request_id='', null, request_id),
+            request_test_id,
+            IF(request_final_result_id='',1,request_final_result_id),
+            IF(request_comment = '', null, request_comment),
+            IF(request_test_run_id = '', null, request_test_run_id),
+            IF(request_test_resolution_id = '', 1, request_test_resolution_id),
+            IF(request_log = '', null, request_log),
+            IF(request_debug = '', 0, request_debug),
+            If(request_start_date = '', null, FROM_UNIXTIME(request_start_date)),
+            If(request_finish_date = '', null, FROM_UNIXTIME(request_finish_date)),
+            NOW(),
+            IF(request_fail_reason = '', null, request_fail_reason),
+            IF(request_assignee = '', null, request_assignee))
+            ON DUPLICATE KEY UPDATE
+            test_id=IF(request_test_id = '',test_id,request_test_id),
+            final_request_id = IF(request_final_result_id = '', final_request_id, request_final_result_id),
+            comment = IF(request_comment = '', IF(comment = null OR '', null, comment), IF(request_comment='$blank', null, request_comment)),
+            test_resolution_id = IF(final_request_id = 2, 1, IF(request_test_resolution_id='', test_resolution_id, request_test_resolution_id)),
+            log = IF(request_log = '', log, IF(request_log = '$blank', '', request_log)),
+            debug = IF(request_debug = '', debug, request_debug),
+            start_date = If(request_start_date = '', start_date, FROM_UNIXTIME(request_start_date)),
+            finish_date = If(request_finish_date = '', finish_date, FROM_UNIXTIME(request_finish_date)),
+            final_result_updated = IF(request_final_result_id = final_request_id AND request_final_result_updated = '', NOW(), IF(request_final_result_updated = '',final_result_updated, FROM_UNIXTIME(request_final_result_updated))),
+            fail_reason = IF(request_fail_reason = '', fail_reason, IF(request_fail_reason = '$blank', '', request_fail_reason)),
+            assignee = IF(request_assignee = '', null, request_assignee)
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from test_results where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_TEST_RESULT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_TEST_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_TEST_RESULT`(
+            IN request_id varchar(10)
+            )
+            BEGIN
+            DELETE FROM test_results
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RESULT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT`;
+
+            #
+
+            DROP procedure IF EXISTS `SELECT_TESTRESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(10),
+            IN request_final_result_id VARCHAR(10),
+            IN request_comment VARCHAR(5000),
+            IN request_test_run_id VARCHAR(10),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_debug VARCHAR(1),
+            IN request_fail_reason mediumtext,
+            In request_limit INT(10)
+            )
+            BEGIN
+            SELECT * FROM test_results as res
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id = request_project_id)
+            AND (request_test_id = '' OR test_id=request_test_id)
+            AND (request_final_result_id = '' OR final_result_id=request_final_result_id)
+            AND (request_comment = '' OR comment=request_comment)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_test_resolution_id = '' OR test_resolution_id=request_test_resolution_id)
+            AND (request_debug = '' OR debug=request_debug)
+            AND (request_fail_reason = '' OR REPLACE(REPLACE(REPLACE(REPLACE(fail_reason, '\r', ''), '\n', ''), CHAR(9), ''),' ','') LIKE CONCAT('%',REPLACE(REPLACE(REPLACE(REPLACE(request_fail_reason, '\r', ''), '\n', ''), CHAR(9), ''),' ',''),'%'))
+            ORDER BY start_date DESC
+            LIMIT request_limit
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_RESULTS_STAT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_RESULTS_STAT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_RESULTS_STAT`(
+            In request_project_id varchar(11),
+            In request_testrun_started_from_date varchar(25),
+            In request_testrun_started_to_date varchar(25)
+            )
+            BEGIN
+            Select 	test_results.test_run_id,
+            test_runs.start_time as test_run_started,
+            tests.name,
+            final_results.name as status,
+            result_resolution.name as resolution,
+            assigneetbl.user_name as assignee,
+            dev.user_name as developer
+
+            FROM test_results
+            LEFT JOIN final_results ON final_result_id = final_results.id
+            LEFT JOIN result_resolution ON test_resolution_id = result_resolution.id
+            LEFT JOIN tests ON test_id = tests.id
+            LEFT JOIN test_runs ON test_run_id = test_runs.id
+            LEFT JOIN users as assigneetbl ON assignee = assigneetbl.id
+            LEFT JOIN users as dev ON tests.developer_id = dev.id
+
+            where test_results.project_id = request_project_id
+            AND (request_testrun_started_from_date='' OR test_runs.start_time &gt;=  CAST(request_testrun_started_from_date AS DATETIME))
+            AND (request_testrun_started_to_date='' OR test_runs.start_time &lt;=  CAST(request_testrun_started_to_date AS DATETIME));
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_TESTRUN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_RUN`;
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_TESTRUN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_start_time VARCHAR(500),
+            IN request_execution_environment VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_finish_time VARCHAR(500),
+            IN request_author VARCHAR(500),
+            IN request_label_id VARCHAR(11),
+            IN request_debug VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO test_runs (
+            id,
+            build_name,
+            start_time,
+            milestone_id,
+            test_suite_id,
+            project_id,
+            execution_environment,
+            finish_time,
+            author,
+            label_id,
+            debug)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            request_build_name,
+            if(request_start_time = '', FROM_UNIXTIME('0'), FROM_UNIXTIME(request_start_time)),
+            IF(request_milestone_id = '', null, request_milestone_id),
+            IF(request_test_suite_id = '', null, request_test_suite_id),
+            IF(request_project_id = '', 0, request_project_id),
+            IF(request_execution_environment = '', execution_environment, IF(request_execution_environment = '$blank', '', request_execution_environment)),
+            If(request_finish_time = '', null, FROM_UNIXTIME(request_finish_time)),
+            IF(request_author = '', null, request_author),
+            IF(request_label_id = '', 1, request_label_id),
+            IF(request_debug = '', '0', request_debug)
+            )
+            ON DUPLICATE KEY UPDATE
+            build_name = IF(request_build_name = '', build_name, request_build_name),
+            start_time = IF(request_start_time = '', start_time, FROM_UNIXTIME(request_start_time)),
+            milestone_id = IF(request_milestone_id = '', milestone_id, IF(request_milestone_id = '0', null, request_milestone_id)),
+            test_suite_id = IF(request_test_suite_id = '', test_suite_id, request_test_suite_id),
+            project_id = IF(request_project_id = '',project_id, request_project_id ),
+            execution_environment = IF(request_execution_environment = '', execution_environment, IF(request_execution_environment = '$blank', '', request_execution_environment)),
+            finish_time = If(request_finish_time = '', finish_time, FROM_UNIXTIME(request_finish_time)),
+            author = IF(request_author = '', author, IF(request_author = '$blank', '', request_author)),
+            label_id = IF(request_label_id = '', label_id, request_label_id),
+            debug = IF(request_debug = '', debug, request_debug);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from test_runs where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_TEST_RUN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_TEST_RUN`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_TEST_RUN`(
+            IN request_id varchar(10)
+            )
+            BEGIN
+            DELETE FROM test_runs
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RUN2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RUN`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_execution_environment VARCHAR(500),
+            IN request_debug VARCHAR(1),
+            IN request_label_id VARCHAR(11),
+            IN request_limit INT(10)
+            )
+            BEGIN
+            SELECT
+            runs.id,
+            build_name,
+            start_time,
+            milestone_id,
+            mil.name as milestone_name,
+            test_suite_id,
+            suite.name as testsuite_name,
+            runs.project_id,
+            execution_environment,
+            finish_time,
+            updated,
+            author,
+            label_id,
+            debug
+
+            FROM union_reporting.test_runs as runs
+            LEFT JOIN union_reporting.milestones as mil ON runs.milestone_id = mil.id
+            LEFT JOIN union_reporting.test_suites as suite ON runs.test_suite_id = suite.id
+
+            WHERE (request_id= '' OR runs.id=request_id)
+            AND (request_build_name = '' OR build_name=request_build_name)
+            AND (request_milestone_id = '' OR milestone_id=request_milestone_id OR IF(request_milestone_id=0, milestone_id IS NULL, request_milestone_id = ''))
+            AND (request_test_suite_id = '' OR test_suite_id=request_test_suite_id)
+            AND (request_project_id = '' OR runs.project_id=request_project_id)
+            AND (request_execution_environment = '' OR execution_environment=request_execution_environment)
+            AND (request_debug = '' OR runs.debug=request_debug)
+            AND (request_label_id = '' OR runs.label_id=request_label_id)
+            ORDER BY finish_time DESC
+            LIMIT request_limit
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RUN_LABELS2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RUN_LABELS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN_LABELS`(
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT * FROM testrun_labels WHERE request_id = '' OR request_id=id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_SUITE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_SUITE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_SUITE`(
+            IN request_id VARCHAR(10),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(10))
+            BEGIN
+            IF EXISTS (SELECT * FROM test_suites WHERE project_id=request_project_id AND name = request_name)
+            THEN
+            signal sqlstate '23505';
+            END IF;
+
+            INSERT INTO test_suites (id, name, project_id) VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            request_project_id
+            )
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            project_id = request_project_id
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from test_suites where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_SUITE 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_SUITE`;
+
+            #
+
+            DROP procedure IF EXISTS `REMOVE_TESTSUITE`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_SUITE`(IN request_id varchar(10))
+            BEGIN
+            DELETE FROM union_reporting.test_suites
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_USER2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_USER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_USER`(
+            In request_id varchar(10),
+            IN request_user_name VARCHAR(100),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_password VARCHAR(100),
+            IN request_admin VARCHAR(1),
+            IN request_manager VARCHAR(1),
+            IN request_auditor VARCHAR(1),
+            IN request_audit_admin VARCHAR(1),
+            IN request_unit_coordinator VARCHAR(1),
+            IN request_email VARCHAR(150),
+            IN request_ldap_user VARCHAR(1),
+            IN request_head VARCHAR(1),
+            IN request_account_manager VARCHAR(1),
+            IN request_audit_notifications VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO users (id, first_name, second_name, user_name, password, admin, manager, auditor, audit_admin, email, ldap_user,unit_coordinator,audit_notifications,head,account_manager)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_first_name,
+            request_second_name,
+            request_user_name,
+            request_password,
+            IF(request_admin='',0,request_admin),
+            IF(request_manager='',0,request_manager),
+            IF(request_auditor='',0,request_auditor),
+            IF(request_audit_admin='',0,request_audit_admin),
+            request_email,
+            IF(request_ldap_user='',0,request_ldap_user),
+            IF(request_unit_coordinator='',0,request_unit_coordinator),
+            IF(request_audit_notifications='',1,request_audit_notifications),
+            IF(request_head='',0,request_head),
+            IF(request_account_manager='',0,request_account_manager)
+            )
+            ON DUPLICATE KEY UPDATE
+            user_name = IF(request_user_name = '', user_name, request_user_name),
+            first_name = IF(request_first_name = '', first_name, request_first_name),
+            second_name = IF(request_second_name = '', second_name, request_second_name),
+            password = IF(request_password = '', password, request_password),
+            admin = IF(request_admin = '', admin, request_admin),
+            manager = IF(request_manager = '', manager, request_manager),
+            auditor = IF(request_auditor='', auditor, request_auditor),
+            audit_admin = IF(request_audit_admin='',audit_admin,request_audit_admin),
+            email = IF(request_email='', email, request_email),
+            ldap_user = IF(request_ldap_user='', ldap_user, request_ldap_user),
+            head = IF(request_head='', head, request_head),
+            account_manager = IF(request_account_manager='', account_manager, request_account_manager),
+            unit_coordinator = IF(request_unit_coordinator='',unit_coordinator,request_unit_coordinator),
+            audit_notifications = IF(request_audit_notifications='',audit_notifications,request_audit_notifications)
+            ;
+
+            SET @result_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from users where id = @result_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_USER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_USER`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_USER`(IN request_id varchar(10))
+            BEGIN
+            DELETE FROM users
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_SUITES2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_SUITES`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_SUITES`(IN request_test_id VARCHAR(11))
+            BEGIN
+            Select *
+            FROM suite_tests
+            where test_id = request_test_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_CUSTOMER 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_CUSTOMER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_CUSTOMER`(
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(150),
+            IN request_coordinator_id VARCHAR(11),
+            IN request_accounting VARCHAR(1),
+            IN request_account_manager_id VARCHAR(11)
+            )
+            BEGIN
+            INSERT INTO customer (id, name, coordinator_id, accounting, account_manager_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_coordinator_id='',null,request_coordinator_id),
+            IF(request_accounting='',0,request_accounting),
+            IF(request_account_manager_id='',null,request_account_manager_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            coordinator_id = IF(request_coordinator_id='',coordinator_id,request_coordinator_id),
+            accounting = IF(request_accounting='',accounting,request_accounting),
+            account_manager_id = IF(request_account_manager_id='',account_manager_id, IF(request_account_manager_id='0',null,request_account_manager_id))
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from customer where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_TEST_TO_TESTSUITE2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_TO_TESTSUITE`;
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_TEST_TO_SUITE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_TO_SUITE`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM suite_tests
+            where test_id = request_test_id AND suite_id = request_suite_id)
+            THEN
+            INSERT INTO suite_tests (test_id, suite_id)
+            VALUES (request_test_id, request_suite_id);
+            END IF;
+
+            SELECT * FROM suite_tests WHERE test_id = request_test_id AND suite_id = request_suite_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_TEST_FROM_TESTSUITE2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_TEST_FROM_TESTSUITE`;
+
+            #
+
+            DROP procedure IF EXISTS `REMOVE_TEST_FROM_SUITE`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_TEST_FROM_SUITE`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11)
+            )
+            BEGIN
+            IF EXISTS (SELECT * FROM suite_tests
+            where test_id = request_test_id AND suite_id = request_suite_id)
+            THEN
+            DELETE FROM suite_tests
+            WHERE test_id = request_test_id AND suite_id = request_suite_id;
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_TEST_RESULT2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(500),
+            IN request_final_result_id VARCHAR(500),
+            IN request_comment text,
+            IN request_test_run_id VARCHAR(500),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_log longtext,
+            IN request_debug VARCHAR(1),
+            IN request_finish_date VARCHAR(500),
+            IN request_start_date VARCHAR(500),
+            IN request_final_result_updated VARCHAR(500),
+            IN request_fail_reason mediumtext,
+            IN request_assignee VARCHAR(10)
+            )
+            BEGIN
+            INSERT INTO test_results (project_id, id, test_id, final_result_id, comment, test_run_id, test_resolution_id, log, debug, start_date, finish_date, final_result_updated, fail_reason, assignee)
+            VALUES (
+            request_project_id,
+            IF(request_id='', null, request_id),
+            request_test_id,
+            IF(request_final_result_id='',1,request_final_result_id),
+            IF(request_comment = '', null, request_comment),
+            IF(request_test_run_id = '', null, request_test_run_id),
+            IF(request_test_resolution_id = '', 1, request_test_resolution_id),
+            IF(request_log = '', null, request_log),
+            IF(request_debug = '', 0, request_debug),
+            If(request_start_date = '', null, FROM_UNIXTIME(request_start_date)),
+            If(request_finish_date = '', null, FROM_UNIXTIME(request_finish_date)),
+            NOW(),
+            IF(request_fail_reason = '', null, request_fail_reason),
+            IF(request_assignee = '', null, request_assignee))
+            ON DUPLICATE KEY UPDATE
+            test_id=IF(request_test_id = '',test_id,request_test_id),
+            final_result_id = IF(request_final_result_id = '', final_result_id, request_final_result_id),
+            comment = IF(request_comment = '', IF(comment = null OR '', null, comment), IF(request_comment='$blank', null, request_comment)),
+            test_resolution_id = IF(final_result_id = 2, 1, IF(request_test_resolution_id='', test_resolution_id, request_test_resolution_id)),
+            log = IF(request_log = '', log, IF(request_log = '$blank', '', request_log)),
+            debug = IF(request_debug = '', debug, request_debug),
+            start_date = If(request_start_date = '', start_date, FROM_UNIXTIME(request_start_date)),
+            finish_date = If(request_finish_date = '', finish_date, FROM_UNIXTIME(request_finish_date)),
+            final_result_updated = IF(request_final_result_id = final_result_id AND request_final_result_updated = '', NOW(), IF(request_final_result_updated = '',final_result_updated, FROM_UNIXTIME(request_final_result_updated))),
+            fail_reason = IF(request_fail_reason = '', fail_reason, IF(request_fail_reason = '$blank', '', request_fail_reason)),
+            assignee = IF(request_assignee = '', null, request_assignee)
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from test_results where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDIT2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDIT`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_status_id varchar(11),
+            In request_created varchar(100),
+            In request_started varchar(100),
+            In request_progress_finished varchar(100),
+            In request_due_date varchar(100),
+            In request_submitted varchar(100),
+            In request_result varchar(3),
+            In request_summary mediumtext,
+            In request_service_id varchar(11))
+            BEGIN
+
+            INSERT INTO audits (`id`, `project_id`, `started`, `progress_finished`, `due_date`, `submitted`, `result`, `summary`, `service_type_id`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_project_id,
+            IF(request_started='',null,FROM_UNIXTIME(request_started)),
+            IF(request_progress_finished='',null,FROM_UNIXTIME(request_progress_finished)),
+            IF(request_due_date='',DATE_ADD((select submitted from (select max(submitted) as submitted from audits where project_id = request_project_id) as `tmp`), INTERVAL +6 MONTH ),FROM_UNIXTIME(request_due_date)),
+            IF(request_submitted='',null,FROM_UNIXTIME(request_submitted)),
+            IF(request_result='',null,request_result),
+            IF(request_summary='',null,request_summary),
+            IF(request_service_id='', 1, request_service_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            status_id = IF(request_status_id='',status_id,request_status_id),
+            result = IF(request_result='',result,request_result),
+            created = IF(request_created='',created,FROM_UNIXTIME(request_created)),
+            started = IF(request_started='',started,FROM_UNIXTIME(request_started)),
+            progress_finished = IF(request_progress_finished='',progress_finished,FROM_UNIXTIME(request_progress_finished)),
+            due_date = IF(request_due_date!='',FROM_UNIXTIME(request_due_date),due_date),
+            submitted = IF(request_submitted='',submitted,FROM_UNIXTIME(request_submitted)),
+            summary = IF(request_summary='',summary,IF(request_summary='$blank', null, request_summary)),
+            service_type_id = IF(request_service_id='',service_type_id, request_service_id)
+            ;
+
+            SET @audit_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from audits where id = @audit_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDITOR2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_AUDITOR`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11))
+            BEGIN
+            INSERT INTO auditor_assignments (`audit_id`, `user_id`)
+            VALUES (
+            request_audit_id,
+            request_user_id
+            );
+
+            SELECT * from auditor_assignments inner join users on user_id = users.id
+            where user_id = request_user_id AND audit_id = request_audit_id;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_AUDIT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_AUDIT`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_AUDIT`(In request_id varchar(11))
+            BEGIN
+            DELETE FROM audits
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_AUDIT_COMMENT2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_AUDIT_COMMENT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_AUDIT_COMMENT`(
+            IN request_id varchar(11),
+            IN request_audit_id varchar(11),
+            IN request_user_id VARCHAR(11),
+            IN request_body Text)
+            BEGIN
+            INSERT INTO audit_comments (`id`, `audit_id`, `user_id`, `body`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_audit_id,
+            request_user_id,
+            request_body
+            )
+            ON DUPLICATE KEY UPDATE
+            body = IF(request_body='',body,request_body)
+            ;
+
+            SET @result_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from audit_comments where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="REMOVE_AUDIT_ATTACH2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_AUDIT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_AUDIT_ATTACH`(In request_id varchar(11))
+            BEGIN
+            DELETE FROM union_reporting.audit_attachments
+            WHERE id=request_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_SUITE3 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_SUITE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_SUITE`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(10),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT *
+            FROM test_suites
+            WHERE (request_name = '' OR name = request_name)
+            AND (request_id = '' OR id = request_id)
+            AND (request_project_id = '' OR project_id = request_project_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="PendingResults 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `test_results`
+            ADD COLUMN `pending` INT(1) NOT NULL DEFAULT '1' AFTER `project_id`;
+
+            #
+
+            DROP TRIGGER IF EXISTS test_results_BEFORE_INSERT
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER test_results_BEFORE_INSERT BEFORE INSERT ON test_results FOR EACH ROW
+            BEGIN
+            if(NEW.id != '')
+            Then
+            SET NEW.pending = 0;
+            end if;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS test_results_BEFORE_UPDATE
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER test_results_BEFORE_UPDATE BEFORE UPDATE ON test_results FOR EACH ROW
+            BEGIN
+            if(NEW.id != '')
+            Then
+            SET NEW.pending = 0;
+            end if;
+            END
+
+            #
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_SUITES3 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_SUITES`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_SUITES`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11)
+            )
+            BEGIN
+            Select *
+            FROM suite_tests
+            where (request_test_id = '' OR test_id = request_test_id) AND (request_suite_id = '' OR suite_id = request_suite_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_PASSWORD2 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PASSWORD`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PASSWORD`(
+            IN request_user_id VARCHAR(11),
+            IN request_old_password VARCHAR(150),
+            IN request_password VARCHAR(150)
+            )
+            BEGIN
+            IF(request_old_password != (SELECT password From users WHERE id = request_user_id))
+            THEN
+            SIGNAL SQLSTATE '23516'
+            SET MESSAGE_TEXT = 'Old password is wrong!';
+            END IF;
+
+            UPDATE users
+            SET password = request_password
+            WHERE id = request_user_id;
+
+            select * from users where id = request_user_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_RESULTS_STAT4 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_RESULTS_STAT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_RESULTS_STAT`(
+            In request_project_id varchar(11),
+            In request_testrun_started_from_date varchar(25),
+            In request_testrun_started_to_date varchar(25)
+            )
+            BEGIN
+            Select 	test_results.test_run_id,
+            test_runs.start_time as test_run_started,
+            tests.name,
+            final_results.name as status,
+            result_resolution.name as resolution,
+            assigneetbl.user_name as assignee,
+            dev.user_name as developer,
+            test_results.comment
+
+            FROM test_results
+            LEFT JOIN final_results ON final_result_id = final_results.id
+            LEFT JOIN result_resolution ON test_resolution_id = result_resolution.id
+            LEFT JOIN tests ON test_id = tests.id
+            LEFT JOIN test_runs ON test_run_id = test_runs.id
+            LEFT JOIN users as assigneetbl ON assignee = assigneetbl.id
+            LEFT JOIN users as dev ON tests.developer_id = dev.id
+
+            where test_results.project_id = request_project_id
+            AND (request_testrun_started_from_date='' OR test_runs.start_time &gt;=  CAST(request_testrun_started_from_date AS DATETIME))
+            AND (request_testrun_started_to_date='' OR test_runs.start_time &lt;=  CAST(request_testrun_started_to_date AS DATETIME));
+            END
+
+            #
+
+            DROP procedure IF EXISTS `SELECT_TEST_RUN`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_execution_environment VARCHAR(500),
+            IN request_debug VARCHAR(1),
+            IN request_label_id VARCHAR(11),
+            IN request_limit INT(10)
+            )
+            BEGIN
+            SELECT
+            runs.*,
+            mil.name as milestone_name,
+            suite.name as testsuite_name
+
+            FROM union_reporting.test_runs as runs
+            LEFT JOIN union_reporting.milestones as mil ON runs.milestone_id = mil.id
+            LEFT JOIN union_reporting.test_suites as suite ON runs.test_suite_id = suite.id
+
+            WHERE (request_id= '' OR runs.id=request_id)
+            AND (request_build_name = '' OR build_name=request_build_name)
+            AND (request_milestone_id = '' OR milestone_id=request_milestone_id OR IF(request_milestone_id=0, milestone_id IS NULL, request_milestone_id = ''))
+            AND (request_test_suite_id = '' OR test_suite_id=request_test_suite_id)
+            AND (request_project_id = '' OR runs.project_id=request_project_id)
+            AND (request_execution_environment = '' OR execution_environment=request_execution_environment)
+            AND (request_debug = '' OR runs.debug=request_debug)
+            AND (request_label_id = '' OR runs.label_id=request_label_id)
+            ORDER BY finish_time DESC
+            LIMIT request_limit
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="CI_BUILD_COLUMN 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `test_runs`
+            ADD COLUMN `ci_build` VARCHAR(500) NULL AFTER `label_id`;
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_TEST_RUN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_start_time VARCHAR(500),
+            IN request_execution_environment VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_finish_time VARCHAR(500),
+            IN request_author VARCHAR(500),
+            IN request_label_id VARCHAR(11),
+            IN request_debug VARCHAR(1),
+            IN request_ci_build VARCHAR(500)
+            )
+            BEGIN
+            INSERT INTO test_runs (
+            id,
+            build_name,
+            start_time,
+            milestone_id,
+            test_suite_id,
+            project_id,
+            execution_environment,
+            finish_time,
+            author,
+            label_id,
+            debug,
+            ci_build)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            request_build_name,
+            if(request_start_time = '', FROM_UNIXTIME('0'), FROM_UNIXTIME(request_start_time)),
+            IF(request_milestone_id = '', null, request_milestone_id),
+            IF(request_test_suite_id = '', null, request_test_suite_id),
+            IF(request_project_id = '', 0, request_project_id),
+            IF(request_execution_environment = '', execution_environment, IF(request_execution_environment = '$blank', '', request_execution_environment)),
+            If(request_finish_time = '', null, FROM_UNIXTIME(request_finish_time)),
+            IF(request_author = '', null, request_author),
+            IF(request_label_id = '', 1, request_label_id),
+            IF(request_debug = '', '0', request_debug),
+            request_ci_build
+            )
+            ON DUPLICATE KEY UPDATE
+            build_name = IF(request_build_name = '', build_name, request_build_name),
+            start_time = IF(request_start_time = '', start_time, FROM_UNIXTIME(request_start_time)),
+            milestone_id = IF(request_milestone_id = '', milestone_id, IF(request_milestone_id = '0', null, request_milestone_id)),
+            test_suite_id = IF(request_test_suite_id = '', test_suite_id, request_test_suite_id),
+            project_id = IF(request_project_id = '',project_id, request_project_id ),
+            execution_environment = IF(request_execution_environment = '', execution_environment, IF(request_execution_environment = '$blank', '', request_execution_environment)),
+            finish_time = If(request_finish_time = '', finish_time, FROM_UNIXTIME(request_finish_time)),
+            author = IF(request_author = '', author, IF(request_author = '$blank', '', request_author)),
+            label_id = IF(request_label_id = '', label_id, request_label_id),
+            debug = IF(request_debug = '', debug, request_debug),
+            ci_build = IF(request_ci_build = '', ci_build, request_ci_build);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from test_runs where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="Testrun Stats table 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            CREATE TABLE `testrun_statistic` (
+            `testrun_id` INT NOT NULL,
+            `failed` INT NULL DEFAULT 0,
+            `passed` INT NULL DEFAULT 0,
+            `not_executed` INT NULL DEFAULT 0,
+            `in_progress` INT NULL DEFAULT 0,
+            `pending` INT NULL DEFAULT 0,
+            `total` INT NULL DEFAULT 0,
+            `app_issue` INT NULL DEFAULT 0,
+            `warning` INT NULL DEFAULT 0,
+            `not_assigned` INT NULL DEFAULT 0,
+            `other` INT NULL DEFAULT 0,
+            PRIMARY KEY (`testrun_id`),
+            UNIQUE INDEX `id_UNIQUE` (`testrun_id` ASC),
+            CONSTRAINT `testrun_table`
+            FOREIGN KEY (`testrun_id`)
+            REFERENCES `test_runs` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="Create TestResult triggers 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_results_AFTER_INSERT
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER test_results_AFTER_INSERT AFTER INSERT ON test_results FOR EACH ROW
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND is_finished = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS test_results_AFTER_UPDATE
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER test_results_AFTER_UPDATE AFTER UPDATE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND is_finished = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS test_results_AFTER_DELETE
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER test_results_AFTER_DELETE AFTER DELETE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND is_finished = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = OLD.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = OLD.test_run_id;
+            END IF;
+            END
+
+            #
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="Run stats creation 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join test_results as trs on trn.id=test_run_id
+            left join final_results as frs on trs.final_result_id = frs.id
+            left join result_resolution as rr on trs.test_resolution_id = rr.id
+
+            GROUP BY trn.id
+            ORDER BY finish_time DESC;
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RUN_STATS4 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RUN_STATS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RUN_STATS`(
+            IN request_testrun_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_debug VARCHAR(1)
+            )
+            BEGIN
+            SELECT
+            id,
+            build_name,
+            project_id,
+            test_suite_id,
+            start_time,
+            finish_time,
+            failed,
+            passed,
+            not_executed,
+            in_progress,
+            pending,
+            total,
+            app_issue,
+            warning,
+            not_assigned,
+            other
+
+
+            from test_runs left join testrun_statistic on id = testrun_id
+            WHERE (request_testrun_id= '' OR id=request_testrun_id)
+            AND (request_test_suite_id = '' OR test_suite_id=request_test_suite_id)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            AND (request_debug = '' OR debug=request_debug)
+            ORDER BY finish_time DESC;
+
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="Imports table 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            CREATE TABLE `imports` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `testrun_id` INT NULL,
+            `is_finished` INT(1) NOT NULL DEFAULT 0,
+            `started` DATETIME NULL,
+            `finished` DATETIME NULL,
+            `log` LONGTEXT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `imports_testrun_table_idx` (`testrun_id` ASC),
+            CONSTRAINT `imports_testrun_table`
+            FOREIGN KEY (`testrun_id`)
+            REFERENCES `test_runs` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+
+            #
+
+            ALTER TABLE `imports`
+            ADD COLUMN `project_id` INT NOT NULL AFTER `testrun_id`,
+            ADD INDEX `imports_project_idx` (`project_id` ASC);
+
+            #
+
+            ALTER TABLE `imports`
+            ADD CONSTRAINT `imports_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="INSERT_IMPORT 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_IMPORT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_IMPORT`(
+            IN request_id VARCHAR(11),
+            IN request_testrun_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_is_finished VARCHAR(1),
+            IN request_started VARCHAR(500),
+            IN request_finished VARCHAR(500),
+            IN request_log LONGTEXT
+            )
+            BEGIN
+
+            SET time_zone = '+00:00';
+            INSERT INTO imports (id, testrun_id, project_id, is_finished, started, finished, log)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            IF(request_testrun_id = '', null,request_testrun_id),
+            IF(request_project_id = '', null,request_project_id),
+            IF(request_is_finished = '', null,request_is_finished),
+            IF(request_started = '', null,FROM_UNIXTIME(request_started)),
+            IF(request_finished = '', null,FROM_UNIXTIME(request_finished)),
+            IF(request_log = '', null,request_log)
+            ) ON DUPLICATE KEY UPDATE
+            testrun_id = IF(request_testrun_id = '', testrun_id, request_testrun_id),
+            project_id = IF(request_project_id = '', project_id, request_project_id),
+            is_finished = IF(request_is_finished = '', is_finished, request_is_finished),
+            started = IF(request_started = '', started, FROM_UNIXTIME(request_started)),
+            finished= IF(request_finished = '', finished, FROM_UNIXTIME(request_finished)),
+            log = IF(request_log = '', log, request_log);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from imports where id = @result_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_IMPORTS 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_IMPORTS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_IMPORTS`(
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_testrun_id varchar(11)
+            )
+            BEGIN
+            SELECT *
+            FROM imports
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            AND (request_testrun_id = '' OR testrun_id=request_testrun_id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="SELECT_TEST_RESULT4 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(10),
+            IN request_final_result_id VARCHAR(10),
+            IN request_test_run_id VARCHAR(10),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_debug VARCHAR(1),
+            In request_limit INT(10)
+            )
+            BEGIN
+            SELECT * FROM test_results as res
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id = request_project_id)
+            AND (request_test_id = '' OR test_id=request_test_id)
+            AND (request_final_result_id = '' OR final_result_id=request_final_result_id)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_test_resolution_id = '' OR test_resolution_id=request_test_resolution_id)
+            AND (request_debug = '' OR debug=request_debug)
+            ORDER BY start_date DESC
+            LIMIT request_limit
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+    <changeSet id="Imports triggers 2.0 Refactoring" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS imports_AFTER_INSERT
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER imports_AFTER_INSERT AFTER INSERT ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.is_finished = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.testrun_id;
+            END IF;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS imports_AFTER_UPDATE
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER imports_AFTER_UPDATE AFTER UPDATE ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.is_finished = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.testrun_id;
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+
+
+</databaseChangeLog>

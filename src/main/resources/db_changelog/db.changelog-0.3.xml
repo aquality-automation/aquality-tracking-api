@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="folders_table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `union_reporting`.`folders` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `parent_id` INT(11) NULL,
+            `name` VARCHAR(250) NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP Table IF EXISTS `union_reporting`.`folders`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="folders_fk" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `union_reporting`.`tests`
+            ADD COLUMN `folder_id` INT(11) NULL AFTER `developer_id`,
+            ADD INDEX `test_folder_idx` (`folder_id` ASC);
+
+            #
+
+            ALTER TABLE `union_reporting`.`tests`
+            ADD CONSTRAINT `test_folder`
+            FOREIGN KEY (`folder_id`)
+            REFERENCES `union_reporting`.`folders` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE;
+
+        </sql>
+        <rollback>
+            ALTER TABLE `union_reporting`.`tests`
+            DROP FOREIGN KEY `test_folder`;
+            #
+            ALTER TABLE `union_reporting`.`tests`
+            DROP COLUMN `folder_id`,
+            DROP INDEX `test_folder_idx` ;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="suite_tests" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `union_reporting`.`suite_tests` (
+            `suite_id` INT(11) NULL,
+            `test_id` INT(11) NULL,
+            INDEX `connector_test_idx` (`test_id` ASC),
+            INDEX `connector_suite_idx` (`suite_id` ASC),
+            CONSTRAINT `connector_test`
+            FOREIGN KEY (`test_id`)
+            REFERENCES `union_reporting`.`tests` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            CONSTRAINT `connector_suite`
+            FOREIGN KEY (`suite_id`)
+            REFERENCES `union_reporting`.`test_suites` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+
+            #
+
+            ALTER TABLE `union_reporting`.`suite_tests`
+            ADD COLUMN `id` INT(11) NOT NULL AUTO_INCREMENT AFTER `test_id`,
+            ADD COLUMN `name` VARCHAR(500) NULL AFTER `id`,
+            ADD PRIMARY KEY (`id`),
+            ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
+
+        </sql>
+        <rollback>
+            DROP Table IF EXISTS `union_reporting`.`suite_tests`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="suite_tests_migrate" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            SET FOREIGN_KEY_CHECKS=0;
+            #
+            INSERT INTO union_reporting.suite_tests (suite_id, test_id, name)
+            SELECT DISTINCT test_suite_id, id, name FROM union_reporting.tests;
+            #
+            SET FOREIGN_KEY_CHECKS=1;
+            #
+            SET sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION';
+            #
+
+            CREATE TEMPORARY TABLE `uniq_tests`
+            as  (
+            SELECT Distinct tests.id, tests.name, tests.project_id
+            FROM union_reporting.test_results Join union_reporting.tests on tests.id = test_id
+            group by tests.name, tests.project_id
+            );
+
+            #
+
+            update union_reporting.test_results
+            set
+            test_id = (select id from union_reporting.tests
+                where ID = (select id from uniq_tests where name = (Select name from tests where id = test_id) AND project_id = (Select project_id from tests where id = test_id)))
+            Where id != 0;
+
+            #
+
+            update union_reporting.suite_tests
+            set
+            test_id = (select id from union_reporting.tests
+                where ID = (select id from uniq_tests where name = (Select name from tests where id = test_id) AND project_id = (Select project_id from tests where id = test_id)))
+            Where id != 0;
+
+            #
+
+            DELETE from tests
+            WHERE tests.id not in (
+            SELECT id FROM uniq_tests
+            ) And tests.id != 0;
+
+            #
+
+            Drop TEMPORARY TABLE `uniq_tests`;
+
+            #
+
+            ALTER TABLE `union_reporting`.`suite_tests` DROP COLUMN `name`;
+
+            #
+
+            ALTER TABLE `union_reporting`.`tests` DROP COLUMN `test_suite_id`;
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="select_tests_update" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_TEST`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_TEST`(
+            IN request_user_id VARCHAR(10),
+            IN testId VARCHAR(10),
+            IN testName VARCHAR(500),
+            IN testBody LONGTEXT,
+            IN test_test_suite_id VARCHAR(10),
+            IN test_project_id VARCHAR(10),
+            IN test_developer VARCHAR(10)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = test_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            Select distinct * From union_reporting.tests
+            WHERE
+            (testId = '' OR tests.id = testId)
+            AND (testName = '' OR name = testName)
+            AND (testBody = '' OR body = testBody)
+            AND (test_test_suite_id = ''
+            OR id IN (select test_id from suite_tests where suite_id = test_test_suite_id))
+            AND (test_project_id = ''
+            OR project_id = test_project_id)
+            AND (test_developer = ''
+            OR developer_id = test_developer)
+            ;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create_tests_update" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_TEST`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_TEST`(
+            IN request_user_id VARCHAR(10),
+            IN test_id VARCHAR(10),
+            IN testName VARCHAR(500),
+            IN testBody LONGTEXT,
+            IN test_project_id VARCHAR(10),
+            IN test_manual_duration varchar(10),
+            IN test_developer VARCHAR(10)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1
+            OR (union_reporting.user_roles.project_id = test_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            INSERT INTO union_reporting.tests (id, name, body, project_id, manual_duration, developer_id)
+            VALUES (
+            IF(test_id ='',null,test_id),
+            testName,
+            IF(testBody = '', null, testBody),
+            test_project_id,
+            IF(test_manual_duration = '' OR null, null, test_manual_duration),
+            IF(test_developer='',null,test_developer)
+            )
+            ON DUPLICATE KEY UPDATE
+            name=IF(testName = '' OR null, name, testName),
+            body = IF(testBody = '', null, testBody),
+            project_id = test_project_id,
+            manual_duration = IF(test_manual_duration = '' OR null, IF(manual_duration = null OR '', null, manual_duration), test_manual_duration),
+            developer_id = IF(test_developer='',developer_id,test_developer)
+            ;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS union_reporting.tests_BEFORE_INSERT
+
+            #
+            CREATE DEFINER = CURRENT_USER TRIGGER `union_reporting`.`tests_BEFORE_INSERT` BEFORE INSERT ON `tests` FOR EACH ROW
+            BEGIN
+            DECLARE min_len INT DEFAULT 3;
+            DECLARE str_len INT DEFAULT 0;
+            SET str_len = LENGTH(NEW.name);
+            IF str_len &lt; min_len
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test name cannot be empty or less than 3 symbols!';
+            END IF;
+
+            IF EXISTS (
+            SELECT * FROM union_reporting.tests WHERE name = NEW.name AND id != NEW.id
+            )
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test with this name already exists in this Test Suite!';
+            END IF;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS union_reporting.tests_BEFORE_UPDATE
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER `union_reporting`.`tests_BEFORE_UPDATE` BEFORE UPDATE ON `tests` FOR EACH ROW
+            BEGIN
+            DECLARE min_len INT DEFAULT 3;
+            DECLARE str_len INT DEFAULT 0;
+            SET str_len = LENGTH(NEW.name);
+            IF str_len &lt; min_len
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test name cannot be empty or less than 3 symbols!';
+            END IF;
+
+            IF EXISTS (
+            SELECT * FROM union_reporting.tests WHERE name = NEW.name AND id != NEW.id
+            )
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test with this name already exists in this Test Suite!';
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add_remove_test_from_testsuite" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`INSERT_TEST_TO_TESTSUITE`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`INSERT_TEST_TO_TESTSUITE`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11),
+            IN request_project_id  VARCHAR(11),
+            IN request_user_id VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            IF NOT EXISTS (SELECT * FROM union_reporting.suite_tests
+            where test_id = request_test_id AND suite_id = request_suite_id)
+            THEN
+            INSERT INTO union_reporting.suite_tests (test_id, suite_id)
+            VALUES (request_test_id, request_suite_id);
+            END IF;
+            END
+
+            #
+
+            DROP procedure IF EXISTS `union_reporting`.`REMOVE_TEST_FROM_TESTSUITE`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`REMOVE_TEST_FROM_TESTSUITE`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11),
+            IN request_project_id  VARCHAR(11),
+            IN request_user_id VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            IF EXISTS (SELECT * FROM union_reporting.suite_tests
+            where test_id = request_test_id AND suite_id = request_suite_id)
+            THEN
+            DELETE FROM union_reporting.suite_tests
+            WHERE test_id = request_test_id AND suite_id = request_suite_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="select-test-stats-update" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_TEST_STATS`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_TEST_STATS`(
+            IN request_user_id VARCHAR(10),
+            IN test_test_suite_id VARCHAR(10),
+            IN test_project_id VARCHAR(10)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = test_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            SELECT id, name, developer_id, total_runs, passed, failed, app_issue, autotest_issue, resolution_na
+            FROM
+            union_reporting.tests
+            LEFT JOIN
+            (SELECT
+            tr.test_id,
+            SUM(IF(final_result_id != 3, 1, 0)) AS total_runs,
+            SUM(IF(final_result_id = 1, 1, 0)) AS failed,
+            SUM(IF(final_result_id = 2, 1, 0)) AS passed,
+            SUM(IF(color = 1, 1, 0)) AS app_issue,
+            SUM(IF(color = 2, 1, 0)) AS autotest_issue,
+            SUM(IF(color = 3 AND final_result_id != 2, 1, 0)) AS resolution_na
+            FROM union_reporting.test_results tr
+            INNER JOIN union_reporting.result_resolution AS rr ON test_resolution_id = rr.id
+            GROUP BY test_id)
+            AS results ON tests.id = results.test_id
+            Where (test_test_suite_id = ''
+            OR id IN (select test_id from suite_tests where suite_id = test_test_suite_id));
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="select-test-suites-to-test" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `union_reporting`.`SELECT_TEST_SUITES`;
+
+            #
+
+            CREATE PROCEDURE `union_reporting`.`SELECT_TEST_SUITES`(
+            IN request_user_id VARCHAR(11),
+            IN request_test_id VARCHAR(11),
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM union_reporting.user_roles
+            right join union_reporting.users on union_reporting.user_roles.user_id = id
+            where id = request_user_id
+            AND (users.manager = 1 OR users.auditor = 1 OR users.audit_admin = 1 OR users.account_manager = 1 OR users.unit_coordinator = 1 OR users.head = 1
+            OR (union_reporting.user_roles.project_id = request_project_id
+            AND (user_roles.admin = 1 OR user_roles.manager = 1 OR user_roles.engineer = 1 OR user_roles.viewer = 1))))
+            THEN
+            signal sqlstate '23515';
+            END IF;
+
+            Select test_suites.*
+            FROM union_reporting.suite_tests inner join union_reporting.test_suites on suite_id = union_reporting.test_suites.id
+            where test_id = request_test_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="fix-triggers-issue-01" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP TRIGGER IF EXISTS union_reporting.tests_BEFORE_INSERT
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER `union_reporting`.`tests_BEFORE_INSERT` BEFORE INSERT ON `tests` FOR EACH ROW
+            BEGIN
+            DECLARE min_len INT DEFAULT 3;
+            DECLARE str_len INT DEFAULT 0;
+            SET str_len = LENGTH(NEW.name);
+            IF str_len &lt; min_len
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test name cannot be empty or less than 3 symbols!';
+            END IF;
+
+            IF EXISTS (
+            SELECT * FROM union_reporting.tests WHERE name = NEW.name AND id != NEW.id AND project_id = NEW.project_id
+            )
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test with this name already exists in this Project!';
+            END IF;
+            END
+
+            #
+
+            DROP TRIGGER IF EXISTS union_reporting.tests_BEFORE_UPDATE
+
+            #
+
+            CREATE DEFINER = CURRENT_USER TRIGGER `union_reporting`.`tests_BEFORE_UPDATE` BEFORE UPDATE ON `tests` FOR EACH ROW
+            BEGIN
+            DECLARE min_len INT DEFAULT 3;
+            DECLARE str_len INT DEFAULT 0;
+            SET str_len = LENGTH(NEW.name);
+            IF str_len &lt; min_len
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test name cannot be empty or less than 3 symbols!';
+            END IF;
+
+            IF EXISTS (
+            SELECT * FROM union_reporting.tests WHERE name = NEW.name AND id != NEW.id AND project_id = NEW.project_id
+            )
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Test with this name already exists in this Project!';
+            END IF;
+            END
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
