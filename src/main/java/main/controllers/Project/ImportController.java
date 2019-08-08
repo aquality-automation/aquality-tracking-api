@@ -7,7 +7,6 @@ import main.model.db.dao.project.ImportDao;
 import main.model.dto.ImportDto;
 import main.model.dto.UserDto;
 import org.apache.poi.util.NotImplemented;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
@@ -30,11 +29,11 @@ public class ImportController extends BaseController<ImportDto> {
 
     @Override @NotImplemented
     public ImportDto create(ImportDto entity) throws RPException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override @NotImplemented
     public boolean delete(ImportDto entity) throws RPException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 }

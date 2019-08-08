@@ -88,18 +88,31 @@ public class TestController extends BaseController<TestDto> {
         oldTest = get(oldTest, true).get(0);
         newTest = get(newTest, true).get(0);
 
-        for (TestResultDto result : oldTest.getResults()) {
-            List<TestResultDto> newResults = newTest.getResults();
-            TestResultDto existingResult = newResults.stream().filter(x -> x.getTest_run_id().equals(result.getTest_run_id())).findFirst().orElse(null);
-            if(existingResult == null){
-                result.setTest(newTest);
-                resultController.create(result);
-            }
-        }
+        executeResultsMovement(getResultsToMove(oldTest, newTest));
 
         if(remove){
             delete(oldTest);
         }
+    }
+
+    private void executeResultsMovement(List<TestResultDto> resultsToMove) throws RPException {
+        for (TestResultDto result : resultsToMove) {
+            resultController.create(result);
+        }
+    }
+
+    protected List<TestResultDto> getResultsToMove (TestDto from, TestDto to){
+        List<TestResultDto> newResults = to.getResults();
+        List<TestResultDto> resultsToMove = new ArrayList<>();
+        for (TestResultDto result : from.getResults()) {
+            TestResultDto existingResult = newResults.stream().filter(x -> x.getTest_run_id().equals(result.getTest_run_id())).findFirst().orElse(null);
+            if(existingResult == null){
+                result.setTest_id(to.getId());
+                resultsToMove.add(result);
+            }
+        }
+
+        return resultsToMove;
     }
 
     //TODO Refactoring

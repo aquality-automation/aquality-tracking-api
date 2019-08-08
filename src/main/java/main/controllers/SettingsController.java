@@ -12,7 +12,6 @@ import main.model.dto.UserDto;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.poi.util.NotImplemented;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -80,12 +79,12 @@ public class SettingsController extends BaseController<AppSettingsDto> {
 
     @Override @NotImplemented
     public List<AppSettingsDto> get(AppSettingsDto entity) throws RPException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override @NotImplemented
     public boolean delete(AppSettingsDto entity) throws RPException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public String getAdminSecret() throws RPException {

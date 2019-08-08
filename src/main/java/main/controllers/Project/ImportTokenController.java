@@ -8,7 +8,6 @@ import main.model.dto.ImportTokenDto;
 import main.model.dto.UserDto;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.poi.util.NotImplemented;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +21,7 @@ public class ImportTokenController extends BaseController<ImportTokenDto> {
 
     @Override
     public List<ImportTokenDto> get(ImportTokenDto entity) throws RPException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -36,7 +35,7 @@ public class ImportTokenController extends BaseController<ImportTokenDto> {
 
     @Override @NotImplemented
     public boolean delete(ImportTokenDto entity) throws RPException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public boolean isTokenValid(String token, Integer projectId) throws RPException {

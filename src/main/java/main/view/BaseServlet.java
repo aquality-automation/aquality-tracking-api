@@ -197,7 +197,7 @@ public class BaseServlet extends HttpServlet{
     protected void handleException(HttpServletResponse resp, @NotNull Exception e){
         e.printStackTrace();
         switch (e.getClass().getSimpleName()){
-            case "NotImplementedException":
+            case "UnsupportedOperationException":
                 setNotImplementedFunction(resp, e);
                 return;
             case "AuthenticationException":
