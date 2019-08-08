@@ -41,15 +41,18 @@ public class Importer extends BaseImporter {
         this.singleTestRun = singleTestRun;
     }
 
-    public void executeImport() throws RPException {
+    public List<ImportDto> executeImport() throws RPException {
+        List<ImportDto> result = new ArrayList<>();
+
         if(testRunId == null && !singleTestRun){
-            parseIntoMultiple();
-            return;
+            return parseIntoMultiple();
         }
-        parseIntoOne();
+
+        result.add(parseIntoOne());
+        return result;
     }
 
-    private void parseIntoOne() throws RPException {
+    private ImportDto parseIntoOne() throws RPException {
         try {
             createImport("Import into One Test Run was started!");
             for (String pathToFile : this.files) {
@@ -58,18 +61,15 @@ public class Importer extends BaseImporter {
                 storeResults(handler);
             }
             executeResultsCreation();
-            finishImport();
+            return finishImport();
         } catch (Exception e) {
-            String message = "Without any error message :(";
-            if(e.getMessage() != null){
-                message = e.getMessage();
-            }
-            finishImportWithError(message);
+            finishImportWithError(e.getMessage());
             throw e;
         }
     }
 
-    private void parseIntoMultiple() throws RPException {
+    private List<ImportDto> parseIntoMultiple() throws RPException {
+        List<ImportDto> imports = new ArrayList<>();
         for (String pathToFile : this.files) {
             try{
                 this.file = new File(pathToFile);
@@ -77,12 +77,14 @@ public class Importer extends BaseImporter {
                 Handler handler = handlerFactory.getHandler(this.file, type, testNameNodeType);
                 storeResults(handler);
                 executeResultsCreation();
-                finishImport();
+                imports.add(finishImport());
             } catch (Exception e){
                 finishImportWithError(e.getMessage());
                 throw e;
             }
         }
+
+        return imports;
     }
 
     private void executeResultsCreation() throws RPException {
@@ -115,14 +117,18 @@ public class Importer extends BaseImporter {
         if(testRunId != null) this.testRun.setId(testRunId);
     }
 
-    private void finishImport() throws RPException {
+    private ImportDto finishImport() throws RPException {
         importDto.setFinished(new Date());
         importDto.setIs_finished(1);
         importDto.addToLog("Import was finished!");
-        importDao.create(importDto);
+        return importDao.create(importDto);
     }
 
     private void finishImportWithError(String log) throws RPException {
+        if(log == null){
+            log = "Without any error message :(";
+        }
+
         importDto.setFinished(new Date());
         importDto.setIs_finished(1);
         importDto.addToLog("Import was finished with Error! " + log);
