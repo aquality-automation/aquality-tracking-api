@@ -26,14 +26,15 @@ public class FileUtils {
             String fileName = getFileName(filePart);
 
             try {
-                out = new FileOutputStream(new File(destination + File.separator + fileName));
+                String filePath = PathUtils.createPath(new String[]{destination, fileName});
+                out = new FileOutputStream(new File(filePath));
                 fileContent = filePart.getInputStream();
                 int read;
                 final byte[] bytes = new byte[1024];
                 while ((read = fileContent.read(bytes)) != -1) {
                     out.write(bytes, 0, read);
                 }
-                files.add(destination + File.separator + fileName);
+                files.add(filePath);
             } catch (FileNotFoundException fne) {
                 System.out.println("You either did not specify a file to upload or are trying to upload a file to a protected or nonexistent location.");
                 System.out.println("<br/> ERROR: " + fne.getMessage());

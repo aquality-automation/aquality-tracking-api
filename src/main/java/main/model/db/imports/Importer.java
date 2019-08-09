@@ -1,6 +1,5 @@
 package main.model.db.imports;
 
-import main.model.db.imports.enums.TestNameNodeType;
 import main.exceptions.RPException;
 import main.model.dto.ImportDto;
 import main.model.dto.TestRunDto;
@@ -10,6 +9,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -42,14 +42,11 @@ public class Importer extends BaseImporter {
     }
 
     public List<ImportDto> executeImport() throws RPException {
-        List<ImportDto> result = new ArrayList<>();
-
         if(testRunId == null && !singleTestRun){
             return parseIntoMultiple();
         }
 
-        result.add(parseIntoOne());
-        return result;
+        return Collections.singletonList(parseIntoOne());
     }
 
     private ImportDto parseIntoOne() throws RPException {

@@ -1,7 +1,5 @@
 package main.model.db.imports;
 
-import main.model.db.imports.enums.ImportTypes;
-import main.model.db.imports.enums.TestNameNodeType;
 import main.exceptions.RPException;
 import main.model.db.imports.ImportHandlers.*;
 

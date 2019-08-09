@@ -1,7 +1,7 @@
 package main.model.db.imports.SAXHandlers;
 
 
-import main.model.db.imports.enums.ResultStatus;
+import main.model.db.imports.ResultStatus;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import static main.model.db.imports.enums.ResultStatus.*;
+import static main.model.db.imports.ResultStatus.*;
 
 public class RobotHandler extends DefaultHandler {
 

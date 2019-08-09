@@ -3,6 +3,7 @@ package main.view.Customers;
 import main.Session;
 import main.model.dto.CustomerAttachmentDto;
 import main.utils.FileUtils;
+import main.utils.PathUtils;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;
@@ -67,7 +68,7 @@ public class CustomerAttachmentGet extends BaseServlet implements IGet, IPost, I
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("customer_id")) {
                 FileUtils fileUtils = new FileUtils();
-                List<String> filePaths = fileUtils.doUpload(req, resp, System.getProperty("user.dir") + File.separator + "customers" + File.separator + req.getParameter("customer_id"));
+                List<String> filePaths = fileUtils.doUpload(req, resp, PathUtils.createPathToBin(new String[]{"customers", getStringQueryParameter(req, "customer_id")}));
                 for (String filePath : filePaths) {
                     CustomerAttachmentDto customerAttachmentDto = new CustomerAttachmentDto();
                     customerAttachmentDto.setPath(filePath);

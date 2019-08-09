@@ -1,20 +1,19 @@
 package main.view.Project;
 
 
-import lombok.Cleanup;
 import main.Session;
 import main.exceptions.RPException;
 import main.model.db.imports.Importer;
-import main.model.db.imports.enums.TestNameNodeType;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.ImportDto;
 import main.model.dto.ImportTokenDto;
 import main.model.dto.TestRunDto;
 import main.model.dto.TestSuiteDto;
 import main.utils.FileUtils;
+import main.utils.PathUtils;
 import main.view.BaseServlet;
 import main.view.IPost;
-import main.view.enums.ImportParams;
-import main.model.db.imports.enums.ImportTypes;
+import main.model.db.imports.ImportTypes;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -55,7 +54,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
                 session = createSession(req);
             }
 
-            List<String> filePaths = doUpload(req, resp);
+            List<String> filePaths = doUpload(req, resp, projectId);
 
             Importer importer = session.getImporter(
                     filePaths,
@@ -136,13 +135,9 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         }
     }
 
-    private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
         FileUtils fileUtils = new FileUtils();
-
-        String projectId = getStringQueryParameter(req, ImportParams.projectId.name());
-        final String path = String.format("%s%stemp%s%s", System.getProperty("user.dir"), File.separator, File.separator, projectId);
-
-        return fileUtils.doUpload(req, resp, path);
+        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin(new String[]{"temp", projectId.toString()}));
     }
 
     private void cleanup(List<String> filePaths){
