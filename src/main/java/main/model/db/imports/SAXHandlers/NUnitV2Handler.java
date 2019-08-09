@@ -1,6 +1,6 @@
 package main.model.db.imports.SAXHandlers;
 
-import main.model.db.imports.enums.ResultStatus;
+import main.model.db.imports.ResultStatus;
 import main.exceptions.RPException;
 import main.model.db.imports.Handler;
 import main.model.dto.*;
@@ -12,7 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static main.model.db.imports.enums.ResultStatus.*;
+import static main.model.db.imports.ResultStatus.*;
 
 public class NUnitV2Handler extends Handler {
 

@@ -79,27 +79,42 @@ public class TestController extends BaseController<TestDto> {
     }
 
     public void moveTest(int from, int to, boolean remove, int projectId) throws RPException {
-        TestDto oldTest = new TestDto();
-        oldTest.setId(from);
-        oldTest.setProject_id(projectId);
-        TestDto newTest = new TestDto();
-        newTest.setId(to);
-        newTest.setProject_id(projectId);
-        oldTest = get(oldTest, true).get(0);
-        newTest = get(newTest, true).get(0);
+        TestDto oldTest = getTestForMovement(from, projectId);
+        TestDto newTest = getTestForMovement(to, projectId);
 
-        for (TestResultDto result : oldTest.getResults()) {
-            List<TestResultDto> newResults = newTest.getResults();
-            TestResultDto existingResult = newResults.stream().filter(x -> x.getTest_run_id().equals(result.getTest_run_id())).findFirst().orElse(null);
-            if(existingResult == null){
-                result.setTest(newTest);
-                resultController.create(result);
-            }
-        }
+        executeResultsMovement(getResultsToMove(oldTest, newTest));
 
         if(remove){
             delete(oldTest);
         }
+    }
+
+    private TestDto getTestForMovement(int id, int projectId) throws RPException {
+        TestDto test = new TestDto();
+        test.setId(id);
+        test.setProject_id(projectId);
+
+        return get(test, true).get(0);
+    }
+
+    private void executeResultsMovement(List<TestResultDto> resultsToMove) throws RPException {
+        for (TestResultDto result : resultsToMove) {
+            resultController.create(result);
+        }
+    }
+
+    protected List<TestResultDto> getResultsToMove (TestDto from, TestDto to){
+        List<TestResultDto> newResults = to.getResults();
+        List<TestResultDto> resultsToMove = new ArrayList<>();
+        for (TestResultDto result : from.getResults()) {
+            TestResultDto existingResult = newResults.stream().filter(x -> x.getTest_run_id().equals(result.getTest_run_id())).findFirst().orElse(null);
+            if(existingResult == null){
+                result.setTest_id(to.getId());
+                resultsToMove.add(result);
+            }
+        }
+
+        return resultsToMove;
     }
 
     //TODO Refactoring

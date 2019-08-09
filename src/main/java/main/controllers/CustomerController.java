@@ -11,7 +11,6 @@ import main.model.db.dao.project.ProjectUserDao;
 import main.model.db.dao.project.UserDao;
 import main.model.dto.*;
 import main.utils.FileUtils;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +107,7 @@ public class CustomerController extends BaseController<CustomerDto> {
 
     // TODO: update members
     public  void updateCustomerMember(List<CustomerMemberDto> members){
-        throw new NotImplementedException("Not implemented Update Members function");
+        throw new UnsupportedOperationException("Not implemented Update Members function");
     }
 
     @Override

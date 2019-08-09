@@ -71,6 +71,10 @@ public class BaseServlet extends HttpServlet{
                 : null;
     }
 
+    protected Boolean getBooleanQueryParameter(@NotNull HttpServletRequest req, String name){
+        return (req.getParameterMap().containsKey(name) && !req.getParameter(name).equals("")) && Boolean.parseBoolean(req.getParameter(name));
+    }
+
     protected void setPostResponseHeaders(@NotNull HttpServletResponse resp){
         resp.addHeader("Access-Control-Allow-Methods", "Post");
         resp.addHeader("Access-Control-Allow-Origin", "*");
@@ -197,7 +201,7 @@ public class BaseServlet extends HttpServlet{
     protected void handleException(HttpServletResponse resp, @NotNull Exception e){
         e.printStackTrace();
         switch (e.getClass().getSimpleName()){
-            case "NotImplementedException":
+            case "UnsupportedOperationException":
                 setNotImplementedFunction(resp, e);
                 return;
             case "AuthenticationException":

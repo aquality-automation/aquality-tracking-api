@@ -9,10 +9,9 @@ import main.model.dto.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static main.model.db.imports.enums.ResultStatus.*;
+import static main.model.db.imports.ResultStatus.*;
 
 public class Cucumber extends Handler{
         private List<FeatureDto> features;

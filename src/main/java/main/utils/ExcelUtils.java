@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class ExcelUtils {
     private XSSFCell firstCell;
@@ -30,7 +31,7 @@ public class ExcelUtils {
 
     public String writeXLSFile(JSONArray objects, List<Pair<String, String>> fields, String fileName, String sheetName) throws IOException, JSONException {
 
-        final String path = System.getProperty("user.dir") + File.separator + "temp" + File.separator + "Exports";
+        final String path = PathUtils.createPathToBin("temp", "Exports");
         new File(path).mkdirs();
 
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -40,7 +41,7 @@ public class ExcelUtils {
         CreateRows(objects, sheet, fields);
         ColumnsAutoHeight(sheet, fields);
 
-        String fPath = path + File.separator + fileName + ".xls";
+        String fPath = PathUtils.createPath(path, fileName + ".xlsx");
         FileOutputStream fileOut = new FileOutputStream(fPath);
 
         wb.write(fileOut);
@@ -51,7 +52,8 @@ public class ExcelUtils {
     }
 
     public String writeXLSXFile(JSONArray objects, List<Pair<String, String>> fields, String fileName, String sheetName) throws IOException, JSONException {
-        final String path = System.getProperty("user.dir") + File.separator + "temp" + File.separator + "Exports";
+
+        final String path = PathUtils.createPathToBin("temp", "Exports");
         new File(path).mkdirs();
 
         XSSFWorkbook wb = new XSSFWorkbook();
@@ -61,7 +63,7 @@ public class ExcelUtils {
 
         sheet.setAutoFilter(new CellRangeAddress(firstCell.getRowIndex(), lastCell.getRowIndex(), firstCell.getColumnIndex(), lastCell.getColumnIndex()));
 
-        String fPath = path + File.separator + fileName + ".xlsx";
+        String fPath = PathUtils.createPath(path, fileName + ".xlsx");
         FileOutputStream fileOut = new FileOutputStream(fPath);
 
         wb.write(fileOut);
@@ -70,10 +72,9 @@ public class ExcelUtils {
         return fPath;
     }
 
-    private void CreateHeadRow(HSSFSheet sheet, List<Pair<String, String>> fields){
+    private void CreateHeadRow(HSSFSheet sheet, List<Pair<String, String>> fields) {
         HSSFRow headRow = sheet.createRow(0);
-        for (int c=0;c < fields.size(); c++ )
-        {
+        IntStream.range(0, fields.size()).forEach(c -> {
             HSSFCell cell = headRow.createCell(c);
             cell.setCellValue(fields.get(c).left);
             CellStyle style = sheet.getWorkbook().createCellStyle();
@@ -82,24 +83,21 @@ public class ExcelUtils {
             style.setFont(font);
             style.setFillBackgroundColor(HSSFColor.HSSFColorPredefined.BLUE.getIndex());
             style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
             cell.setCellStyle(style);
-        }
+        });
     }
 
     private void CreateRows(JSONArray objects, XSSFSheet sheet, List<Pair<String, String>> fields) throws JSONException {
-        for (int i=0;i<objects.length()+1;i++)
-        {
+        for (int i = 0; i < objects.length() + 1; i++) {
             XSSFRow row = sheet.createRow(i);
             JSONObject obj = new JSONObject();
             if (i != 0) {
-                obj = (JSONObject) objects.get(i-1);
+                obj = (JSONObject) objects.get(i - 1);
             }
-            for (int j = 0; j < fields.size(); j++)
-            {
+            for (int j = 0; j < fields.size(); j++) {
                 XSSFCell localXSSFCell = row.createCell(j);
                 if (i == 0) {
-                    if(j==0){
+                    if (j == 0) {
                         firstCell = localXSSFCell;
                     }
                     localXSSFCell.setCellValue(fields.get(j).left);
@@ -114,14 +112,14 @@ public class ExcelUtils {
                     localXSSFCell.setCellStyle(style);
 
                 } else {
-                    if(i==objects.length() && j==fields.size()-1){
+                    if (i == objects.length() && j == fields.size() - 1) {
                         lastCell = localXSSFCell;
                     }
 
-                    try{
+                    try {
                         Pair<String, String> field = fields.get(j);
                         localXSSFCell.setCellValue(obj.getString(field.right));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         localXSSFCell.setCellValue("");
                     }
                 }
@@ -130,29 +128,25 @@ public class ExcelUtils {
     }
 
     private void CreateRows(JSONArray objects, HSSFSheet sheet, List<Pair<String, String>> fields) throws JSONException {
-        for (int r=0;r < objects.length(); r++ )
-        {
-            HSSFRow row = sheet.createRow(r+1);
+        for (int r = 0; r < objects.length(); r++) {
+            HSSFRow row = sheet.createRow(r + 1);
             JSONObject obj = (JSONObject) objects.get(r);
 
-            for (int c=0;c < fields.size(); c++ )
-            {
+            for (int c = 0; c < fields.size(); c++) {
                 HSSFCell cell = row.createCell(c);
                 cell.setCellValue(obj.getString(fields.get(c).right));
             }
         }
     }
 
-    private void ColumnsAutoHeight(XSSFSheet sheet, List<Pair<String, String>> fields){
-        for (int c=0;c < fields.size(); c++ ){
+    private void ColumnsAutoHeight(XSSFSheet sheet, List<Pair<String, String>> fields) {
+        IntStream.range(0, fields.size()).forEach(c -> {
             sheet.autoSizeColumn(c);
             sheet.setDisplayRowColHeadings(true);
-        }
+        });
     }
 
-    private void ColumnsAutoHeight(HSSFSheet sheet, List<Pair<String, String>> fields){
-        for (int c=0;c < fields.size(); c++ ){
-            sheet.autoSizeColumn(c);
-        }
+    private void ColumnsAutoHeight(HSSFSheet sheet, List<Pair<String, String>> fields) {
+        IntStream.range(0, fields.size()).forEach(sheet::autoSizeColumn);
     }
 }

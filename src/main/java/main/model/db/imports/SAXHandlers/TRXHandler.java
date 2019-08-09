@@ -1,8 +1,8 @@
 package main.model.db.imports.SAXHandlers;
 
-import main.model.db.imports.enums.ResultStatus;
+import main.model.db.imports.ResultStatus;
 import org.xml.sax.helpers.DefaultHandler;
-import main.model.db.imports.enums.TestNameNodeType;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
 
@@ -11,7 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static main.model.db.imports.enums.ResultStatus.*;
+import static main.model.db.imports.ResultStatus.*;
 
 public class TRXHandler extends DefaultHandler {
     private TestRunDto testRun = new TestRunDto();
