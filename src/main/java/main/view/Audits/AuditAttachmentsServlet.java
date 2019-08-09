@@ -69,7 +69,7 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("audit_id")) {
                 FileUtils fileUtils = new FileUtils();
-                List<String> filePaths = fileUtils.doUpload(req, resp, PathUtils.createPathToBin(new String[]{"audits", getStringQueryParameter(req, "audit_id")}));
+                List<String> filePaths = fileUtils.doUpload(req, resp, PathUtils.createPathToBin("audits", getStringQueryParameter(req, "audit_id")));
                 List<AuditAttachmentDto> listOfAttachments = new ArrayList<>();
                 AuditAttachmentDto auditAttachmentDtoTemplate = new AuditAttachmentDto();
                 auditAttachmentDtoTemplate.setAudit_id(Integer.parseInt(req.getParameter("audit_id")));

@@ -137,7 +137,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
         FileUtils fileUtils = new FileUtils();
-        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin(new String[]{"temp", projectId.toString()}));
+        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString()));
     }
 
     private void cleanup(List<String> filePaths){

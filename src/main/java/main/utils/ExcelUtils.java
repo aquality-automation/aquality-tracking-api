@@ -31,7 +31,7 @@ public class ExcelUtils {
 
     public String writeXLSFile(JSONArray objects, List<Pair<String, String>> fields, String fileName, String sheetName) throws IOException, JSONException {
 
-        final String path = PathUtils.createPathToBin(new String[]{"temp", "Exports"});
+        final String path = PathUtils.createPathToBin("temp", "Exports");
         new File(path).mkdirs();
 
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -41,7 +41,7 @@ public class ExcelUtils {
         CreateRows(objects, sheet, fields);
         ColumnsAutoHeight(sheet, fields);
 
-        String fPath = PathUtils.createPath(new String[]{path, fileName + ".xlsx"});
+        String fPath = PathUtils.createPath(path, fileName + ".xlsx");
         FileOutputStream fileOut = new FileOutputStream(fPath);
 
         wb.write(fileOut);
@@ -53,7 +53,7 @@ public class ExcelUtils {
 
     public String writeXLSXFile(JSONArray objects, List<Pair<String, String>> fields, String fileName, String sheetName) throws IOException, JSONException {
 
-        final String path = PathUtils.createPathToBin(new String[]{"temp", "Exports"});
+        final String path = PathUtils.createPathToBin("temp", "Exports");
         new File(path).mkdirs();
 
         XSSFWorkbook wb = new XSSFWorkbook();
@@ -63,7 +63,7 @@ public class ExcelUtils {
 
         sheet.setAutoFilter(new CellRangeAddress(firstCell.getRowIndex(), lastCell.getRowIndex(), firstCell.getColumnIndex(), lastCell.getColumnIndex()));
 
-        String fPath = PathUtils.createPath(new String[]{path, fileName + ".xlsx"});
+        String fPath = PathUtils.createPath(path, fileName + ".xlsx");
         FileOutputStream fileOut = new FileOutputStream(fPath);
 
         wb.write(fileOut);

@@ -68,7 +68,7 @@ public class CustomerAttachmentGet extends BaseServlet implements IGet, IPost, I
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("customer_id")) {
                 FileUtils fileUtils = new FileUtils();
-                List<String> filePaths = fileUtils.doUpload(req, resp, PathUtils.createPathToBin(new String[]{"customers", getStringQueryParameter(req, "customer_id")}));
+                List<String> filePaths = fileUtils.doUpload(req, resp, PathUtils.createPathToBin("customers", getStringQueryParameter(req, "customer_id")));
                 for (String filePath : filePaths) {
                     CustomerAttachmentDto customerAttachmentDto = new CustomerAttachmentDto();
                     customerAttachmentDto.setPath(filePath);

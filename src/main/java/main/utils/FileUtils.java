@@ -26,7 +26,7 @@ public class FileUtils {
             String fileName = getFileName(filePart);
 
             try {
-                String filePath = PathUtils.createPath(new String[]{destination, fileName});
+                String filePath = PathUtils.createPath(destination, fileName);
                 out = new FileOutputStream(new File(filePath));
                 fileContent = filePart.getInputStream();
                 int read;
