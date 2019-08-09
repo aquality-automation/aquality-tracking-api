@@ -1,9 +1,8 @@
 package main.model.db.imports.SAXHandlers;
 
-import main.model.db.imports.enums.TestNameNodeType;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static main.model.db.imports.enums.ResultStatus.*;
+import static main.model.db.imports.ResultStatus.*;
 
 public class JavaTestNGHandler extends DefaultHandler {
 

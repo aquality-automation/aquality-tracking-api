@@ -3,7 +3,7 @@ package main.model.db.imports.ImportHandlers;
 import main.exceptions.RPException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.TRXHandler;
-import main.model.db.imports.enums.TestNameNodeType;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.TestDto;
 import main.model.dto.TestResultDto;
 import main.model.dto.TestRunDto;

@@ -71,6 +71,10 @@ public class BaseServlet extends HttpServlet{
                 : null;
     }
 
+    protected Boolean getBooleanQueryParameter(@NotNull HttpServletRequest req, String name){
+        return (req.getParameterMap().containsKey(name) && !req.getParameter(name).equals("")) && Boolean.parseBoolean(req.getParameter(name));
+    }
+
     protected void setPostResponseHeaders(@NotNull HttpServletResponse resp){
         resp.addHeader("Access-Control-Allow-Methods", "Post");
         resp.addHeader("Access-Control-Allow-Origin", "*");

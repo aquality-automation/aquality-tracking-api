@@ -7,7 +7,7 @@ import main.controllers.Project.ProjectUserController;
 import main.exceptions.RPException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
-import main.model.db.imports.enums.TestNameNodeType;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.ProjectUserDto;
 import main.model.dto.TestRunDto;
 import main.model.dto.UserDto;
