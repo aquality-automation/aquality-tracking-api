@@ -79,20 +79,22 @@ public class TestController extends BaseController<TestDto> {
     }
 
     public void moveTest(int from, int to, boolean remove, int projectId) throws RPException {
-        TestDto oldTest = new TestDto();
-        oldTest.setId(from);
-        oldTest.setProject_id(projectId);
-        TestDto newTest = new TestDto();
-        newTest.setId(to);
-        newTest.setProject_id(projectId);
-        oldTest = get(oldTest, true).get(0);
-        newTest = get(newTest, true).get(0);
+        TestDto oldTest = getTestForMovement(from, projectId);
+        TestDto newTest = getTestForMovement(to, projectId);
 
         executeResultsMovement(getResultsToMove(oldTest, newTest));
 
         if(remove){
             delete(oldTest);
         }
+    }
+
+    private TestDto getTestForMovement(int id, int projectId) throws RPException {
+        TestDto test = new TestDto();
+        test.setId(id);
+        test.setProject_id(projectId);
+
+        return get(test, true).get(0);
     }
 
     private void executeResultsMovement(List<TestResultDto> resultsToMove) throws RPException {
