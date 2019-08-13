@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
-import static testUtils.FileUtils.getResourceFileAsString;
+import static utils.FileUtils.getResourceFileAsString;
 
 public class TestControllerTest extends TestController {
     public TestControllerTest() {
