@@ -42,8 +42,9 @@ public class ProjectUserServlet extends BaseServlet implements IGet, IPost, IDel
         try {
             Session session = createSession(req);
             ProjectUserDto projectUser = mapper.mapObject(ProjectUserDto.class, getRequestJson(req));
-            session.controllerFactory.getHandler(projectUser).create(projectUser);
+            projectUser = session.controllerFactory.getHandler(projectUser).create(projectUser);
             setJSONContentType(resp);
+            resp.getWriter().write(mapper.serialize(projectUser));
         }catch (Exception e) {
             handleException(resp, e);
         }
