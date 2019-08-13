@@ -131,49 +131,53 @@ public class CustomerController extends BaseController<CustomerDto> {
         }
     }
 
-    //TODO Refactoring
     private List<CustomerDto> fillCustomers(List<CustomerDto> customers) throws RPException {
-        UserDto userTemplate = new UserDto();
-        userTemplate.setUnit_coordinator(1);
-        List<UserDto> coordinators = userDao.searchAll(userTemplate);
-        userTemplate.setUnit_coordinator(null);
-        userTemplate.setAccount_manager(1);
-        List<UserDto> accountManagers = userDao.searchAll(userTemplate);
+        List<UserDto> users = userDao.getAll();
 
         for (CustomerDto customer: customers){
-            customer.setCoordinator(coordinators.stream().filter(x -> x.getId().equals(customer.getCoordinator_id())).findFirst().orElse(null));
+            customer.setCoordinator(users.stream().filter(x -> x.getId().equals(customer.getCoordinator_id())).findFirst().orElse(null));
             customer.getCoordinator().toPublic();
+
             if(customer.getAccounting() == 1){
                 Integer accountManagerId = customer.getAccount_manager_id();
-                customer.setAccount_manager(accountManagers.stream().filter(x->x.getId().equals(accountManagerId)).findFirst().orElse(null));
+                customer.setAccount_manager(users.stream().filter(x->x.getId().equals(accountManagerId)).findFirst().orElse(null));
                 customer.getAccount_manager().toPublic();
             }
 
             if(baseUser.isCoordinator()){
-                CustomerMemberDto customerMemberDto = new CustomerMemberDto();
-                customerMemberDto.setCustomer_id(customer.getId());
-                List<CustomerMemberDto> customerMembers = get(customerMemberDto);
-                customer.setAccount_team(customerMembers);
-
-                CustomerCommentDto customerCommentDtoTemplate = new CustomerCommentDto();
-                customerCommentDtoTemplate.setCustomer_id(customer.getId());
-                List<CustomerCommentDto> customerComments = get(customerCommentDtoTemplate);
-                customer.setComments(customerComments);
-
-
-                CustomerAttachmentDto customerAttachmentDtoTemplate = new CustomerAttachmentDto();
-                customerAttachmentDtoTemplate.setCustomer_id(customer.getId());
-                List<CustomerAttachmentDto> customerAttachments = get(customerAttachmentDtoTemplate);
-                customer.setAttachments(customerAttachments);
-
-                ProjectDao projectDao = new ProjectDao();
-                ProjectDto projectTemplate = new ProjectDto();
-                projectTemplate.setCustomer_id(customer.getId());
-                customer.setProjects(projectDao.searchAll(projectTemplate));
+                customer.setAccount_team(getMembers(customer));
+                customer.setComments(getComments(customer));
+                customer.setAttachments(getAttachments(customer));
+                customer.setProjects(getProjects(customer));
             }
         }
 
         return customers;
+    }
+
+    private List<ProjectDto> getProjects(CustomerDto customer) throws RPException {
+        ProjectDao projectDao = new ProjectDao();
+        ProjectDto projectTemplate = new ProjectDto();
+        projectTemplate.setCustomer_id(customer.getId());
+        return projectDao.searchAll(projectTemplate);
+    }
+
+    private List<CustomerAttachmentDto> getAttachments(CustomerDto customer) throws RPException {
+        CustomerAttachmentDto customerAttachmentDtoTemplate = new CustomerAttachmentDto();
+        customerAttachmentDtoTemplate.setCustomer_id(customer.getId());
+        return get(customerAttachmentDtoTemplate);
+    }
+
+    private List<CustomerCommentDto> getComments(CustomerDto customer) throws RPException {
+        CustomerCommentDto customerCommentDtoTemplate = new CustomerCommentDto();
+        customerCommentDtoTemplate.setCustomer_id(customer.getId());
+        return get(customerCommentDtoTemplate);
+    }
+
+    private List<CustomerMemberDto> getMembers(CustomerDto customer) throws RPException {
+        CustomerMemberDto customerMemberDto = new CustomerMemberDto();
+        customerMemberDto.setCustomer_id(customer.getId());
+        return get(customerMemberDto);
     }
 
     private CustomerDto fillCustomer(CustomerDto customer) throws RPException {
