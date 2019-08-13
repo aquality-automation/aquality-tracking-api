@@ -23,12 +23,7 @@ public class UsersServlet extends BaseServlet implements IGet, IPost {
         try {
             Session session = createSession(req);
             UserDto userTemplate = new UserDto();
-            if(req.getParameterMap().containsKey("unit_coordinator")){
-                userTemplate.setUnit_coordinator(Integer.parseInt(req.getParameter("unit_coordinator")));
-            }
-            if(req.getParameterMap().containsKey("account_manager")){
-                userTemplate.setAccount_manager(Integer.parseInt(req.getParameter("account_manager")));
-            }
+            userTemplate.getSearchTemplateFromRequestParameters(req);
             List<UserDto> users = session.controllerFactory.getHandler(userTemplate).get(userTemplate);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(users));
