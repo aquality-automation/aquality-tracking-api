@@ -14,7 +14,7 @@ public class EmailSettingsDao extends DAO<EmailSettingsDto> {
 
     public EmailSettingsDao() {
         super(EmailSettingsDto.class);
-        insert = "{call INSERT_EMAIL_SETTINGS(?,?,?,?,?,?,?,?)}";
+        insert = "{call INSERT_EMAIL_SETTINGS(?,?,?,?,?,?,?,?,?)}";
         select = "{call SELECT_EMAIL_SETTINGS(?)}";
     }
 
