@@ -1,6 +1,6 @@
 package main.utils.LDAP;
 
-import main.controllers.SettingsController;
+import main.controllers.Administration.AppSettingsController;
 import main.exceptions.RPException;
 import main.model.dto.LdapDto;
 import main.model.dto.UserDto;
@@ -24,7 +24,7 @@ public class LDAPAuthenticator {
     public LDAPAuthenticator() throws RPException {
         UserDto user = new UserDto();
         user.setAdmin(1);
-        SettingsController settingsController = new SettingsController(user);
+        AppSettingsController settingsController = new AppSettingsController(user);
         ldapDto = settingsController.getLdap();
         ldapDto.setAdminSecret(settingsController.getAdminSecret());
     }

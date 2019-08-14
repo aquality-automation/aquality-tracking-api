@@ -1,5 +1,6 @@
-package main.controllers;
+package main.controllers.Administration;
 
+import main.controllers.BaseController;
 import main.exceptions.RPException;
 import main.exceptions.RPPermissionsException;
 import main.model.db.dao.settings.AppSettingsDao;
@@ -16,25 +17,16 @@ import org.apache.poi.util.NotImplemented;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-public class SettingsController extends BaseController<AppSettingsDto> {
+public class AppSettingsController extends BaseController<AppSettingsDto> {
     private AppSettingsDao appSettingsDao;
-    private EmailSettingsDao emailSettingsDao;
     private LdapDao ldapDao;
 
-    public SettingsController(UserDto user) {
+    public AppSettingsController(UserDto user) {
         super(user);
         appSettingsDao = new AppSettingsDao();
-        emailSettingsDao = new EmailSettingsDao();
         ldapDao = new LdapDao();
     }
 
-    public EmailSettingsDto getEmail() throws RPException {
-        if(baseUser.isAdmin()){
-            return emailSettingsDao.getAll().get(0);
-        }else{
-            throw new RPPermissionsException("Account is not allowed to view Email Settings", baseUser);
-        }
-    }
     public LdapDto getLdap() throws RPException {
         if(baseUser.isAdmin()){
             return ldapDao.getAll().get(0);
@@ -45,17 +37,7 @@ public class SettingsController extends BaseController<AppSettingsDto> {
     public AppSettingsDto getApp() throws RPException {
         return appSettingsDao.getAll().get(0);
     }
-    public boolean getEmailStatus() throws RPException {
-        return emailSettingsDao.getAll().get(0).getEnabled() > 0;
-    }
 
-    public EmailSettingsDto create(EmailSettingsDto template) throws RPException {
-        if(baseUser.isAdmin()){
-            return emailSettingsDao.create(template);
-        }else{
-            throw new RPPermissionsException("Account is not allowed to update Email Settings", baseUser);
-        }
-    }
     public LdapDto create(LdapDto template) throws RPException {
         if(baseUser.isAdmin()){
             template.setAdminSecret(template.getAdminSecret() == null || template.getAdminSecret().equals("")

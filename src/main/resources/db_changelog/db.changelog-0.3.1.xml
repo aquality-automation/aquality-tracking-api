@@ -71,4 +71,106 @@
             END
         </rollback>
     </changeSet>
+
+
+    <changeSet id="Add Default Email Domain Setting To email Settings" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `email_settings`
+            ADD COLUMN `default_domain` VARCHAR(50) NULL AFTER `use_auth`;
+        </sql>
+        <rollback>
+            ALTER TABLE `email_settings`
+            DROP COLUMN `default_domain`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Add Default Email Domain Setting To INSERT_EMAIL_SETTINGS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN request_use_auth varchar(1),
+            IN request_default_domain varchar(50))
+            BEGIN
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port, use_auth, default_domain)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port,
+            request_use_auth,
+            request_default_domain
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port),
+            use_auth = IF (request_use_auth='', use_auth, request_use_auth),
+            default_domain = IF(request_default_domain='', default_domain, request_default_domain)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from email_settings where id = @insert_id;
+            END
+
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN request_use_auth varchar(1))
+            BEGIN
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port, use_auth)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port,
+            request_use_auth
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port),
+            use_auth = IF (request_use_auth='', use_auth, request_use_auth),
+            default_domain = IF(request_default_domain='', default_domain, request_default_domain)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from email_settings where id = @insert_id;
+            END
+
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

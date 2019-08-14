@@ -2,6 +2,7 @@ package main;
 
 import main.controllers.*;
 import main.controllers.Administration.AdministrationController;
+import main.controllers.Administration.AppSettingsController;
 import main.controllers.Project.ProjectController;
 import main.controllers.Project.ProjectUserController;
 import main.exceptions.RPException;
@@ -75,8 +76,8 @@ public class Session {
         return new CustomerController(user);
     }
 
-    public SettingsController getSettingsController () {
-        return new SettingsController(user);
+    public AppSettingsController getSettingsController () {
+        return new AppSettingsController(user);
     }
 
     public UserDto getCurrentUser() {

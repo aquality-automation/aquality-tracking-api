@@ -18,7 +18,7 @@ public class EmailStatusServlet  extends BaseServlet implements IGet{
             Session session = createSession(req);
             setJSONContentType(resp);
             EmailSettingsDto settings = new EmailSettingsDto();
-            settings.setEnabled(session.getSettingsController().getEmailStatus() ? 1 : 0);
+            settings.setEnabled(session.controllerFactory.getHandler(new EmailSettingsDto()).getEmailStatus() ? 1 : 0);
             resp.getWriter().write(mapper.serialize(settings));
         }catch (Exception e) {
             handleException(resp, e);
