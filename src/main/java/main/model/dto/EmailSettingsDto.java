@@ -31,7 +31,7 @@ public class EmailSettingsDto extends BaseDto {
     @DataBaseName(name="request_use_auth")
     @DataBaseInsert
     private Integer use_auth;
-    @DataBaseName(name="request_default_domain")
+    @DataBaseName(name="request_default_email_pattern")
     @DataBaseInsert
-    private Integer default_domain;
+    private String default_email_pattern;
 }

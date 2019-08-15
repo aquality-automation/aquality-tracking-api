@@ -219,9 +219,11 @@ public class BaseServlet extends HttpServlet{
                 resp.setStatus(500);
                 resp.addHeader("ErrorMessage", e.getMessage());
                 return;
+            case "InvalidFormatException":
             case "RPQueryParameterException":
                 resp.setStatus(422);
                 resp.addHeader("ErrorMessage", e.getMessage());
+
             default:
                 setUnknownIssue(resp);
         }

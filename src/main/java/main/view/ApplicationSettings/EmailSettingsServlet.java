@@ -19,11 +19,11 @@ public class EmailSettingsServlet extends BaseServlet implements IGet, IPost {
         try {
             Session session = createSession(req);
             setJSONContentType(resp);
-            EmailSettingsDto emailSettings = new EmailSettingsDto();
-            emailSettings.setId(1);
-            emailSettings = session.controllerFactory.getHandler(emailSettings).get(emailSettings).get(0);
-            emailSettings.setPassword("");
-            resp.getWriter().write(mapper.serialize(emailSettings));
+            EmailSettingsDto emailSetting = new EmailSettingsDto();
+            emailSetting.setId(1);
+            emailSetting = session.controllerFactory.getHandler(emailSetting).get(emailSetting).get(0);
+            emailSetting.setPassword(null);
+            resp.getWriter().write(mapper.serialize(emailSetting));
         }catch (Exception e) {
             handleException(resp, e);
         }
@@ -37,8 +37,10 @@ public class EmailSettingsServlet extends BaseServlet implements IGet, IPost {
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
-            EmailSettingsDto emailSettingsDto = mapper.mapObject(EmailSettingsDto.class, requestedJson);
-            session.controllerFactory.getHandler(new EmailSettingsDto()).create(emailSettingsDto);
+            EmailSettingsDto emailSetting = mapper.mapObject(EmailSettingsDto.class, requestedJson);
+            emailSetting = session.controllerFactory.getHandler(new EmailSettingsDto()).create(emailSetting);
+            emailSetting.setPassword(null);
+            resp.getWriter().write(mapper.serialize(emailSetting));
         }catch (Exception e) {
             handleException(resp, e);
         }
