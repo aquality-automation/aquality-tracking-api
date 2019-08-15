@@ -26,8 +26,8 @@
             users.*,
             session_code,
             sessions.created as session_created
-            FROM union_reporting.users as users
-            LEFT JOIN union_reporting.user_sessions as sessions
+            FROM users as users
+            LEFT JOIN user_sessions as sessions
             ON users.last_session_id = sessions.id
             WHERE (request_id= '' OR users.id=request_id)
             AND (request_first_name= '' OR first_name=request_first_name)
@@ -58,8 +58,8 @@
             users.*,
             session_code,
             sessions.created as session_created
-            FROM union_reporting.users as users
-            LEFT JOIN union_reporting.user_sessions as sessions
+            FROM users as users
+            LEFT JOIN user_sessions as sessions
             ON users.last_session_id = sessions.id
             WHERE (request_id= '' OR users.id=request_id)
             AND (request_first_name= '' OR first_name=request_first_name)
