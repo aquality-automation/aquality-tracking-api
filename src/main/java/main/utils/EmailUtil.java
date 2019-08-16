@@ -62,7 +62,7 @@ public class EmailUtil {
 
             imageBodyPart.setHeader("Content-ID", "<logo>");
             imageBodyPart.setDisposition(Part.INLINE);
-            imageBodyPart.attachFile(new File(classloader.getResource("rp-logo.png").toURI()));
+            imageBodyPart.attachFile(new File(classloader.getResource("logo.png").toURI()));
 
             multipart.addBodyPart(imageBodyPart);
 
