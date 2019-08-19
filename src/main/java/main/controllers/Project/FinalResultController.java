@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.FinalResultDao;
 import main.model.dto.FinalResultDto;
 import main.model.dto.UserDto;
@@ -18,25 +18,25 @@ public class FinalResultController extends BaseController<FinalResultDto> {
     }
 
     @Override
-    public FinalResultDto create(FinalResultDto template) throws RPException {
+    public FinalResultDto create(FinalResultDto template) throws AqualityException {
         if(baseUser.isAdmin()){
             return finalResultDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Final Result", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Final Result", baseUser);
         }
     }
 
     @Override
-    public List<FinalResultDto> get(FinalResultDto template) throws  RPException {
+    public List<FinalResultDto> get(FinalResultDto template) throws AqualityException {
         return finalResultDao.searchAll(template);
     }
 
     @Override
-    public boolean delete(FinalResultDto template) throws  RPException {
+    public boolean delete(FinalResultDto template) throws AqualityException {
         if(baseUser.isAdmin()){
             return finalResultDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Final Result", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Final Result", baseUser);
         }
     }
 }

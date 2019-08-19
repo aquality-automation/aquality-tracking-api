@@ -1,6 +1,6 @@
 package main.model.email;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.audit.AuditDao;
 import main.model.db.dao.audit.AuditStatisticDao;
 import main.model.db.dao.project.UserDao;
@@ -24,7 +24,7 @@ public class AuditEmails extends Emails {
         auditStatisticController = new AuditStatisticDao();
     }
 
-    public List<EmailDto> GetUpcomingEmails() throws SQLException, IOException, JSONException, NamingException, IllegalAccessException, InstantiationException, RPException {
+    public List<EmailDto> GetUpcomingEmails() throws SQLException, IOException, JSONException, NamingException, IllegalAccessException, InstantiationException, AqualityException {
         List<AuditStatisticDto> audits = auditStatisticController.getAll();
         List<String> recipients = getRecipients();
 
@@ -36,7 +36,7 @@ public class AuditEmails extends Emails {
         return emails;
     }
 
-    public List<EmailDto> GetOverdueEmails() throws SQLException, IOException, JSONException, NamingException, IllegalAccessException, InstantiationException, RPException {
+    public List<EmailDto> GetOverdueEmails() throws SQLException, IOException, JSONException, NamingException, IllegalAccessException, InstantiationException, AqualityException {
         List<AuditStatisticDto> audits = auditStatisticController.getAll();
         List<String> recipients = getRecipients();
         List<AuditStatisticDto> overdueAudits = audits.stream()
@@ -70,7 +70,7 @@ public class AuditEmails extends Emails {
         return emails;
     }
 
-    private List<EmailDto> getUpcomingAudits(int daysFromToday, List<AuditStatisticDto> audits, List<String> recipients) throws RPException {
+    private List<EmailDto> getUpcomingAudits(int daysFromToday, List<AuditStatisticDto> audits, List<String> recipients) throws AqualityException {
         List<EmailDto> emails = new ArrayList<>();
         List<AuditStatisticDto> upcomingAudits = audits.stream()
                 .filter(audit -> dateUtils.compareByDateOnly(getDueDate(audit), dateUtils.addDays(new Date(), daysFromToday)))
@@ -97,7 +97,7 @@ public class AuditEmails extends Emails {
         return emails;
     }
 
-    private List<String> getRecipients() throws RPException {
+    private List<String> getRecipients() throws AqualityException {
         UserDao userDao = new UserDao();
         UserDto user = new UserDto();
         List<UserDto> users = userDao.searchAll(user);
@@ -105,7 +105,7 @@ public class AuditEmails extends Emails {
         return users.stream().map(UserDto::getEmail).collect(Collectors.toList());
     }
 
-    private List<String> getCustomRecipients(Integer id) throws RPException {
+    private List<String> getCustomRecipients(Integer id) throws AqualityException {
         AuditDao auditDao = new AuditDao();
         AuditDto auditTemplate = new AuditDto();
         auditTemplate.setId(id);

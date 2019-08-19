@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.DAO;
 import main.model.dto.UserDto;
 import main.utils.DateUtils;
@@ -20,7 +20,7 @@ public class UserDao extends DAO<UserDto> {
         remove = "{call REMOVE_USER(?)}";
     }
 
-    public UserDto IsAuthorized(String sessionId) throws RPException {
+    public UserDto IsAuthorized(String sessionId) throws AqualityException {
         Base64 base64 = new Base64();
         DateUtils dates = new DateUtils();
         String[] strings = StringUtils.newStringUtf8(base64.decode(sessionId)).split(":");
@@ -30,14 +30,14 @@ public class UserDao extends DAO<UserDto> {
         if(users.size() > 0){
             user = users.get(0);
             if(!user.getSession_code().equals(sessionId)){
-                throw new RPPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
+                throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
             }
             if(new Date().after(dates.fromyyyyMMdd(strings[2]))){
-                throw new RPPermissionsException("Session Expired.", user);
+                throw new AqualityPermissionsException("Session Expired.", user);
             }
         }
         else{
-            throw new RPPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
+            throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
         }
         return user;
     }

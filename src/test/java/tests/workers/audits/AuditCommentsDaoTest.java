@@ -1,7 +1,7 @@
 package tests.workers.audits;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.audit.AuditCommentsDao;
 import main.model.dto.AuditCommentDto;
 import org.json.JSONArray;
@@ -28,14 +28,14 @@ public class AuditCommentsDaoTest extends AuditCommentsDao {
     }
 
     @Test
-    public void searchAllTest() throws RPException {
+    public void searchAllTest() throws AqualityException {
         List<AuditCommentDto> result = searchAll(new AuditCommentDto());
         assertSQLToParams(currentSql, currentParameters);
         assertEquals(result.size(), 1000);
     }
 
     @Test
-    public void insertTest() throws RPException {
+    public void insertTest() throws AqualityException {
         resultList.add(new AuditCommentDto());
         create(new AuditCommentDto());
         assertSQLToParams(currentSql, currentParameters);

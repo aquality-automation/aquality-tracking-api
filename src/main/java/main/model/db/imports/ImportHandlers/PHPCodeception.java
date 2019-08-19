@@ -1,6 +1,6 @@
 package main.model.db.imports.ImportHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.PHPCodeceptionHandler;
 import main.model.dto.TestDto;
@@ -17,12 +17,12 @@ public class PHPCodeception extends Handler {
 
     private PHPCodeceptionHandler handler;
 
-    public PHPCodeception(File file) throws RPException {
+    public PHPCodeception(File file) throws AqualityException {
         handler = new PHPCodeceptionHandler();
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
-            throw new RPException("Cannot Parse Codeception file");
+            throw new AqualityException("Cannot Parse Codeception file");
         }
     }
 

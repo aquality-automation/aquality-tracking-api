@@ -1,6 +1,6 @@
 package main.model.db.imports.ImportHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.JavaTestNGHandler;
 import main.model.db.imports.TestNameNodeType;
@@ -17,12 +17,12 @@ import java.util.List;
 public class JavaTestNG extends Handler{
     private JavaTestNGHandler handler;
 
-    public JavaTestNG(File file, TestNameNodeType testNameNodeType) throws RPException {
+    public JavaTestNG(File file, TestNameNodeType testNameNodeType) throws AqualityException {
         handler = new JavaTestNGHandler(testNameNodeType);
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
-            throw new RPException("Cannot Parse TestNG file");
+            throw new AqualityException("Cannot Parse TestNG file");
         }
     }
 

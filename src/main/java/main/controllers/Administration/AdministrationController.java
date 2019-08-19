@@ -1,7 +1,6 @@
 package main.controllers.Administration;
 
-import main.controllers.Administration.UserController;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.UserDto;
 
 public class AdministrationController {
@@ -16,7 +15,7 @@ public class AdministrationController {
      * @param ldap do authorization with LDAP or not
      * @return User
      */
-    public UserDto auth(String authString, boolean ldap) throws RPException {
+    public UserDto auth(String authString, boolean ldap) throws AqualityException {
         return userController.auth(authString, ldap);
     }
 }

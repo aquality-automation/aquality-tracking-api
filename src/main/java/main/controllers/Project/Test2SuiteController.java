@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Test2SuiteDao;
 import main.model.dto.Test2SuiteDto;
 import main.model.dto.TestSuiteDto;
@@ -21,30 +21,30 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> {
     }
 
     @Override
-    public Test2SuiteDto create(Test2SuiteDto template) throws RPException {
+    public Test2SuiteDto create(Test2SuiteDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getSuite_id()).isEditor()){
             return test2SuiteDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Project User", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Project User", baseUser);
         }
     }
 
     @Override
-    public boolean delete(Test2SuiteDto template) throws  RPException {
+    public boolean delete(Test2SuiteDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getSuite_id()).isEditor()){
             return test2SuiteDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Test from Suite", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Test from Suite", baseUser);
         }
     }
 
     @Override
-    public List<Test2SuiteDto> get(Test2SuiteDto template) throws  RPException {
+    public List<Test2SuiteDto> get(Test2SuiteDto template) throws AqualityException {
         return test2SuiteDao.searchAll(template);
     }
 
     //TODO Refactoring
-    public List<TestSuiteDto> convertToSuites(List<Test2SuiteDto> test2Suites, List<TestSuiteDto> suites) throws RPException {
+    public List<TestSuiteDto> convertToSuites(List<Test2SuiteDto> test2Suites, List<TestSuiteDto> suites) throws AqualityException {
         return test2Suites.stream().map(test2suite
                 -> suites.stream().filter(x -> x.getId().equals(test2suite.getSuite_id())).findFirst().orElse(null)).collect(Collectors.toList());
     }

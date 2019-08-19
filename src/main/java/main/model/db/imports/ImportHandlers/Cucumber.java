@@ -1,6 +1,6 @@
 package main.model.db.imports.ImportHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.utils.DateUtils;
 import main.utils.FileUtils;
 import main.utils.TestNGCucumberJsonParser.*;
@@ -26,7 +26,7 @@ public class Cucumber extends Handler{
         private boolean previousWasBackground = false;
         private TestDto currentTest;
 
-        public Cucumber(@NotNull File file) throws RPException {
+        public Cucumber(@NotNull File file) throws AqualityException {
             super();
             FileUtils fileUtils = new FileUtils();
             String json = fileUtils.readFile(file.getPath());

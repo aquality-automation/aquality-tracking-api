@@ -2,8 +2,8 @@ package main.controllers.Administration;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.PasswordDao;
 import main.model.db.dao.project.UserDao;
 import main.model.db.dao.project.UserSessionDao;
@@ -37,32 +37,32 @@ public class UserController extends BaseController<UserDto> {
     }
 
     @Override
-    public UserDto create(UserDto template) throws RPException {
+    public UserDto create(UserDto template) throws AqualityException {
         if(baseUser.isAdmin() || baseUser.getId().equals(template.getId())){
             if(template.getPassword() != null){
                 template.setPassword(saltPassword(template, template.getPassword()));
             }
             return userDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create User", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create User", baseUser);
         }
     }
 
     @Override
-    public List<UserDto> get(UserDto template) throws  RPException {
+    public List<UserDto> get(UserDto template) throws AqualityException {
         return toPublicUsers(userDao.searchAll(template));
     }
 
     @Override
-    public boolean delete(UserDto template) throws  RPException {
+    public boolean delete(UserDto template) throws AqualityException {
         if(baseUser.isAdmin()){
             return userDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete User", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete User", baseUser);
         }
     }
 
-    public UserDto updatePassword(PasswordDto password) throws RPException {
+    public UserDto updatePassword(PasswordDto password) throws AqualityException {
         UserDto user = new UserDto();
         user.setId(password.getUser_id());
         user = get(user).get(0);
@@ -76,7 +76,7 @@ public class UserController extends BaseController<UserDto> {
         return userDao.create(user);
     }
 
-    public UserDto auth(String authString, boolean ldap) throws RPException {
+    public UserDto auth(String authString, boolean ldap) throws AqualityException {
         Base64 base64= new Base64();
         String authStringDecoded = StringUtils.newStringUtf8(base64.decode(authString));
         String[] authStringSplit = authStringDecoded.split(":");
@@ -87,7 +87,7 @@ public class UserController extends BaseController<UserDto> {
         try {
             password = RSAUtil.getDecrypted(authStringSplit[1], key);
         } catch (Exception e) {
-            throw new RPException("Password Decryption Error");
+            throw new AqualityException("Password Decryption Error");
         } finally {
             RSAUtil.keystore.removeIf(x -> Objects.equals(x.left, authStringSplit[0]));
         }
@@ -100,10 +100,10 @@ public class UserController extends BaseController<UserDto> {
             return user;
         }
 
-        throw new RPException("Seems your password was updated. Log in again please.");
+        throw new AqualityException("Seems your password was updated. Log in again please.");
     }
 
-    public UserDto checkSession(String session) throws RPException {
+    public UserDto checkSession(String session) throws AqualityException {
         Base64 base64 = new Base64();
         DateUtils dates = new DateUtils();
         String[] strings = StringUtils.newStringUtf8(base64.decode(session)).split(":");
@@ -113,14 +113,14 @@ public class UserController extends BaseController<UserDto> {
         if(users.size() > 0){
             user = users.get(0);
             if(!user.getSession_code().equals(session)){
-                throw new RPException("Credentials you've provided are not valid. Reenter please.");
+                throw new AqualityException("Credentials you've provided are not valid. Reenter please.");
             }
             if(new Date().after(dates.fromyyyyMMdd(strings[2]))){
-                throw new RPException("Session Expired.");
+                throw new AqualityException("Session Expired.");
             }
         }
         else{
-            throw new RPException("Credentials you've provided are not valid. Reenter please.");
+            throw new AqualityException("Credentials you've provided are not valid. Reenter please.");
         }
 
         return user;
@@ -152,7 +152,7 @@ public class UserController extends BaseController<UserDto> {
         return DigestUtils.md5Hex(user.getEmail()+passHash+"kjr1fdd00das");
     }
 
-    private UserDto checkUser(String user_name, String password) throws RPException{
+    private UserDto checkUser(String user_name, String password) throws AqualityException {
         UserDto user = new UserDto();
         user.setUser_name(user_name);
         List<UserDto> users = userDao.searchAll(user);
@@ -166,10 +166,10 @@ public class UserController extends BaseController<UserDto> {
             }
         }
 
-        throw new RPException("Credentials you've provided are not valid. Reenter please.");
+        throw new AqualityException("Credentials you've provided are not valid. Reenter please.");
     }
 
-    private UserDto handleLDAPAuthorization(String userName, String password) throws RPException {
+    private UserDto handleLDAPAuthorization(String userName, String password) throws AqualityException {
         LDAPAuthenticator ldap = new LDAPAuthenticator();
         UserDto user;
         user = ldap.tryAuthWithLdap(userName, password);
@@ -192,7 +192,7 @@ public class UserController extends BaseController<UserDto> {
         return user;
     }
 
-    private void updateSession(UserDto user) throws RPException {
+    private void updateSession(UserDto user) throws AqualityException {
         UserSessionDto update = new UserSessionDto();
         update.setUser_id(user.getId());
         update.setSession_code(user.getSession_code());
