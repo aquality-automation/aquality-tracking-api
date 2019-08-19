@@ -5,11 +5,6 @@ import main.model.db.dao.audit.AuditDao;
 import main.model.db.dao.audit.AuditStatisticDao;
 import main.model.db.dao.project.UserDao;
 import main.model.dto.*;
-import org.json.JSONException;
-
-import javax.naming.NamingException;
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,7 +18,6 @@ public class AuditEmails extends Emails {
     public AuditEmails() {
         auditStatisticController = new AuditStatisticDao();
     }
-
     public List<EmailDto> GetUpcomingEmails() throws AqualityException {
         List<AuditStatisticDto> audits = auditStatisticController.getAll();
         List<String> recipients = getRecipients();
@@ -35,7 +29,6 @@ public class AuditEmails extends Emails {
 
         return emails;
     }
-
     public List<EmailDto> GetOverdueEmails() throws AqualityException {
         List<AuditStatisticDto> audits = auditStatisticController.getAll();
         List<String> recipients = getRecipients();
