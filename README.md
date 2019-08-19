@@ -1,4 +1,4 @@
-# Reporting portal API
+# Aquality Tracking API
 
 ## Getting started
 

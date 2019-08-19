@@ -43,6 +43,7 @@ public class UserDto extends BaseDto {
     private Integer manager;
     @DataBaseName(name="request_auditor")
     @DataBaseInsert
+    @DataBaseSearchable
     private Integer auditor;
     @DataBaseName(name="request_unit_coordinator")
     @DataBaseInsert

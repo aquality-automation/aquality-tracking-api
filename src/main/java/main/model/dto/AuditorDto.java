@@ -14,7 +14,7 @@ public class AuditorDto extends UserDto {
     @DataBaseName(name="request_user_id")
     @DataBaseInsert
     @DataBaseSearchable
-    private Integer assignee_user_id;
+    private Integer id;
     @DataBaseName(name="request_auditor_id")
     @DataBaseID
     private Integer auditor_id;

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Add Auditor to Search Field" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_USERS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_USERS`(
+            IN request_id VARCHAR(10),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_user_name VARCHAR(100),
+            IN request_unit_coordinator VARCHAR(11),
+            IN request_account_manager VARCHAR(11),
+            IN request_auditor VARCHAR(11)
+            )
+            BEGIN
+            SELECT
+            users.*,
+            session_code,
+            sessions.created as session_created
+            FROM union_reporting.users as users
+            LEFT JOIN union_reporting.user_sessions as sessions
+            ON users.last_session_id = sessions.id
+            WHERE (request_id= '' OR users.id=request_id)
+            AND (request_first_name= '' OR first_name=request_first_name)
+            AND (request_second_name = '' OR second_name=request_second_name)
+            AND (request_user_name = '' OR user_name=request_user_name)
+            AND (request_unit_coordinator ='' OR request_unit_coordinator=unit_coordinator)
+            AND (request_account_manager ='' OR request_account_manager=account_manager)
+            AND (request_auditor ='' OR request_auditor=auditor)
+            ;
+            END
+
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_USERS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_USERS`(
+            IN request_id VARCHAR(10),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_user_name VARCHAR(100),
+            IN request_unit_coordinator VARCHAR(11),
+            IN request_account_manager VARCHAR(11)
+            )
+            BEGIN
+            SELECT
+            users.*,
+            session_code,
+            sessions.created as session_created
+            FROM union_reporting.users as users
+            LEFT JOIN union_reporting.user_sessions as sessions
+            ON users.last_session_id = sessions.id
+            WHERE (request_id= '' OR users.id=request_id)
+            AND (request_first_name= '' OR first_name=request_first_name)
+            AND (request_second_name = '' OR second_name=request_second_name)
+            AND (request_user_name = '' OR user_name=request_user_name)
+            AND (request_unit_coordinator ='' OR request_unit_coordinator=unit_coordinator)
+            AND (request_account_manager ='' OR request_account_manager=account_manager)
+            ;
+            END
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
