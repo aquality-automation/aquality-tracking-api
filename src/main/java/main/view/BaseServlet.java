@@ -134,27 +134,6 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Are you sure you logged in?");
     }
 
-    private void handleSQLException(@NotNull SQLException e, HttpServletResponse resp){
-        String sqlState = e.getSQLState();
-        if(sqlState == null) sqlState = "";
-        switch (sqlState){
-            case "23515":
-                resp.setStatus(403);
-                resp.addHeader("ErrorMessage", "You have no permissions for this action.");
-                break;
-            case "23516":
-            case "45000":
-            case "23505":
-                resp.setStatus(409);
-                resp.addHeader("ErrorMessage", "You are trying to create duplicate entity.");
-                break;
-            default:
-                resp.setStatus(500);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                break;
-        }
-    }
-
     protected void setErrorHeader(@NotNull HttpServletResponse resp, String errorMessage){
         resp.addHeader("ErrorMessage", errorMessage);
     }
@@ -207,21 +186,14 @@ public class BaseServlet extends HttpServlet{
             case "AuthenticationException":
                 setAuthorizationProblem(resp,e);
                 return;
-            case "SQLException":
-            case "SQLIntegrityConstraintViolationException":
-                handleSQLException((SQLException) e, resp);
-                return;
-            case "RPPermissionsException":
-                resp.setStatus(403);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                return;
             case "RPException":
-                resp.setStatus(500);
+            case "RPQueryParameterException":
+            case "RPPermissionsException":
+            case "AqualitySQLException":
+                RPException rpException = (RPException)e;
+                resp.setStatus(rpException.getResponseCode());
                 resp.addHeader("ErrorMessage", e.getMessage());
                 return;
-            case "RPQueryParameterException":
-                resp.setStatus(422);
-                resp.addHeader("ErrorMessage", e.getMessage());
             default:
                 setUnknownIssue(resp);
         }
@@ -237,7 +209,7 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Unknown Issue.");
     }
 
-    public void assertRequiredField(HttpServletRequest request, String fieldName) throws RPException {
+    protected void assertRequiredField(HttpServletRequest request, String fieldName) throws RPException {
         String fieldValue = getStringQueryParameter(request, fieldName);
         if (fieldValue == null) {
             throw new RPQueryParameterException(fieldName);
