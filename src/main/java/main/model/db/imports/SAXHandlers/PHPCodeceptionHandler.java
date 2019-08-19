@@ -1,6 +1,6 @@
 package main.model.db.imports.SAXHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
@@ -25,7 +25,7 @@ public class PHPCodeceptionHandler extends Handler {
     private Calendar calendar = Calendar.getInstance();
     private boolean testcaseIsFound = false;
 
-    public PHPCodeceptionHandler() throws RPException {
+    public PHPCodeceptionHandler() throws AqualityException {
         super();
         result.setFail_reason("$blank");
         testRun.setFinish_time(new Date());

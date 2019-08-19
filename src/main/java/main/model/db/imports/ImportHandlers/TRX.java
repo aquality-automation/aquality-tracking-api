@@ -1,6 +1,6 @@
 package main.model.db.imports.ImportHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.TRXHandler;
 import main.model.db.imports.TestNameNodeType;
@@ -17,12 +17,12 @@ import java.util.List;
 public class TRX extends Handler {
     private TRXHandler handler;
 
-    public TRX(File file, TestNameNodeType testNameNodeType) throws RPException {
+    public TRX(File file, TestNameNodeType testNameNodeType) throws AqualityException {
         handler = new TRXHandler(testNameNodeType);
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
-            throw new RPException("Cannot Parse TRX file");
+            throw new AqualityException("Cannot Parse TRX file");
         }
     }
 

@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.TestSuiteDao;
 
 import java.util.List;
@@ -106,7 +106,7 @@ public class UserDto extends BaseDto {
         return emptyPU;
     }
 
-    public ProjectUserDto getProjectUserBySuiteId(Integer suite_id) throws RPException {
+    public ProjectUserDto getProjectUserBySuiteId(Integer suite_id) throws AqualityException {
         TestSuiteDao testSuiteDao = new TestSuiteDao();
         TestSuiteDto template = new TestSuiteDto();
         template.setId(suite_id);

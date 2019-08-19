@@ -2,7 +2,7 @@ package tests.workers.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.BodyPatternDao;
 import main.model.dto.BodyPatternDto;
 import org.json.JSONArray;
@@ -28,7 +28,7 @@ public class BodyPatternDaoTest extends BodyPatternDao {
     }
 
     @Test
-    public void searchAllTest() throws RPException {
+    public void searchAllTest() throws AqualityException {
         resultList.add(new BodyPatternDto());
         resultList.add(new BodyPatternDto());
         List<BodyPatternDto> result = searchAll(new BodyPatternDto());
@@ -37,14 +37,14 @@ public class BodyPatternDaoTest extends BodyPatternDao {
     }
 
     @Test
-    public void insertTest() throws RPException {
+    public void insertTest() throws AqualityException {
         resultList.add(new BodyPatternDto());
         create(new BodyPatternDto());
         assertSQLToParams(currentSql, currentParameters);
     }
 
     @Test
-    public void removeTest() throws RPException {
+    public void removeTest() throws AqualityException {
         delete(new BodyPatternDto());
         assertSQLToParams(currentSql, currentParameters);
     }

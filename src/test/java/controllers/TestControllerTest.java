@@ -1,7 +1,7 @@
 package controllers;
 
 import main.controllers.Project.TestController;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.DtoMapper;
 import main.model.dto.TestDto;
 import main.model.dto.TestResultDto;
@@ -21,7 +21,7 @@ public class TestControllerTest extends TestController {
     private DtoMapper<TestDto> testMapper = new DtoMapper<>(TestDto.class);
 
     @Test
-    public void moveTestTest() throws RPException {
+    public void moveTestTest() throws AqualityException {
         List<TestDto> tests = testMapper.mapObjects(getResourceFileAsString("entities/moveTest.json"));
         List<TestResultDto> resultsToMove = getResultsToMove(tests.get(0), tests.get(1));
         assertEquals(resultsToMove.size(), 4);

@@ -1,7 +1,6 @@
 package main.view.Project;
 
 import main.Session;
-import main.exceptions.RPException;
 import main.model.dto.ProjectDto;
 import main.view.BaseServlet;
 import main.view.IDelete;

@@ -2,7 +2,7 @@ package tests.workers.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.MilestoneDao;
 import main.model.dto.MilestoneDto;
 import org.json.JSONArray;
@@ -28,7 +28,7 @@ public class MilestoneDaoTest extends MilestoneDao {
     }
 
     @Test
-    public void searchAllTest() throws RPException {
+    public void searchAllTest() throws AqualityException {
         resultList.add(new MilestoneDto());
         resultList.add(new MilestoneDto());
         List<MilestoneDto> result = searchAll(new MilestoneDto());
@@ -37,14 +37,14 @@ public class MilestoneDaoTest extends MilestoneDao {
     }
 
     @Test
-    public void insertTest() throws RPException {
+    public void insertTest() throws AqualityException {
         resultList.add(new MilestoneDto());
         create(new MilestoneDto());
         assertSQLToParams(currentSql, currentParameters);
     }
 
     @Test
-    public void removeTest() throws RPException {
+    public void removeTest() throws AqualityException {
         delete(new MilestoneDto());
         assertSQLToParams(currentSql, currentParameters);
     }

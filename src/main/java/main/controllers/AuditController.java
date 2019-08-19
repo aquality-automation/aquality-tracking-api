@@ -1,9 +1,9 @@
 package main.controllers;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
-import main.exceptions.RPUserException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
+import main.exceptions.AqualityUserException;
 import main.model.db.dao.audit.*;
 import main.model.db.dao.project.ProjectDao;
 import main.model.db.dao.project.UserDao;
@@ -44,7 +44,7 @@ public class AuditController extends BaseController<AuditDto> {
     }
 
     @Override
-    public List<AuditDto> get(AuditDto searchTemplate) throws RPException {
+    public List<AuditDto> get(AuditDto searchTemplate) throws AqualityException {
         List<AuditDto> audits = auditDao.searchAll(searchTemplate);
         Integer projectId;
         try{
@@ -52,49 +52,49 @@ public class AuditController extends BaseController<AuditDto> {
                 ? searchTemplate.getProject_id()
                 : audits.get(0).getProject_id();
         }catch (IndexOutOfBoundsException e){
-            throw new RPException("The Audit you trying to access is not present!");
+            throw new AqualityException("The Audit you trying to access is not present!");
         }
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()){
             return completeAudits(audits);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Audits.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Audits.", baseUser);
         }
     }
-    public List<ServiceDto> get(ServiceDto template) throws  RPException{
+    public List<ServiceDto> get(ServiceDto template) throws AqualityException {
         return serviceDao.searchAll(template);
     }
-    public List<AuditCommentDto> get(AuditCommentDto template) throws RPException {
+    public List<AuditCommentDto> get(AuditCommentDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
             return completeComments(auditCommentsDao.searchAll(template));
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Audit Comments.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Audit Comments.", baseUser);
         }
     }
-    public List<AuditStatisticDto> get(AuditStatisticDto template) throws RPException {
+    public List<AuditStatisticDto> get(AuditStatisticDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement()){
             return completeAuditStatistic(auditStatisticDao.searchAll(template));
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Audits.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Audits.", baseUser);
         }
     }
-    public List<AuditAttachmentDto> get(AuditAttachmentDto searchTemplate) throws RPException {
+    public List<AuditAttachmentDto> get(AuditAttachmentDto searchTemplate) throws AqualityException {
         AuditDto audit = new AuditDto();
         audit.setId(searchTemplate.getAudit_id());
         Integer projectId;
         try{
             projectId = auditDao.searchAll(audit).get(0).getProject_id();
         }catch (IndexOutOfBoundsException e){
-            throw new RPException("The Audit you trying to access is not present!");
+            throw new AqualityException("The Audit you trying to access is not present!");
         }
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()){
             return auditAttachmentsDao.searchAll(searchTemplate);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Audit Attachments.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Audit Attachments.", baseUser);
         }
     }
 
     @Override
-    public AuditDto create(AuditDto createTemplate) throws RPException {
+    public AuditDto create(AuditDto createTemplate) throws AqualityException {
         if(baseUser.isAuditAdmin() || isAssignedAuditor(createTemplate.getId())){
             AuditDto createdAudit = auditDao.create(createTemplate);
             if(createdAudit.getAuditors() != null){
@@ -105,10 +105,10 @@ public class AuditController extends BaseController<AuditDto> {
 
             return createdAudit;
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Audits.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Audits.", baseUser);
         }
     }
-    public AuditCommentDto create(AuditCommentDto template) throws RPException {
+    public AuditCommentDto create(AuditCommentDto template) throws AqualityException {
         AuditDto audit = new AuditDto();
         audit.setId(template.getAudit_id());
         audit = get(audit).get(0);
@@ -116,10 +116,10 @@ public class AuditController extends BaseController<AuditDto> {
             template.setUser_id(baseUser.getId());
             return auditCommentsDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Audit Comments.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Audit Comments.", baseUser);
         }
     }
-    public String create(boolean all, boolean xls) throws RPException {
+    public String create(boolean all, boolean xls) throws AqualityException {
         ExcelUtils excelUtils = new ExcelUtils();
         AuditDto auditDto = new AuditDto();
         AuditStatusDto auditStatusDto = new AuditStatusDto();
@@ -141,27 +141,27 @@ public class AuditController extends BaseController<AuditDto> {
                 return excelUtils.writeXLSXFile(resArray,fields, MessageFormat.format("Reporting_Portal_{0}_Submitted_Audits_{1}", all ? "All" : "Last",formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
             }
         } catch (Exception e){
-            throw new RPException("Cannot create Export");
+            throw new AqualityException("Cannot create Export");
         }
     }
 
-    public void createMultiply(List<AuditAttachmentDto> listOfAttachments) throws RPException {
+    public void createMultiply(List<AuditAttachmentDto> listOfAttachments) throws AqualityException {
         if((baseUser.isAuditAdmin() || isAssignedAuditor(listOfAttachments.get(0).getAudit_id())) && isAuditOpened(listOfAttachments.get(0).getAudit_id())){
             auditAttachmentsDao.createMultiply(listOfAttachments);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Audit Attachments.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Audit Attachments.", baseUser);
         }
     }
 
     @Override
-    public boolean delete(AuditDto template) throws RPException {
+    public boolean delete(AuditDto template) throws AqualityException {
         if(baseUser.isAuditAdmin()){
             return auditDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Audits.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Audits.", baseUser);
         }
     }
-    public boolean delete(AuditAttachmentDto template) throws RPException {
+    public boolean delete(AuditAttachmentDto template) throws AqualityException {
         if(baseUser.isAuditor() ||baseUser.isAuditAdmin()){
             FileUtils fileUtils = new FileUtils();
             List<AuditAttachmentDto> attachments = get(template);
@@ -170,14 +170,14 @@ public class AuditController extends BaseController<AuditDto> {
             fileUtils.removeFiles(pathes);
             return auditAttachmentsDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Audit Attachments.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Audit Attachments.", baseUser);
         }
     }
 
-    public void updateAuditors(List<AuditorDto> newAuditors) throws RPException {
+    public void updateAuditors(List<AuditorDto> newAuditors) throws AqualityException {
         if(baseUser.isAuditAdmin()){
             if(newAuditors.size() == 0){
-                throw new RPException("no new auditors");
+                throw new AqualityException("no new auditors");
             }
             AuditorDto auditorDtoTemplate = new AuditorDto();
             auditorDtoTemplate.setAudit_id(newAuditors.get(0).getAudit_id());
@@ -200,18 +200,18 @@ public class AuditController extends BaseController<AuditDto> {
                 }
             }
         }else{
-            throw new RPPermissionsException("Account is not allowed to update Audit Auditors.", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to update Audit Auditors.", baseUser);
         }
     }
 
-    private List<AuditCommentDto> getAuditComments(AuditDto template) throws RPException {
+    private List<AuditCommentDto> getAuditComments(AuditDto template) throws AqualityException {
         AuditCommentDto commentTemplate = new AuditCommentDto();
         commentTemplate.setAudit_id(template.getId());
         commentTemplate.setProject_id(template.getProject_id());
         return get(commentTemplate);
     }
 
-    private List<AuditDto> completeAudits(List<AuditDto> audits) throws RPException {
+    private List<AuditDto> completeAudits(List<AuditDto> audits) throws AqualityException {
         List<AuditDto> filledAudits = new ArrayList<>();
         List<AuditStatusDto> statuses = auditStatusDao.getAll();
         List<ServiceDto> services = serviceDao.getAll();
@@ -223,7 +223,7 @@ public class AuditController extends BaseController<AuditDto> {
         return filledAudits;
     }
 
-    private AuditDto completeAuditDto(AuditDto audit, List<AuditStatusDto> statuses, List<ServiceDto> services) throws RPException {
+    private AuditDto completeAuditDto(AuditDto audit, List<AuditStatusDto> statuses, List<ServiceDto> services) throws AqualityException {
         audit.setProject(searchForProject(audit));
         audit.setAuditors(searchForAuditors(audit));
         audit.setStatus(searchForStatus(audit,statuses));
@@ -241,14 +241,14 @@ public class AuditController extends BaseController<AuditDto> {
         return services.stream().filter(x -> x.getId().equals(audit.getService_type_id())).findAny().orElse(null);
     }
 
-    private ProjectDto searchForProject(AuditDto audit) throws RPException {
+    private ProjectDto searchForProject(AuditDto audit) throws AqualityException {
         ProjectDto projectTemplate = new ProjectDto();
         projectTemplate.setId(audit.getProject_id());
 
         return projectDao.searchAll(projectTemplate).get(0);
     }
 
-    private List<AuditorDto> searchForAuditors(AuditDto audit) throws RPException {
+    private List<AuditorDto> searchForAuditors(AuditDto audit) throws AqualityException {
         AuditorDto auditorTemplate = new AuditorDto();
         auditorTemplate.setProject_id(audit.getProject_id());
         auditorTemplate.setAudit_id(audit.getId());
@@ -256,7 +256,7 @@ public class AuditController extends BaseController<AuditDto> {
         return auditorsDao.searchAll(auditorTemplate);
     }
 
-    private boolean isAssignedAuditor(Integer auditId) throws RPException {
+    private boolean isAssignedAuditor(Integer auditId) throws AqualityException {
         if(auditId != null){
             AuditDto searchAudit = new AuditDto();
             searchAudit.setId(auditId);
@@ -266,7 +266,7 @@ public class AuditController extends BaseController<AuditDto> {
         return false;
     }
 
-    private boolean isAuditOpened(Integer auditId) throws RPException {
+    private boolean isAuditOpened(Integer auditId) throws AqualityException {
         if(auditId != null){
             AuditDto searchAudit = new AuditDto();
             searchAudit.setId(auditId);
@@ -275,7 +275,7 @@ public class AuditController extends BaseController<AuditDto> {
         return false;
     }
 
-    private List<AuditCommentDto> completeComments(List<AuditCommentDto> comments) throws RPUserException {
+    private List<AuditCommentDto> completeComments(List<AuditCommentDto> comments) throws AqualityUserException {
         UserDto userTemplate = new UserDto();
 
         for (AuditCommentDto comment: comments){
@@ -290,15 +290,15 @@ public class AuditController extends BaseController<AuditDto> {
         return comments;
     }
 
-    private UserDto getUser(UserDto template) throws RPUserException {
+    private UserDto getUser(UserDto template) throws AqualityUserException {
         try {
             return userDao.getEntityById(template);
-        } catch (RPException e) {
-            throw new RPUserException("Cannot get Author for the audit comment.");
+        } catch (AqualityException e) {
+            throw new AqualityUserException("Cannot get Author for the audit comment.");
         }
     }
 
-    private List<AuditStatisticDto> completeAuditStatistic(List<AuditStatisticDto> auditStatistics) throws RPException {
+    private List<AuditStatisticDto> completeAuditStatistic(List<AuditStatisticDto> auditStatistics) throws AqualityException {
         List<ServiceDto> services = serviceDao.getAll();
         List<ProjectDto> projects = projectDao.getAll();
 
@@ -325,7 +325,7 @@ public class AuditController extends BaseController<AuditDto> {
         return auditStatistics;
     }
 
-    private List<AuditDto> getLatestAudits(List<AuditDto> audits) throws RPException {
+    private List<AuditDto> getLatestAudits(List<AuditDto> audits) throws AqualityException {
         List<AuditDto> latest = new ArrayList<>();
         ProjectDao projectDao = new ProjectDao();
         List<ProjectDto> projects = projectDao.getAll();
@@ -342,7 +342,7 @@ public class AuditController extends BaseController<AuditDto> {
         return latest;
     }
 
-    private List<Pair<String,String>> processExportArrayCreation(JSONArray resArray, List<AuditDto> audits) throws RPException {
+    private List<Pair<String,String>> processExportArrayCreation(JSONArray resArray, List<AuditDto> audits) throws AqualityException {
         try{
             for (AuditDto auditDto : audits) {
                 JSONObject jsonObject = new JSONObject();
@@ -380,7 +380,7 @@ public class AuditController extends BaseController<AuditDto> {
 
             return fields;
         } catch (Exception e){
-            throw new RPException("Cannot create Export");
+            throw new AqualityException("Cannot create Export");
         }
     }
 }

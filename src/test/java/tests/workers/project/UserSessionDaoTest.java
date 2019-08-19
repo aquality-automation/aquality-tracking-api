@@ -2,7 +2,7 @@ package tests.workers.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserSessionDao;
 import main.model.dto.UserSessionDto;
 import org.json.JSONArray;
@@ -28,7 +28,7 @@ public class UserSessionDaoTest extends UserSessionDao {
     }
 
     @Test
-    public void searchAllTest() throws RPException {
+    public void searchAllTest() throws AqualityException {
         resultList.add(new UserSessionDto());
         resultList.add(new UserSessionDto());
         List<UserSessionDto> result = searchAll(new UserSessionDto());
@@ -37,14 +37,14 @@ public class UserSessionDaoTest extends UserSessionDao {
     }
 
     @Test
-    public void insertTest() throws RPException {
+    public void insertTest() throws AqualityException {
         resultList.add(new UserSessionDto());
         create(new UserSessionDto());
         assertSQLToParams(currentSql, currentParameters);
     }
 
     @Test
-    public void removeTest() throws RPException {
+    public void removeTest() throws AqualityException {
         delete(new UserSessionDto());
         assertSQLToParams(currentSql, currentParameters);
     }

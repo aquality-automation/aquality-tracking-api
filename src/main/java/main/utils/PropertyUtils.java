@@ -1,6 +1,6 @@
 package main.utils;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,10 +15,10 @@ class PropertyUtils {
             prop = new Properties();
 
             if (input == null) {
-                throw new RPException(String.format("Sorry, unable to find %s.", property.getName()));
+                throw new AqualityException(String.format("Sorry, unable to find %s.", property.getName()));
             }
             prop.load(input);
-        }catch (RPException | IOException e) {
+        }catch (AqualityException | IOException e) {
             e.printStackTrace();
         }
     }

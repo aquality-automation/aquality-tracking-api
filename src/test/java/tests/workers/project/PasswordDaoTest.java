@@ -2,7 +2,7 @@ package tests.workers.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.PasswordDao;
 import main.model.dto.PasswordDto;
 import org.json.JSONArray;
@@ -28,7 +28,7 @@ public class PasswordDaoTest extends PasswordDao {
     }
 
     @Test
-    public void searchAllTest() throws RPException {
+    public void searchAllTest() throws AqualityException {
         resultList.add(new PasswordDto());
         resultList.add(new PasswordDto());
         List<PasswordDto> result = searchAll(new PasswordDto());
@@ -37,14 +37,14 @@ public class PasswordDaoTest extends PasswordDao {
     }
 
     @Test
-    public void insertTest() throws RPException {
+    public void insertTest() throws AqualityException {
         resultList.add(new PasswordDto());
         create(new PasswordDto());
         assertSQLToParams(currentSql, currentParameters);
     }
 
     @Test
-    public void removeTest() throws RPException {
+    public void removeTest() throws AqualityException {
         delete(new PasswordDto());
         assertSQLToParams(currentSql, currentParameters);
     }

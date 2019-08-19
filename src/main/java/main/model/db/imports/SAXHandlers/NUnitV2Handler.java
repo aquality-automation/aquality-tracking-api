@@ -1,7 +1,7 @@
 package main.model.db.imports.SAXHandlers;
 
 import main.model.db.imports.ResultStatus;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
@@ -31,7 +31,7 @@ public class NUnitV2Handler extends Handler {
     private String strTime;
     private int milliTime;
 
-    public NUnitV2Handler() throws RPException {
+    public NUnitV2Handler() throws AqualityException {
         super();
         result.setFail_reason("$blank");
     }

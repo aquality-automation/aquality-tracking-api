@@ -1,6 +1,6 @@
 package main.exceptions;
 
-public class AqualitySQLException extends RPException {
+public class AqualitySQLException extends AqualityException {
 
     public AqualitySQLException(String sqlcode) {
         super(getErrorMessage(sqlcode));

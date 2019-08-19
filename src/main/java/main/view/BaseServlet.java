@@ -1,8 +1,8 @@
 package main.view;
 
 import main.Session;
-import main.exceptions.RPException;
-import main.exceptions.RPQueryParameterException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityQueryParameterException;
 import main.model.dto.DtoMapperGeneral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ public class BaseServlet extends HttpServlet{
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
 
-    protected Session createSession(HttpServletRequest req) throws RPException {
+    protected Session createSession(HttpServletRequest req) throws AqualityException {
         return new Session(getSessionId(req));
     }
 
@@ -186,13 +186,14 @@ public class BaseServlet extends HttpServlet{
             case "AuthenticationException":
                 setAuthorizationProblem(resp,e);
                 return;
-            case "RPException":
-            case "RPQueryParameterException":
-            case "RPPermissionsException":
+            case "AqualityPermissionsException":
+            case "AqualityException":
+            case "InvalidFormatException":
+            case "AqualityQueryParameterException":
             case "AqualitySQLException":
-                RPException rpException = (RPException)e;
-                resp.setStatus(rpException.getResponseCode());
-                resp.addHeader("ErrorMessage", e.getMessage());
+                AqualityException exception = (AqualityException) e;
+                resp.setStatus(exception.getResponseCode());
+                resp.addHeader("ErrorMessage", exception.getMessage());
                 return;
             default:
                 setUnknownIssue(resp);
@@ -209,10 +210,10 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Unknown Issue.");
     }
 
-    protected void assertRequiredField(HttpServletRequest request, String fieldName) throws RPException {
+    protected void assertRequiredField(HttpServletRequest request, String fieldName) throws AqualityException {
         String fieldValue = getStringQueryParameter(request, fieldName);
         if (fieldValue == null) {
-            throw new RPQueryParameterException(fieldName);
+            throw new AqualityQueryParameterException(fieldName);
         }
     }
 }

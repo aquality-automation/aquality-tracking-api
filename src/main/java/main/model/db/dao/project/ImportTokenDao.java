@@ -2,7 +2,7 @@ package main.model.db.dao.project;
 
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
 import main.model.dto.ImportTokenDto;
 import main.utils.RandomStringGenerator;
@@ -20,7 +20,7 @@ public class ImportTokenDao extends DAO<ImportTokenDto> {
     }
 
     @Override
-    public ImportTokenDto create(ImportTokenDto entity) throws RPException {
+    public ImportTokenDto create(ImportTokenDto entity) throws AqualityException {
         String token = generateToken();
         entity.setImport_token(DigestUtils.md5Hex(token + "advbc1671-nlksdui-ff"));
         List<Pair<String, String>> parameters = entity.getParameters();

@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
 import main.model.dto.*;
 
@@ -27,7 +27,7 @@ public class TestController extends BaseController<TestDto> {
         projectUserController = new ProjectUserController(user);
     }
 
-    public TestDto create(TestDto template, boolean updateSuites) throws RPException {
+    public TestDto create(TestDto template, boolean updateSuites) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             TestDto test = testDao.create(template);
             if(updateSuites){
@@ -36,49 +36,49 @@ public class TestController extends BaseController<TestDto> {
             }
             return test;
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Test", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Test", baseUser);
         }
     }
 
     @Override
-    public TestDto create(TestDto template) throws RPException {
+    public TestDto create(TestDto template) throws AqualityException {
         return create(template, false);
     }
 
-    public List<TestDto> get(TestDto template, boolean withChildren) throws  RPException {
+    public List<TestDto> get(TestDto template, boolean withChildren) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
             return fillTests(testDao.searchAll(template), withChildren);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Milestones", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Milestones", baseUser);
         }
     }
 
     @Override
-    public List<TestDto> get(TestDto template) throws  RPException {
+    public List<TestDto> get(TestDto template) throws AqualityException {
         return get(template, false);
     }
 
     @Override
-    public boolean delete(TestDto template) throws  RPException {
+    public boolean delete(TestDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return testDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Test", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Test", baseUser);
         }
     }
 
-    public boolean updateMultipleTests(List<TestDto> entities) throws RPException {
+    public boolean updateMultipleTests(List<TestDto> entities) throws AqualityException {
         if(entities.size() > 0 && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())){
             for (TestDto test : entities) {
                 updateSuites(test);
             }
             return testDao.updateMultiply(entities);
         }else{
-            throw new RPPermissionsException("Account is not allowed to update Test ", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to update Test ", baseUser);
         }
     }
 
-    public void moveTest(int from, int to, boolean remove, int projectId) throws RPException {
+    public void moveTest(int from, int to, boolean remove, int projectId) throws AqualityException {
         TestDto oldTest = getTestForMovement(from, projectId);
         TestDto newTest = getTestForMovement(to, projectId);
 
@@ -89,7 +89,7 @@ public class TestController extends BaseController<TestDto> {
         }
     }
 
-    private TestDto getTestForMovement(int id, int projectId) throws RPException {
+    private TestDto getTestForMovement(int id, int projectId) throws AqualityException {
         TestDto test = new TestDto();
         test.setId(id);
         test.setProject_id(projectId);
@@ -97,7 +97,7 @@ public class TestController extends BaseController<TestDto> {
         return get(test, true).get(0);
     }
 
-    private void executeResultsMovement(List<TestResultDto> resultsToMove) throws RPException {
+    private void executeResultsMovement(List<TestResultDto> resultsToMove) throws AqualityException {
         for (TestResultDto result : resultsToMove) {
             resultController.create(result);
         }
@@ -118,7 +118,7 @@ public class TestController extends BaseController<TestDto> {
     }
 
     //TODO Refactoring
-    private List<TestDto> fillTests(List<TestDto> tests, boolean withChildren) throws RPException {
+    private List<TestDto> fillTests(List<TestDto> tests, boolean withChildren) throws AqualityException {
         List<TestDto> filledTests = new ArrayList<>();
         if (tests.size() > 0) {
             ProjectUserDto projectUserDto = new ProjectUserDto();
@@ -157,7 +157,7 @@ public class TestController extends BaseController<TestDto> {
     }
 
     //TODO Refactoring
-    private void updateSuites(TestDto test) throws RPException {
+    private void updateSuites(TestDto test) throws AqualityException {
         Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
         test2SuiteDto.setTest_id(test.getId());
         List<Test2SuiteDto> oldSuites = test2SuiteController.get(test2SuiteDto);

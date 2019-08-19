@@ -2,11 +2,10 @@ package main.exceptions;
 
 import lombok.Getter;
 
-public class RPException extends Exception {
-
+public class AqualityException extends Exception {
     @Getter
     protected Integer responseCode = 500;
-    public RPException(String error) {
+    public AqualityException(String error) {
         super(error);
     }
 }
