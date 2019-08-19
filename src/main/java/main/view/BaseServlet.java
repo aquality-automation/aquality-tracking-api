@@ -1,8 +1,8 @@
 package main.view;
 
 import main.Session;
-import main.exceptions.RPException;
-import main.exceptions.RPQueryParameterException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityQueryParameterException;
 import main.model.dto.DtoMapperGeneral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ public class BaseServlet extends HttpServlet{
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
 
-    protected Session createSession(HttpServletRequest req) throws RPException {
+    protected Session createSession(HttpServletRequest req) throws AqualityException {
         return new Session(getSessionId(req));
     }
 
@@ -211,16 +211,16 @@ public class BaseServlet extends HttpServlet{
             case "SQLIntegrityConstraintViolationException":
                 handleSQLException((SQLException) e, resp);
                 return;
-            case "RPPermissionsException":
+            case "AqualityPermissionsException":
                 resp.setStatus(403);
                 resp.addHeader("ErrorMessage", e.getMessage());
                 return;
-            case "RPException":
+            case "AqualityException":
                 resp.setStatus(500);
                 resp.addHeader("ErrorMessage", e.getMessage());
                 return;
             case "InvalidFormatException":
-            case "RPQueryParameterException":
+            case "AqualityQueryParameterException":
                 resp.setStatus(422);
                 resp.addHeader("ErrorMessage", e.getMessage());
 
@@ -239,10 +239,10 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Unknown Issue.");
     }
 
-    public void assertRequiredField(HttpServletRequest request, String fieldName) throws RPException {
+    protected void assertRequiredField(HttpServletRequest request, String fieldName) throws AqualityException {
         String fieldValue = getStringQueryParameter(request, fieldName);
         if (fieldValue == null) {
-            throw new RPQueryParameterException(fieldName);
+            throw new AqualityQueryParameterException(fieldName);
         }
     }
 }

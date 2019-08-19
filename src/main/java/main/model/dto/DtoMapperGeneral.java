@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,12 +33,12 @@ public class DtoMapperGeneral{
         return mapper.readValue(objectJsonString, clazz);
     }
 
-    public <T> List<T> mapObjects(Class<T> clazz, String arrayJsonString) throws RPException {
+    public <T> List<T> mapObjects(Class<T> clazz, String arrayJsonString) throws AqualityException {
         CollectionType listType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
         try {
             return mapper.readValue(arrayJsonString, listType);
         } catch (IOException e) {
-            throw new RPException("Cannot map Object to " + clazz.getName());
+            throw new AqualityException("Cannot map Object to " + clazz.getName());
         }
     }
 }

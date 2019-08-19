@@ -1,6 +1,6 @@
 package main.model.db.imports;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.TestDto;
 import main.model.dto.TestResultDto;
 import main.model.dto.TestRunDto;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public abstract class Handler extends DefaultHandler {
     protected SAXParser parser;
-    public Handler() throws RPException {
+    public Handler() throws AqualityException {
         try {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -26,7 +26,7 @@ public abstract class Handler extends DefaultHandler {
 
             this.parser = saxParserFactory.newSAXParser();
         } catch (ParserConfigurationException | SAXException e) {
-            throw new RPException("Not Able To Parse XML");
+            throw new AqualityException("Not Able To Parse XML");
         }
     }
     public abstract TestSuiteDto getTestSuite();

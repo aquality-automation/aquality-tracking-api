@@ -2,7 +2,7 @@ package tests.workers.audits;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.audit.AuditDao;
 import main.model.dto.AuditDto;
 import org.json.JSONArray;
@@ -28,7 +28,7 @@ public class AuditDaoTest extends AuditDao {
     }
 
     @Test
-    public void searchAllTest() throws RPException {
+    public void searchAllTest() throws AqualityException {
         resultList.add(new AuditDto());
         resultList.add(new AuditDto());
         List<AuditDto> result = searchAll(new AuditDto());
@@ -37,14 +37,14 @@ public class AuditDaoTest extends AuditDao {
     }
 
     @Test
-    public void insertTest() throws RPException {
+    public void insertTest() throws AqualityException {
         resultList.add(new AuditDto());
         create(new AuditDto());
         assertSQLToParams(currentSql, currentParameters);
     }
 
     @Test
-    public void removeTest() throws RPException {
+    public void removeTest() throws AqualityException {
         delete(new AuditDto());
         assertSQLToParams(currentSql, currentParameters);
     }

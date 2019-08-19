@@ -2,8 +2,8 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.controllers.Administration.UserController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.ProjectUserDao;
 import main.model.dto.ProjectUserDto;
 import main.model.dto.UserDto;
@@ -21,37 +21,37 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
     }
 
     @Override
-    public ProjectUserDto create(ProjectUserDto template) throws RPException {
+    public ProjectUserDto create(ProjectUserDto template) throws AqualityException {
         if(baseUser.isAdmin() || baseUser.getProjectUser(template.getProject_id()).isAdmin()){
             return projectUserDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Project User", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Project User", baseUser);
         }
     }
 
     @Override
-    public List<ProjectUserDto> get(ProjectUserDto template) throws  RPException {
+    public List<ProjectUserDto> get(ProjectUserDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
             return fillProjectUsers(projectUserDao.searchAll(template));
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Project Users", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Project Users", baseUser);
         }
     }
 
     @Override
-    public boolean delete(ProjectUserDto template) throws  RPException {
+    public boolean delete(ProjectUserDto template) throws AqualityException {
         if(baseUser.isAdmin() || baseUser.getProjectUser(template.getProject_id()).isAdmin()){
             return projectUserDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Project User", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Project User", baseUser);
         }
     }
 
-    public List<ProjectUserDto> getProjectUserForPermissions(ProjectUserDto template) throws  RPException {
+    public List<ProjectUserDto> getProjectUserForPermissions(ProjectUserDto template) throws AqualityException {
         return projectUserDao.searchAll(template);
     }
 
-    private List<ProjectUserDto> fillProjectUsers(List<ProjectUserDto> projectUsers) throws RPException {
+    private List<ProjectUserDto> fillProjectUsers(List<ProjectUserDto> projectUsers) throws AqualityException {
         for(ProjectUserDto projectUser: projectUsers){
             projectUser.setUser(new UserDto());
             projectUser.getUser().setId(projectUser.getUser_id());

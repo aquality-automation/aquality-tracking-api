@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.TestRunDao;
 import main.utils.CustomerDateAndTimeDeserialize;
 
@@ -69,7 +69,7 @@ public class TestRunDto extends BaseDto {
     @DataBaseInsert
     private String ci_build;
 
-    public Integer getProjectIdById() throws RPException {
+    public Integer getProjectIdById() throws AqualityException {
         TestRunDao testRunDao = new TestRunDao();
         try {
             this.setLimit(1);
@@ -77,7 +77,7 @@ public class TestRunDto extends BaseDto {
                     ? testRunDao.searchAll(this).get(0).getProject_id()
                     : this.getProject_id();
         }catch (IndexOutOfBoundsException e){
-            throw new RPException("You are trying to access testrun that is not present!");
+            throw new AqualityException("You are trying to access testrun that is not present!");
         }
     }
 }

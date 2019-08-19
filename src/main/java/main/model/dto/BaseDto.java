@@ -2,7 +2,7 @@ package main.model.dto;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.annotations.*;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +11,7 @@ import java.util.*;
 
 public abstract class BaseDto {
 
-    public List<Pair<String, String>> getParameters() throws RPException {
+    public List<Pair<String, String>> getParameters() throws AqualityException {
         List<Pair<String, String>> list = new ArrayList<>();
         List<Field> classFields = this.getClassFields();
         for (Field field: classFields) {
@@ -25,14 +25,14 @@ public abstract class BaseDto {
                     list.add(pair);
                 }
             } catch (IllegalAccessException e) {
-                throw new RPException(String.format("Cannot read Field: %s", field.getName()));
+                throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
             }
         }
 
         return list;
     }
 
-    public List<Pair<String, String>> getSearchParameters() throws RPException {
+    public List<Pair<String, String>> getSearchParameters() throws AqualityException {
         List<Pair<String, String>> list = new ArrayList<>();
         List<Field> classFields = this.getClassFields();
         for (Field field: classFields) {
@@ -49,14 +49,14 @@ public abstract class BaseDto {
                     list.add(pair);
                 }
             } catch (IllegalAccessException e) {
-                throw new RPException(String.format("Cannot read Field: %s", field.getName()));
+                throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
             }
         }
 
         return list;
     }
 
-    public List<Pair<String, String>> getIDParameters() throws RPException {
+    public List<Pair<String, String>> getIDParameters() throws AqualityException {
         List<Pair<String, String>> list = new ArrayList<>();
         List<Field> classFields = this.getClassFields();
         boolean hasIdAnnotation = hasIdAnnotation(DataBaseID.class);
@@ -71,7 +71,7 @@ public abstract class BaseDto {
                         list.add(pair);
                     }
                 } catch (IllegalAccessException e) {
-                    throw new RPException(String.format("Cannot read Field: %s", field.getName()));
+                    throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
                 }
             }
         }
@@ -79,7 +79,7 @@ public abstract class BaseDto {
         return list;
     }
 
-    public void getSearchTemplateFromRequestParameters(@NotNull HttpServletRequest req) throws RPException {
+    public void getSearchTemplateFromRequestParameters(@NotNull HttpServletRequest req) throws AqualityException {
         Map<String, String[]> parameterMap = req.getParameterMap();
         List<Field> classFields = this.getClassFields();
         for (Field field: classFields) {
@@ -91,7 +91,7 @@ public abstract class BaseDto {
                     field.set(this, toObject(type, parameterMap.get(field.getName())[0]));
                 }
             } catch (IllegalAccessException e) {
-                throw new RPException(String.format("Cannot read Field: %s", field.getName()));
+                throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
             }
         }
     }

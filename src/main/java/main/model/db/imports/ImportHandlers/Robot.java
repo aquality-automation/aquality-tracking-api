@@ -1,6 +1,6 @@
 package main.model.db.imports.ImportHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.RobotHandler;
 import main.model.dto.TestDto;
@@ -17,12 +17,12 @@ public class Robot extends Handler {
 
     private RobotHandler handler;
 
-    public Robot(File file) throws RPException {
+    public Robot(File file) throws AqualityException {
         handler = new RobotHandler();
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
-            throw new RPException("Cannot Parse Robot file");
+            throw new AqualityException("Cannot Parse Robot file");
         }
     }
 

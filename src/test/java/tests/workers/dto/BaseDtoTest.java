@@ -1,7 +1,7 @@
 package tests.workers.dto;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.TestResultDto;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.testng.annotations.Test;
@@ -36,7 +36,7 @@ public class BaseDtoTest {
             expected.add(new Pair<>("request_date", Long.toString(date.getTime() / 1000)));
 
             assertPairs(actual, expected);
-        } catch (RPException e) {
+        } catch (AqualityException e) {
             e.printStackTrace();
         }
     }
@@ -50,7 +50,7 @@ public class BaseDtoTest {
             expected.add(new Pair<>("request_integer", "1010"));
 
             assertPairs(actual, expected);
-        } catch (RPException e) {
+        } catch (AqualityException e) {
             e.printStackTrace();
         }
     }
@@ -63,7 +63,7 @@ public class BaseDtoTest {
             expected.add(new Pair<>("request_id", "10"));
 
             assertPairs(actual, expected);
-        }catch (RPException e) {
+        }catch (AqualityException e) {
             e.printStackTrace();
         }
     }
@@ -83,7 +83,7 @@ public class BaseDtoTest {
             assertEquals((int)result.getId(), 1234);
             assertEquals((int)result.getProject_id(), 123);
             assertEquals((int)result.getTest_id(), 111);
-        } catch (RPException e) {
+        } catch (AqualityException e) {
             e.printStackTrace();
         }
     }

@@ -1,7 +1,7 @@
 package main.utils.LDAP;
 
 import main.controllers.Administration.AppSettingsController;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.LdapDto;
 import main.model.dto.UserDto;
 
@@ -21,7 +21,7 @@ public class LDAPAuthenticator {
 
     private LdapDto ldapDto = new LdapDto();
 
-    public LDAPAuthenticator() throws RPException {
+    public LDAPAuthenticator() throws AqualityException {
         UserDto user = new UserDto();
         user.setAdmin(1);
         AppSettingsController settingsController = new AppSettingsController(user);
@@ -29,7 +29,7 @@ public class LDAPAuthenticator {
         ldapDto.setAdminSecret(settingsController.getAdminSecret());
     }
 
-    public UserDto tryAuthWithLdap(String userName, String password) throws RPException {
+    public UserDto tryAuthWithLdap(String userName, String password) throws AqualityException {
         if((ldapDto.getDomain() != null || !Objects.equals(ldapDto.getDomain(), "")) && !userName.contains("@")){
             userName = String.format("%s@%s", userName, ldapDto.getDomain());
         }
@@ -45,7 +45,7 @@ public class LDAPAuthenticator {
         try{
             context = new InitialDirContext(env);
         } catch (NamingException e){
-            throw new RPException("LDAP admin credentials are wrong!");
+            throw new AqualityException("LDAP admin credentials are wrong!");
         }
 
         SearchControls ctrls = new SearchControls();
@@ -57,7 +57,7 @@ public class LDAPAuthenticator {
             answers = context.search(ldapDto.getLdapSearchBaseUsers(), String.format(ldapDto.getUserSearchFilter(), userName.split("@")[0]), ctrls);
             result = answers.nextElement();
         } catch (NamingException|NullPointerException e){
-            throw new RPException("User is not found in LDAP!");
+            throw new AqualityException("User is not found in LDAP!");
         }
         Properties props = new Properties();
         env.put(Context.SECURITY_AUTHENTICATION, ldapDto.getSecurity_auntification());
@@ -66,7 +66,7 @@ public class LDAPAuthenticator {
         try {
             props.put(Context.SECURITY_PRINCIPAL, result.getAttributes().get("userprincipalname").get().toString()); }
         catch(NamingException e){
-            throw new RPException("User principal name is missed!");
+            throw new AqualityException("User principal name is missed!");
         }
 
         props.put(Context.SECURITY_CREDENTIALS, password);
@@ -74,12 +74,12 @@ public class LDAPAuthenticator {
         try{
             new InitialDirContext(props);
         } catch (NamingException e) {
-            throw new RPException("LDAP refused your credentials!");
+            throw new AqualityException("LDAP refused your credentials!");
         }
         try {
             return findAccountByAccountName(result);
         } catch (Exception e){
-            throw new RPException("Cannot fill user with Info from LDAP!" + e.getMessage());
+            throw new AqualityException("Cannot fill user with Info from LDAP!" + e.getMessage());
         }
     }
 

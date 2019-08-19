@@ -1,6 +1,6 @@
 package main.model.email;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.ProjectDao;
 import main.model.db.dao.settings.EmailSettingsDao;
 import main.model.dto.*;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class TestRunEmails extends Emails{
 
-    public void sendTestRunResultsToTeam(TestRunDto testRun, List<UserDto> users) throws IOException, JSONException, SQLException, NamingException, IllegalAccessException, InstantiationException, MessagingException, URISyntaxException, RPException {
+    public void sendTestRunResultsToTeam(TestRunDto testRun, List<UserDto> users) throws IOException, JSONException, SQLException, NamingException, IllegalAccessException, InstantiationException, MessagingException, URISyntaxException, AqualityException {
         ProjectDao projectDao = new ProjectDao();
         ProjectDto projectDto = new ProjectDto();
         projectDto.setId(testRun.getProject_id());

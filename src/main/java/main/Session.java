@@ -5,7 +5,7 @@ import main.controllers.Administration.AdministrationController;
 import main.controllers.Administration.AppSettingsController;
 import main.controllers.Project.ProjectController;
 import main.controllers.Project.ProjectUserController;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
@@ -25,7 +25,7 @@ public class Session {
     private String session;
     public  ControllerFactory controllerFactory;
 
-    public Session(String sessionId) throws RPException {
+    public Session(String sessionId) throws AqualityException {
         if(isSessionValid(sessionId)){
             setUserMembership();
         }
@@ -48,11 +48,11 @@ public class Session {
         return user.getProjectUsers().stream().filter(x -> x.getProject_id().equals(projectId)).collect(Collectors.toList());
     }
 
-    public Importer getImporter(List<String> filePaths, TestRunDto testRunTemplate, String pattern, String format, TestNameNodeType nodeType, boolean singleTestRun) throws RPException {
+    public Importer getImporter(List<String> filePaths, TestRunDto testRunTemplate, String pattern, String format, TestNameNodeType nodeType, boolean singleTestRun) throws AqualityException {
         try {
             return new Importer(filePaths, testRunTemplate, pattern, format, nodeType, singleTestRun, user);
         } catch (ParserConfigurationException | SAXException e) {
-            throw new RPException("Some Internal SAX error: " + e.getMessage());
+            throw new AqualityException("Some Internal SAX error: " + e.getMessage());
         }
     }
 
@@ -68,7 +68,7 @@ public class Session {
         return new AdministrationController(user);
     }
 
-    public ProjectController getProjectController () throws RPException {
+    public ProjectController getProjectController () throws AqualityException {
         return new ProjectController(user);
     }
 
@@ -84,22 +84,22 @@ public class Session {
         return user;
     }
 
-    public void setCurrentUser(UserDto user) throws RPException {
+    public void setCurrentUser(UserDto user) throws AqualityException {
         this.user = user;
         setUserMembership();
     }
 
-    private void setUserMembership() throws RPException {
+    private void setUserMembership() throws AqualityException {
         ProjectUserDto projectUserDto = new ProjectUserDto();
         projectUserDto.setUser_id(user.getId());
         user.setProjectUsers(new ProjectUserController(user).getProjectUserForPermissions(projectUserDto));
     }
 
-    public boolean isSessionValid() throws RPException {
+    public boolean isSessionValid() throws AqualityException {
         return  isSessionValid(session);
     }
 
-    private boolean isSessionValid(String sessionId) throws RPException {
+    private boolean isSessionValid(String sessionId) throws AqualityException {
         if(sessionId != null){
             UserDao userDao = new UserDao();
             user = userDao.IsAuthorized(sessionId);

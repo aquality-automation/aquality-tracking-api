@@ -1,12 +1,11 @@
 package main.view.Project;
 
 import main.Session;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.TestDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 
-import javax.naming.directory.InvalidAttributesException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +34,7 @@ public class MoveTestServlet extends BaseServlet implements IGet {
         setOptionsResponseHeaders(resp);
     }
 
-    private void validateGet(HttpServletRequest req) throws RPException {
+    private void validateGet(HttpServletRequest req) throws AqualityException {
         assertRequiredField(req, "from");
         assertRequiredField(req, "to");
         assertRequiredField(req, "remove");

@@ -2,8 +2,8 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.controllers.CustomerController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
 import main.model.dto.*;
 
@@ -20,44 +20,44 @@ public class ProjectController extends BaseController<ProjectDto> {
     }
 
     @Override
-    public ProjectDto create(ProjectDto template) throws RPException {
+    public ProjectDto create(ProjectDto template) throws AqualityException {
         if(baseUser.isAdmin()){
             ProjectDto project = projectDao.create(template);
             updateProjectPermissions(project);
             return project;
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Projects", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Projects", baseUser);
         }
     }
 
     @Override
-    public List<ProjectDto> get(ProjectDto template) throws  RPException {
+    public List<ProjectDto> get(ProjectDto template) throws AqualityException {
         template.setUser_id(baseUser.getId());
         List<ProjectDto> projects = projectDao.searchAll(template);
         return fillCustomers(projects);
     }
 
     @Override
-    public boolean delete(ProjectDto template) throws RPException {
+    public boolean delete(ProjectDto template) throws AqualityException {
         if(baseUser.isAdmin()){
             return projectDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Projects", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Projects", baseUser);
         }
     }
 
-    private void updateProjectPermissions(ProjectDto entity) throws RPException {
+    private void updateProjectPermissions(ProjectDto entity) throws AqualityException {
         if(entity.getCustomer() != null && entity.getCustomer().getAccounting() == 1 && entity.getId() != 0){
             updatePermissions(entity.getCustomer().getId(), entity.getId());
         }
     }
 
     //TODO create
-    private void updatePermissions(Integer customer_id, Integer project_id) throws RPException {
+    private void updatePermissions(Integer customer_id, Integer project_id) throws AqualityException {
     }
 
     //TODO Refactoring
-    private List<ProjectDto> fillCustomers(List<ProjectDto> projects) throws RPException {
+    private List<ProjectDto> fillCustomers(List<ProjectDto> projects) throws AqualityException {
         List<ProjectDto> filledProjects = new ArrayList<>();
         List<CustomerDto> customerDtoList = customerController.get(new CustomerDto(), true);
         for (ProjectDto filledProject : projects) {

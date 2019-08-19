@@ -1,11 +1,11 @@
 package main.controllers.Administration;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.settings.EmailSettingsDao;
 import main.model.dto.EmailSettingsDto;
 import main.model.dto.UserDto;
+import org.apache.poi.util.NotImplemented;
 
 import java.util.List;
 
@@ -18,28 +18,23 @@ public class EmailSettingsController extends BaseController<EmailSettingsDto> {
     }
 
     @Override
-    public List<EmailSettingsDto> get(EmailSettingsDto entity) throws RPException {
-        if(baseUser.isAdmin()){
-            return emailSettingsDao.getAll();
-        }else{
-            throw new RPPermissionsException("Account is not allowed to view Email Settings", baseUser);
-        }
+    public List<EmailSettingsDto> get(EmailSettingsDto entity) throws AqualityException {
+        permissionsChecker.checkAdmin("Account is not allowed to view Email Settings");
+        return emailSettingsDao.getAll();
     }
 
     @Override
-    public EmailSettingsDto create(EmailSettingsDto template) throws RPException {
-        if(baseUser.isAdmin()){
-            return emailSettingsDao.create(template);
-        }else{
-            throw new RPPermissionsException("Account is not allowed to update Email Settings", baseUser);
-        }
-    }
-    @Override
-    public boolean delete(EmailSettingsDto entity) throws RPException {
-        return false;
+    public EmailSettingsDto create(EmailSettingsDto template) throws AqualityException {
+        permissionsChecker.checkAdmin("Account is not allowed to update Email Settings");
+        return emailSettingsDao.create(template);
     }
 
-    public boolean getEmailStatus() throws RPException {
+    @Override @NotImplemented
+    public boolean delete(EmailSettingsDto entity) throws AqualityException {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isEmailEnabled() throws AqualityException {
         return emailSettingsDao.getAll().get(0).getEnabled() > 0;
     }
 }

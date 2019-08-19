@@ -1,7 +1,7 @@
 package main.controllers;
 
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.customer.CustomerAttachmentsDao;
 import main.model.db.dao.customer.CustomerCommentsDao;
 import main.model.db.dao.customer.CustomerDao;
@@ -34,11 +34,11 @@ public class CustomerController extends BaseController<CustomerDto> {
     }
 
     @Override
-    public List<CustomerDto> get(CustomerDto template) throws RPException {
+    public List<CustomerDto> get(CustomerDto template) throws AqualityException {
         return get(template, false);
     }
 
-    public List<CustomerDto> get(CustomerDto template, boolean withChildren) throws RPException {
+    public List<CustomerDto> get(CustomerDto template, boolean withChildren) throws AqualityException {
         List<CustomerDto> customers = customerDao.searchAll(template);
         if (withChildren) {
             return fillCustomers(customers);
@@ -47,32 +47,32 @@ public class CustomerController extends BaseController<CustomerDto> {
         }
     }
 
-    public List<CustomerMemberDto> get(CustomerMemberDto template) throws RPException {
+    public List<CustomerMemberDto> get(CustomerMemberDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             return customerMembersDao.searchAll(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Customer Members", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Customer Members", baseUser);
         }
     }
 
-    public List<CustomerCommentDto> get(CustomerCommentDto template) throws RPException {
+    public List<CustomerCommentDto> get(CustomerCommentDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             return completeComments(customerCommentsDao.searchAll(template));
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Customer Comments", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Customer Comments", baseUser);
         }
     }
 
-    public List<CustomerAttachmentDto> get(CustomerAttachmentDto template) throws RPException {
+    public List<CustomerAttachmentDto> get(CustomerAttachmentDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             return customerAttachmentsDao.searchAll(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Customer Comments", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Customer Comments", baseUser);
         }
     }
 
     @Override
-    public CustomerDto create(CustomerDto template) throws RPException {
+    public CustomerDto create(CustomerDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             if(template.getId() != null && template.getAccounting() == 0){
                 template.setAccount_manager(new UserDto());
@@ -87,21 +87,21 @@ public class CustomerController extends BaseController<CustomerDto> {
             }
             return customer;
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Customers", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Customers", baseUser);
         }
     }
-    public CustomerAttachmentDto create(CustomerAttachmentDto template) throws RPException {
+    public CustomerAttachmentDto create(CustomerAttachmentDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             return customerAttachmentsDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Customer Attachment", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Customer Attachment", baseUser);
         }
     }
-    public CustomerCommentDto create(CustomerCommentDto template) throws RPException {
+    public CustomerCommentDto create(CustomerCommentDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             return customerCommentsDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Customer Comment", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Customer Comment", baseUser);
         }
     }
 
@@ -111,14 +111,14 @@ public class CustomerController extends BaseController<CustomerDto> {
     }
 
     @Override
-    public boolean delete(CustomerDto template) throws RPException {
+    public boolean delete(CustomerDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             return customerDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Customers", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Customers", baseUser);
         }
     }
-    public boolean delete(CustomerAttachmentDto template) throws RPException {
+    public boolean delete(CustomerAttachmentDto template) throws AqualityException {
         if(baseUser.isCoordinator()){
             FileUtils fileUtils = new FileUtils();
             template = get(template).get(0);
@@ -127,11 +127,11 @@ public class CustomerController extends BaseController<CustomerDto> {
             fileUtils.removeFiles(pathes);
             return customerAttachmentsDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Customers", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Customers", baseUser);
         }
     }
 
-    private List<CustomerDto> fillCustomers(List<CustomerDto> customers) throws RPException {
+    private List<CustomerDto> fillCustomers(List<CustomerDto> customers) throws AqualityException {
         List<UserDto> users = userDao.getAll();
 
         for (CustomerDto customer: customers){
@@ -155,38 +155,38 @@ public class CustomerController extends BaseController<CustomerDto> {
         return customers;
     }
 
-    private List<ProjectDto> getProjects(CustomerDto customer) throws RPException {
+    private List<ProjectDto> getProjects(CustomerDto customer) throws AqualityException {
         ProjectDao projectDao = new ProjectDao();
         ProjectDto projectTemplate = new ProjectDto();
         projectTemplate.setCustomer_id(customer.getId());
         return projectDao.searchAll(projectTemplate);
     }
 
-    private List<CustomerAttachmentDto> getAttachments(CustomerDto customer) throws RPException {
+    private List<CustomerAttachmentDto> getAttachments(CustomerDto customer) throws AqualityException {
         CustomerAttachmentDto customerAttachmentDtoTemplate = new CustomerAttachmentDto();
         customerAttachmentDtoTemplate.setCustomer_id(customer.getId());
         return get(customerAttachmentDtoTemplate);
     }
 
-    private List<CustomerCommentDto> getComments(CustomerDto customer) throws RPException {
+    private List<CustomerCommentDto> getComments(CustomerDto customer) throws AqualityException {
         CustomerCommentDto customerCommentDtoTemplate = new CustomerCommentDto();
         customerCommentDtoTemplate.setCustomer_id(customer.getId());
         return get(customerCommentDtoTemplate);
     }
 
-    private List<CustomerMemberDto> getMembers(CustomerDto customer) throws RPException {
+    private List<CustomerMemberDto> getMembers(CustomerDto customer) throws AqualityException {
         CustomerMemberDto customerMemberDto = new CustomerMemberDto();
         customerMemberDto.setCustomer_id(customer.getId());
         return get(customerMemberDto);
     }
 
-    private CustomerDto fillCustomer(CustomerDto customer) throws RPException {
+    private CustomerDto fillCustomer(CustomerDto customer) throws AqualityException {
         List<CustomerDto> customers = new ArrayList<>();
         customers.add(customer);
         return fillCustomers(customers).get(0);
     }
 
-    private void addPermissions(Integer user_id, CustomerDto customerDto) throws RPException {
+    private void addPermissions(Integer user_id, CustomerDto customerDto) throws AqualityException {
         List<ProjectDto> projects = customerDto.getProjects();
 
         for (ProjectDto project : projects) {
@@ -200,7 +200,7 @@ public class CustomerController extends BaseController<CustomerDto> {
         }
     }
 
-    private List<CustomerCommentDto> completeComments(List<CustomerCommentDto> comments) throws RPException {
+    private List<CustomerCommentDto> completeComments(List<CustomerCommentDto> comments) throws AqualityException {
         UserDto userTemplate = new UserDto();
 
         for (CustomerCommentDto comment: comments){
@@ -213,7 +213,7 @@ public class CustomerController extends BaseController<CustomerDto> {
             try{
                 comment.setAuthor(userDao.getEntityById(userTemplate));
             } catch (Exception e){
-                throw new RPException("Cannot find author for Customer Comment");
+                throw new AqualityException("Cannot find author for Customer Comment");
             }
         }
         return comments;
