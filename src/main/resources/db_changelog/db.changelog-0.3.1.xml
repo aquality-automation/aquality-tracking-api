@@ -171,4 +171,71 @@
             END
         </rollback>
     </changeSet>
+
+    <changeSet id="Add fail reason contains search" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(10),
+            IN request_final_result_id VARCHAR(10),
+            IN request_test_run_id VARCHAR(10),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_debug VARCHAR(1),
+            IN request_fail_reason VARCHAR(150),
+            In request_limit INT(10)
+            )
+            BEGIN
+            SELECT * FROM test_results as res
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id = request_project_id)
+            AND (request_test_id = '' OR test_id=request_test_id)
+            AND (request_final_result_id = '' OR final_result_id=request_final_result_id)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_test_resolution_id = '' OR test_resolution_id=request_test_resolution_id)
+            AND (request_debug = '' OR debug=request_debug)
+            AND (request_fail_reason = '' OR INSTR(fail_reason, request_fail_reason) > 0)
+            ORDER BY start_date DESC
+            LIMIT request_limit
+            ;
+            END
+
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(10),
+            IN request_final_result_id VARCHAR(10),
+            IN request_test_run_id VARCHAR(10),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_debug VARCHAR(1),
+            IN request_fail_reason VARCHAR(150),
+            In request_limit INT(10)
+            )
+            BEGIN
+            SELECT * FROM test_results as res
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id = request_project_id)
+            AND (request_test_id = '' OR test_id=request_test_id)
+            AND (request_final_result_id = '' OR final_result_id=request_final_result_id)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_test_resolution_id = '' OR test_resolution_id=request_test_resolution_id)
+            AND (request_debug = '' OR debug=request_debug)
+            AND (request_fail_reason = '' OR INSTR(fail_reason, request_fail_reason) > 0)
+            ORDER BY start_date DESC
+            LIMIT request_limit
+            ;
+            END
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

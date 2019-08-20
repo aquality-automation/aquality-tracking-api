@@ -64,6 +64,7 @@ public class TestResultDto extends BaseDto {
     @JsonDeserialize(using=CustomerDateAndTimeDeserialize.class)
     private Date final_result_updated;
     @DataBaseName(name="request_fail_reason")
+    @DataBaseSearchable
     @DataBaseInsert
     private String fail_reason;
     @DataBaseName(name="request_assignee")
