@@ -12,19 +12,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/project/importToken")
-public class ImportTokenServlet extends BaseServlet implements IPost {
+public class ImportTokenServlet extends BaseServlet implements IGet {
 
     @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
 
         try {
             Session session = createSession(req);
-            DtoMapper<ImportTokenDto> mapper = new DtoMapper<ImportTokenDto>(ImportTokenDto.class){};
-            ImportTokenDto tokenDto = mapper.mapObject(getRequestJson(req));
-            String importToken = session.controllerFactory.getHandler(tokenDto).create(tokenDto).getImport_token();
-            resp.getWriter().write(String.format("{\"token\":\"%s\"}", importToken));
+            ImportTokenDto tokenDto = new ImportTokenDto();
+            tokenDto.getSearchTemplateFromRequestParameters(req);
+            tokenDto.setImport_token(session.controllerFactory.getHandler(tokenDto).create(tokenDto).getImport_token());
+            resp.getWriter().write(mapper.serialize(tokenDto));
         } catch (Exception e) {
             handleException(resp, e);
         }
