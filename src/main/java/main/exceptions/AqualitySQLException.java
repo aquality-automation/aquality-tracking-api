@@ -16,7 +16,7 @@ public class AqualitySQLException extends AqualityException {
             case "23505":
                 return "You are trying to create duplicate entity.";
             default:
-                return "Unknown SQL Error";
+                return String.format("Unknown SQL Error: %s", sqlcode);
         }
     }
 
