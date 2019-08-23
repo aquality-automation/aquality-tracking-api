@@ -110,7 +110,7 @@ public class TestRunController extends BaseController<TestRunDto> {
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.setTest_run_id(testRun.getId());
             testResultTemplate.setProject_id(testRun.getProject_id());
-            List<TestResultDto> results = resultController.get(testResultTemplate, 10000);
+            List<TestResultDto> results = resultController.get(testResultTemplate);
             testRun.setTestResults(results);
         }
         return testRuns;
