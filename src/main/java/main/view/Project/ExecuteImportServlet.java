@@ -47,8 +47,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
             Session session;
             if (importToken != null) {
-                session = new Session();
-                session.controllerFactory.getHandler(new ImportTokenDto()).isTokenValid(importToken, projectId);
+                session = new Session(importToken, projectId);
             } else {
                 session = createSession(req);
             }

@@ -9,6 +9,7 @@ import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
+import main.model.dto.ImportTokenDto;
 import main.model.dto.ProjectUserDto;
 import main.model.dto.TestRunDto;
 import main.model.dto.UserDto;
@@ -16,6 +17,7 @@ import main.model.email.TestRunEmails;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,12 +34,18 @@ public class Session {
         controllerFactory = new ControllerFactory(user);
     }
 
-    public Session(){
+    public Session(String importToken, int projectId) throws AqualityException {
         user = new UserDto();
-        user.setAdmin(1);
-        user.setUnit_coordinator(1);
-        user.setManager(1);
         controllerFactory = new ControllerFactory(user);
+        if(controllerFactory.getHandler(new ImportTokenDto()).isTokenValid(importToken, projectId)){
+            ProjectUserDto projectUser = new ProjectUserDto();
+            projectUser.setProject_id(projectId);
+            projectUser.setEngineer(1);
+            List<ProjectUserDto> projectUsers =  new ArrayList<>();
+            projectUsers.add(projectUser);
+            user.setProjectUsers(projectUsers);
+            controllerFactory = new ControllerFactory(user);
+        }
     }
 
     public List<ProjectUserDto> getProjectPermissions(){

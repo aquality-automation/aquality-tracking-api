@@ -103,29 +103,6 @@ public class UserController extends BaseController<UserDto> {
         throw new AqualityException("Seems your password was updated. Log in again please.");
     }
 
-    public UserDto checkSession(String session) throws AqualityException {
-        Base64 base64 = new Base64();
-        DateUtils dates = new DateUtils();
-        String[] strings = StringUtils.newStringUtf8(base64.decode(session)).split(":");
-        UserDto user = new UserDto();
-        user.setUser_name(strings[0]);
-        List<UserDto> users = userDao.searchAll(user);
-        if(users.size() > 0){
-            user = users.get(0);
-            if(!user.getSession_code().equals(session)){
-                throw new AqualityException("Credentials you've provided are not valid. Reenter please.");
-            }
-            if(new Date().after(dates.fromyyyyMMdd(strings[2]))){
-                throw new AqualityException("Session Expired.");
-            }
-        }
-        else{
-            throw new AqualityException("Credentials you've provided are not valid. Reenter please.");
-        }
-
-        return user;
-    }
-
     private List<UserDto> toPublicUsers(List<UserDto> users) {
         for (UserDto user :
                 users) {
