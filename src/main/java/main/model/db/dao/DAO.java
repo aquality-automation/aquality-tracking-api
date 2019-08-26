@@ -1,6 +1,7 @@
 package main.model.db.dao;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import main.exceptions.AqualitySQLException;
 import main.exceptions.AqualityException;
 import main.model.db.RS_Converter;
 import main.model.dto.BaseDto;
@@ -156,7 +157,7 @@ public abstract class DAO<T extends BaseDto> {
                 rs.close();
             }
         } catch (SQLException e) {
-            throw new AqualityException(String.format("Cannot execute statement for '%s'", getSqlName(sql)));
+            throw new AqualitySQLException(e.getSQLState());
         } finally {
             closeCallableStatement(callableStatement);
         }
@@ -210,7 +211,7 @@ public abstract class DAO<T extends BaseDto> {
         try {
             callableStatement.execute();
         } catch (SQLException e) {
-            throw new AqualityException(String.format("Cannot execute query '%s': %s", getSqlName(sql), e.getMessage()));
+            throw new AqualitySQLException(e.getSQLState());
         }
 
         return callableStatement;
