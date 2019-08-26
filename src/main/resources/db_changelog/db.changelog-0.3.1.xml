@@ -278,7 +278,7 @@
             AND (request_test_resolution_id = '' OR test_resolution_id=request_test_resolution_id)
             AND (request_debug = '' OR debug=request_debug)
             AND (request_fail_reason = '' OR INSTR(fail_reason, request_fail_reason) > 0)
-            AND fail_reason REGEXP request_fail_reason_regex
+            AND IFNULL(fail_reason, '') REGEXP request_fail_reason_regex
             ORDER BY start_date DESC
             LIMIT request_limit
             ;
