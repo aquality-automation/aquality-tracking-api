@@ -69,26 +69,28 @@ public class UserDto extends BaseDto {
     @DataBaseInsert
     private Integer audit_notifications;
     private List<ProjectUserDto> projectUsers;
+    private Integer ApiSessionProjectId;
 
     public boolean isAdmin(){
-        return admin > 0;
+        return isPermissionTrue(admin);
     }
 
     public boolean isCoordinator(){
-        return unit_coordinator > 0;
+        return isPermissionTrue(unit_coordinator);
     }
 
     public boolean isAuditor(){
-        return auditor > 0;
+        return isPermissionTrue(auditor);
     }
 
     public boolean isAuditAdmin(){
-        return audit_admin > 0;
+        return isPermissionTrue(audit_admin);
     }
 
     public boolean isManager(){
-        return  manager > 0;
+        return isPermissionTrue(manager);
     }
+
 
     public boolean isFromGlobalManagement(){
         return isManager() || isAuditor() || isAuditAdmin() || account_manager > 0 || isCoordinator() || head > 0;
@@ -118,5 +120,9 @@ public class UserDto extends BaseDto {
         this.setPassword("");
         this.setSession_code("");
         return this;
+    }
+
+    private boolean isPermissionTrue(Integer permission){
+        return permission != null && permission > 0;
     }
 }

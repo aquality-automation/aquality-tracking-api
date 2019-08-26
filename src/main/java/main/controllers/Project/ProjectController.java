@@ -32,7 +32,11 @@ public class ProjectController extends BaseController<ProjectDto> {
 
     @Override
     public List<ProjectDto> get(ProjectDto template) throws AqualityException {
-        template.setUser_id(baseUser.getId());
+        if (baseUser.getApiSessionProjectId() != null) {
+            template.setId(baseUser.getApiSessionProjectId());
+        } else {
+            template.setUser_id(baseUser.getId());
+        }
         List<ProjectDto> projects = projectDao.searchAll(template);
         return fillCustomers(projects);
     }

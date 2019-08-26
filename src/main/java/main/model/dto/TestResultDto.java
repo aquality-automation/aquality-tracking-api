@@ -9,7 +9,7 @@ import main.utils.CustomerDateAndTimeDeserialize;
 
 import java.util.Date;
 
-@Data @EqualsAndHashCode(callSuper = true)
+@ Data@EqualsAndHashCode(callSuper = true)
 public class TestResultDto extends BaseDto {
     private String internalTestId;
     @DataBaseName(name="request_project_id")
@@ -64,6 +64,7 @@ public class TestResultDto extends BaseDto {
     @JsonDeserialize(using=CustomerDateAndTimeDeserialize.class)
     private Date final_result_updated;
     @DataBaseName(name="request_fail_reason")
+    @DataBaseSearchable
     @DataBaseInsert
     private String fail_reason;
     @DataBaseName(name="request_assignee")
@@ -74,4 +75,7 @@ public class TestResultDto extends BaseDto {
     @DataBaseSearchable
     private Integer limit;
     private Integer pending;
+    @DataBaseName(name="request_fail_reason_regex")
+    @DataBaseSearchable
+    private String fail_reason_regex;
 }

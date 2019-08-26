@@ -1,10 +1,10 @@
 package main.model.db.dao.project;
 
 import main.controllers.Project.ImportTokenController;
+import main.controllers.Project.ProjectUserController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.DAO;
-import main.model.dto.ProjectDto;
 import main.model.dto.ProjectUserDto;
 import main.model.dto.UserDto;
 import main.utils.DateUtils;
@@ -26,11 +26,13 @@ public class UserDao extends DAO<UserDto> {
 
     /**
      * Check id session or token is valid
-     * @param sessionId Session ID = {username}:{uuid}:{creationDate} or project:{projectId}:{token}
+     * @param sessionHash Base64 String with Session ID = {username}:{uuid}:{creationDate} or project:{projectId}:{token}
      * @return User for session
      * @throws AqualityException error about authorization status
      */
-    public UserDto IsAuthorized(String sessionId) throws AqualityException {
+    public UserDto GetAuthorizedUser(String sessionHash) throws AqualityException {
+        Base64 base64 = new Base64();
+        String sessionId = StringUtils.newStringUtf8(base64.decode(sessionHash));
         if(sessionId.startsWith("project")){
             return IsAuthorizedToken(sessionId);
         }
@@ -45,8 +47,7 @@ public class UserDao extends DAO<UserDto> {
      * @throws AqualityException error about authorization status
      */
     private UserDto IsAuthorizedUser(String sessionId) throws AqualityException {
-        Base64 base64 = new Base64();
-        String[] strings = StringUtils.newStringUtf8(base64.decode(sessionId)).split(":");
+        String[] strings = sessionId.split(":");
         DateUtils dates = new DateUtils();
         UserDto user = new UserDto();
         user.setUser_name(strings[0]);
@@ -63,6 +64,10 @@ public class UserDao extends DAO<UserDto> {
         else{
             throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
         }
+
+        ProjectUserDto projectUserDto = new ProjectUserDto();
+        projectUserDto.setUser_id(user.getId());
+        user.setProjectUsers(new ProjectUserController(user).getProjectUserForPermissions(projectUserDto));
         return user;
     }
 
@@ -73,9 +78,9 @@ public class UserDao extends DAO<UserDto> {
      * @throws AqualityException error about authorization status
      */
     private UserDto IsAuthorizedToken(String sessionId) throws AqualityException {
-        Base64 base64 = new Base64();
-        String[] strings = StringUtils.newStringUtf8(base64.decode(sessionId)).split(":");
-        boolean isTokenValid = new ImportTokenController(new UserDto()).isTokenValid(strings[2], Integer.parseInt(strings[1]));
+        String[] strings = sessionId.split(":");
+        Integer projectId =  Integer.parseInt(strings[1]);
+        boolean isTokenValid = new ImportTokenController(new UserDto()).isTokenValid(strings[2],projectId);
 
         if(isTokenValid){
             UserDto user = new UserDto();
@@ -83,6 +88,7 @@ public class UserDao extends DAO<UserDto> {
             List<ProjectUserDto> projectUsersList = new ArrayList<>();
             projectUsersList.add(projectUser);
             user.setProjectUsers(projectUsersList);
+            user.setApiSessionProjectId(projectId);
             return user;
         }
         else{

@@ -9,10 +9,7 @@ import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
-import main.model.dto.ImportTokenDto;
-import main.model.dto.ProjectUserDto;
-import main.model.dto.TestRunDto;
-import main.model.dto.UserDto;
+import main.model.dto.*;
 import main.model.email.TestRunEmails;
 import org.xml.sax.SAXException;
 
@@ -28,9 +25,7 @@ public class Session {
     public  ControllerFactory controllerFactory;
 
     public Session(String sessionId) throws AqualityException {
-        if(isSessionValid(sessionId)){
-            setUserMembership();
-        }
+        isSessionValid(sessionId);
         controllerFactory = new ControllerFactory(user);
     }
 
@@ -57,11 +52,7 @@ public class Session {
     }
 
     public Importer getImporter(List<String> filePaths, TestRunDto testRunTemplate, String pattern, String format, TestNameNodeType nodeType, boolean singleTestRun) throws AqualityException {
-        try {
-            return new Importer(filePaths, testRunTemplate, pattern, format, nodeType, singleTestRun, user);
-        } catch (ParserConfigurationException | SAXException e) {
-            throw new AqualityException("Some Internal SAX error: " + e.getMessage());
-        }
+        return new Importer(filePaths, testRunTemplate, pattern, format, nodeType, singleTestRun, user);
     }
 
     public TestRunEmails getTestRunEmails(){
@@ -76,7 +67,7 @@ public class Session {
         return new AdministrationController(user);
     }
 
-    public ProjectController getProjectController () throws AqualityException {
+    public ProjectController getProjectController (){
         return new ProjectController(user);
     }
 
@@ -93,7 +84,7 @@ public class Session {
     }
 
     public void setCurrentUser(UserDto user) throws AqualityException {
-        this.user = user;
+        this.user = (UserDto) user;
         setUserMembership();
     }
 
@@ -104,13 +95,13 @@ public class Session {
     }
 
     public boolean isSessionValid() throws AqualityException {
-        return  isSessionValid(session);
+        return isSessionValid(session);
     }
 
     private boolean isSessionValid(String sessionId) throws AqualityException {
         if(sessionId != null){
             UserDao userDao = new UserDao();
-            user = userDao.IsAuthorized(sessionId);
+            user = userDao.GetAuthorizedUser(sessionId);
             session = sessionId;
             return user != null;
         }

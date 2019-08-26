@@ -37,19 +37,18 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
-    public List<TestResultDto> get(TestResultDto template, Integer limit) throws AqualityException {
+    @Override
+    public List<TestResultDto> get(TestResultDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
-            template.setLimit(limit);
+            if(template.getLimit() == null){
+                template.setLimit(0);
+            }
             return fillResults(testResultDao.searchAll(template));
         }else{
             throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
         }
     }
 
-    @Override
-    public List<TestResultDto> get(TestResultDto template) throws AqualityException {
-        return get(template, 0);
-    }
 
     @Override
     public boolean delete(TestResultDto template) throws AqualityException {
