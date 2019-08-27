@@ -75,4 +75,7 @@ public class TestResultDto extends BaseDto {
     @DataBaseSearchable
     private Integer limit;
     private Integer pending;
+    @DataBaseName(name="request_fail_reason_regex")
+    @DataBaseSearchable
+    private String fail_reason_regex;
 }
