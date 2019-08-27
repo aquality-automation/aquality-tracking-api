@@ -143,27 +143,6 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Are you sure you logged in?");
     }
 
-    private void handleSQLException(@NotNull SQLException e, HttpServletResponse resp){
-        String sqlState = e.getSQLState();
-        if(sqlState == null) sqlState = "";
-        switch (sqlState){
-            case "23515":
-                resp.setStatus(403);
-                resp.addHeader("ErrorMessage", "You have no permissions for this action.");
-                break;
-            case "23516":
-            case "45000":
-            case "23505":
-                resp.setStatus(409);
-                resp.addHeader("ErrorMessage", "You are trying to create duplicate entity.");
-                break;
-            default:
-                resp.setStatus(500);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                break;
-        }
-    }
-
     protected void setErrorHeader(@NotNull HttpServletResponse resp, String errorMessage){
         resp.addHeader("ErrorMessage", errorMessage);
     }
@@ -216,23 +195,15 @@ public class BaseServlet extends HttpServlet{
             case "AuthenticationException":
                 setAuthorizationProblem(resp,e);
                 return;
-            case "SQLException":
-            case "SQLIntegrityConstraintViolationException":
-                handleSQLException((SQLException) e, resp);
-                return;
             case "AqualityPermissionsException":
-                resp.setStatus(403);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                return;
             case "AqualityException":
-                resp.setStatus(500);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                return;
             case "InvalidFormatException":
             case "AqualityQueryParameterException":
-                resp.setStatus(422);
-                resp.addHeader("ErrorMessage", e.getMessage());
-
+            case "AqualitySQLException":
+                AqualityException exception = (AqualityException) e;
+                resp.setStatus(exception.getResponseCode());
+                resp.addHeader("ErrorMessage", exception.getMessage());
+                return;
             default:
                 setUnknownIssue(resp);
         }
