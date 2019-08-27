@@ -25,10 +25,9 @@ public class BaseServlet extends HttpServlet{
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
 
     protected Session createSession(HttpServletRequest req) throws AqualityException {
-        String apiToken = getStringQueryParameter(req, "apiToken");
         String importToken = getStringQueryParameter(req, "importToken");
         Integer projectId = getIntegerQueryParameter(req, "projectId");
-        if ((apiToken != null || importToken != null) && projectId != null) {
+        if (importToken != null && projectId != null) {
             return new Session(importToken, projectId);
         } else {
             return new Session(getSessionId(req));

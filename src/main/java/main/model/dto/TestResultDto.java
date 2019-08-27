@@ -9,7 +9,7 @@ import main.utils.CustomerDateAndTimeDeserialize;
 
 import java.util.Date;
 
-@ Data@EqualsAndHashCode(callSuper = true)
+@Data @EqualsAndHashCode(callSuper = true)
 public class TestResultDto extends BaseDto {
     private String internalTestId;
     @DataBaseName(name="request_project_id")

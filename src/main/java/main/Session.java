@@ -12,7 +12,7 @@ import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import main.model.email.TestRunEmails;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +27,7 @@ public class Session {
         controllerFactory = new ControllerFactory(user);
     }
 
+    @Deprecated
     public Session(String importToken, int projectId) throws AqualityException {
         user = new UserDto();
         controllerFactory = new ControllerFactory(user);
@@ -35,9 +36,7 @@ public class Session {
             projectUser.setProject_id(projectId);
             projectUser.setEngineer(1);
             projectUser.setViewer(1);
-            List<ProjectUserDto> projectUsers =  new ArrayList<>();
-            projectUsers.add(projectUser);
-            user.setProjectUsers(projectUsers);
+            user.setProjectUsers(Collections.singletonList(projectUser));
             controllerFactory = new ControllerFactory(user);
         }
     }

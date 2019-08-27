@@ -12,6 +12,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -90,9 +91,7 @@ public class UserDao extends DAO<UserDto> {
             projectUser.setProject_id(projectId);
             projectUser.setViewer(1);
             projectUser.setEngineer(1);
-            List<ProjectUserDto> projectUsersList = new ArrayList<>();
-            projectUsersList.add(projectUser);
-            user.setProjectUsers(projectUsersList);
+            user.setProjectUsers(Collections.singletonList(projectUser));
             user.setApiSessionProjectId(projectId);
             return user;
         }
