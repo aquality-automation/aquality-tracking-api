@@ -33,20 +33,22 @@ public class UserDao extends DAO<UserDto> {
     public UserDto GetAuthorizedUser(String sessionHash) throws AqualityException {
         Base64 base64 = new Base64();
         String sessionId = StringUtils.newStringUtf8(base64.decode(sessionHash));
-        if(sessionId.startsWith("project")){
+        boolean isApiToken = sessionId.startsWith("project");
+        if(isApiToken){
             return IsAuthorizedToken(sessionId);
         }
 
-        return IsAuthorizedUser(sessionId);
+        return IsAuthorizedUser(sessionId, sessionHash);
     }
 
     /**
      * Check If User Authorized
      * @param sessionId Session ID = {username}:{uuid}:{creationDate}
+     * @param sessionHash Hash of Session ID = {username}:{uuid}:{creationDate}
      * @return Authorized User
      * @throws AqualityException error about authorization status
      */
-    private UserDto IsAuthorizedUser(String sessionId) throws AqualityException {
+    private UserDto IsAuthorizedUser(String sessionId, String sessionHash) throws AqualityException {
         String[] strings = sessionId.split(":");
         DateUtils dates = new DateUtils();
         UserDto user = new UserDto();
@@ -54,7 +56,7 @@ public class UserDao extends DAO<UserDto> {
         List<UserDto> users = searchAll(user);
         if(users.size() > 0){
             user = users.get(0);
-            if(!user.getSession_code().equals(sessionId)){
+            if(!user.getSession_code().equals(sessionHash)){
                 throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
             }
             if(new Date().after(dates.fromyyyyMMdd(strings[2]))){
