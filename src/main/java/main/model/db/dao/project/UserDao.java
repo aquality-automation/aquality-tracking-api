@@ -87,6 +87,9 @@ public class UserDao extends DAO<UserDto> {
         if(isTokenValid){
             UserDto user = new UserDto();
             ProjectUserDto projectUser = new ProjectUserDto();
+            projectUser.setProject_id(projectId);
+            projectUser.setViewer(1);
+            projectUser.setEngineer(1);
             List<ProjectUserDto> projectUsersList = new ArrayList<>();
             projectUsersList.add(projectUser);
             user.setProjectUsers(projectUsersList);

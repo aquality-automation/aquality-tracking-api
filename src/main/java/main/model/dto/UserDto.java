@@ -91,9 +91,8 @@ public class UserDto extends BaseDto {
         return isPermissionTrue(manager);
     }
 
-
     public boolean isFromGlobalManagement(){
-        return isManager() || isAuditor() || isAuditAdmin() || account_manager > 0 || isCoordinator() || head > 0;
+        return isManager() || isAuditor() || isAuditAdmin() || isPermissionTrue(account_manager) || isCoordinator() || isPermissionTrue(head);
     }
 
     public ProjectUserDto getProjectUser(Integer projectId){

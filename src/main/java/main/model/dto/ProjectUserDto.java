@@ -29,22 +29,26 @@ public class ProjectUserDto extends BaseDto {
     private Integer viewer;
 
     public boolean isAdmin(){
-        return admin > 0;
+        return isPermissionTrue(admin);
     }
 
     public boolean isManager(){
-        return manager > 0;
+        return isPermissionTrue(manager);
     }
 
     public boolean isEngineer(){
-        return engineer > 0;
+        return isPermissionTrue(engineer);
     }
 
     public boolean isViewer(){
-        return viewer > 0;
+        return isPermissionTrue(viewer);
     }
 
     public boolean isEditor() {
-        return admin > 0 || manager > 0 || engineer > 0;
+        return isAdmin() || isManager() || isEngineer();
+    }
+
+    private boolean isPermissionTrue(Integer permission){
+        return permission != null && permission > 0;
     }
 }

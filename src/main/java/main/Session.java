@@ -11,9 +11,7 @@ import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import main.model.email.TestRunEmails;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +34,7 @@ public class Session {
             ProjectUserDto projectUser = new ProjectUserDto();
             projectUser.setProject_id(projectId);
             projectUser.setEngineer(1);
+            projectUser.setViewer(1);
             List<ProjectUserDto> projectUsers =  new ArrayList<>();
             projectUsers.add(projectUser);
             user.setProjectUsers(projectUsers);
@@ -84,7 +83,7 @@ public class Session {
     }
 
     public void setCurrentUser(UserDto user) throws AqualityException {
-        this.user = (UserDto) user;
+        this.user = user;
         setUserMembership();
     }
 

@@ -148,13 +148,20 @@ public class BaseServlet extends HttpServlet{
     }
 
     @Nullable
-    private String getSessionId(@NotNull HttpServletRequest req){
+    private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException {
         String header = req.getHeader("Authorization");
         if(header != null){
+            validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
         }
         return null;
+    }
+
+    private void validateAuthHeader(String header) throws AqualityException {
+        if(!header.toLowerCase().startsWith("basic ")){
+            throw new AqualityException("Use Basic Authorization Header! (Should start with 'Basic ')");
+        }
     }
 
     protected void processResponse(HttpServletResponse response, String filePath) {
