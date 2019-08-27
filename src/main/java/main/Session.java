@@ -12,6 +12,7 @@ import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import main.model.email.TestRunEmails;
 
+import javax.naming.AuthenticationException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,9 +23,18 @@ public class Session {
     private String session;
     public  ControllerFactory controllerFactory;
 
-    public Session(String sessionId) throws AqualityException {
-        isSessionValid(sessionId);
-        controllerFactory = new ControllerFactory(user);
+    public Session(String sessionId) throws AqualityException, AuthenticationException {
+        if(isSessionValid(sessionId)) {
+            controllerFactory = new ControllerFactory(user);
+            return;
+        }
+        throw new AuthenticationException("Your session is not valid!");
+    }
+
+    public Session(UserDto user) throws AqualityException {
+        this.user = user;
+        setUserMembership();
+        controllerFactory = new ControllerFactory(this.user);
     }
 
     @Deprecated
@@ -79,11 +89,6 @@ public class Session {
 
     public UserDto getCurrentUser() {
         return user;
-    }
-
-    public void setCurrentUser(UserDto user) throws AqualityException {
-        this.user = user;
-        setUserMembership();
     }
 
     private void setUserMembership() throws AqualityException {

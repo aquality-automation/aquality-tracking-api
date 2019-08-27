@@ -7,6 +7,7 @@ import main.model.dto.DtoMapperGeneral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.naming.AuthenticationException;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +25,7 @@ public class BaseServlet extends HttpServlet{
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
 
-    protected Session createSession(HttpServletRequest req) throws AqualityException {
+    protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
         String importToken = getStringQueryParameter(req, "importToken");
         Integer projectId = getIntegerQueryParameter(req, "projectId");
         if (importToken != null && projectId != null) {
