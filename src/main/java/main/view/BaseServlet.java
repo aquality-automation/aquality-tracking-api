@@ -33,8 +33,6 @@ public class BaseServlet extends HttpServlet{
         } else {
             return new Session(getSessionId(req));
         }
-
-
     }
 
     private String replacer(String value) {
@@ -147,19 +145,18 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", errorMessage);
     }
 
-    @Nullable
-    private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException {
+    private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException, AuthenticationException {
         String header = req.getHeader("Authorization");
         if(header != null){
             validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
         }
-        return null;
+        throw new AuthenticationException("You've missed your authorization header!");
     }
 
     private void validateAuthHeader(String header) throws AqualityException {
-        if(!header.toLowerCase().startsWith("basic ")){
+        if(!header.toLowerCase().startsWith("basic ".toLowerCase())){
             throw new AqualityException("Use Basic Authorization Header! (Should start with 'Basic ')");
         }
     }
