@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Suite2DashboardDao;
 import main.model.db.dao.project.SuiteDashboardDao;
 import main.model.dto.Suite2DashboardDto;
@@ -27,35 +27,35 @@ public class SuiteDashboardController extends BaseController<SuiteDashboardDto> 
     }
 
     @Override
-    public SuiteDashboardDto create(SuiteDashboardDto template) throws RPException {
+    public SuiteDashboardDto create(SuiteDashboardDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             template.setId(suiteDashboardDao.create(template).getId());
             updateSuites2Dashboard(template);
             return template;
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Suite Dashboards", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Suite Dashboards", baseUser);
         }
     }
 
     @Override
-    public List<SuiteDashboardDto> get(SuiteDashboardDto template) throws RPException{
+    public List<SuiteDashboardDto> get(SuiteDashboardDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return fillSuiteDashboards(suiteDashboardDao.searchAll(template));
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Suite Dashboards", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Suite Dashboards", baseUser);
         }
     }
 
     @Override
-    public boolean delete(SuiteDashboardDto template) throws RPException{
+    public boolean delete(SuiteDashboardDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return suiteDashboardDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Suite Dashboards", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Suite Dashboards", baseUser);
         }
     }
 
-    private List<SuiteDashboardDto> fillSuiteDashboards(List<SuiteDashboardDto> dashboards) throws RPException {
+    private List<SuiteDashboardDto> fillSuiteDashboards(List<SuiteDashboardDto> dashboards) throws AqualityException {
         if(dashboards.size() < 1){
             return dashboards;
         }
@@ -77,7 +77,7 @@ public class SuiteDashboardController extends BaseController<SuiteDashboardDto> 
         return filledSuiteDashboards;
     }
 
-    private void updateSuites2Dashboard(SuiteDashboardDto template) throws RPException {
+    private void updateSuites2Dashboard(SuiteDashboardDto template) throws AqualityException {
         if(template.getSuites() != null){
             for (TestSuiteDto suite: template.getSuites()) {
                 Suite2DashboardDto suite2DashboardDto = new Suite2DashboardDto();

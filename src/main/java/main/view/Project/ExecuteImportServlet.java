@@ -2,7 +2,7 @@ package main.view.Project;
 
 
 import main.Session;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
 import main.model.dto.ImportDto;
@@ -20,7 +20,6 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.List;
@@ -48,8 +47,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
             Session session;
             if (importToken != null) {
-                session = new Session();
-                session.controllerFactory.getHandler(new ImportTokenDto()).isTokenValid(importToken, projectId);
+                session = new Session(importToken, projectId);
             } else {
                 session = createSession(req);
             }
@@ -80,7 +78,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
     }
 
     private TestRunDto prepareTestRun(Session session, Integer testRunId, Boolean addToLastTestRun, String environment, String cilink,
-                                      Integer projectId, String buildName, String author, String suiteName) throws RPException {
+                                      Integer projectId, String buildName, String author, String suiteName) throws AqualityException {
 
         TestSuiteDto testSuiteTemplate = new TestSuiteDto();
         testSuiteTemplate.setName(suiteName);
@@ -97,7 +95,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         return testRunTemplate;
     }
 
-    private Integer getTestRunId(Session session, Integer testRunId, Boolean addToLastTestRun, TestSuiteDto suite) throws RPException {
+    private Integer getTestRunId(Session session, Integer testRunId, Boolean addToLastTestRun, TestSuiteDto suite) throws AqualityException {
         if(testRunId != null ){
             return testRunId;
         }

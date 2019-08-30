@@ -43,7 +43,7 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
             Session session = createSession(req);
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.getSearchTemplateFromRequestParameters(req);
-            List<TestResultDto> testResults = session.controllerFactory.getHandler(testResultTemplate).get(testResultTemplate, 100000);
+            List<TestResultDto> testResults = session.controllerFactory.getHandler(testResultTemplate).get(testResultTemplate);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(testResults));
         }catch (Exception e) {

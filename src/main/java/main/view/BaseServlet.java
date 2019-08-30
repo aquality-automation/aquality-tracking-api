@@ -1,12 +1,13 @@
 package main.view;
 
 import main.Session;
-import main.exceptions.RPException;
-import main.exceptions.RPQueryParameterException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityQueryParameterException;
 import main.model.dto.DtoMapperGeneral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.naming.AuthenticationException;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,8 +25,14 @@ public class BaseServlet extends HttpServlet{
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
 
-    protected Session createSession(HttpServletRequest req) throws RPException {
-        return new Session(getSessionId(req));
+    protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
+        String importToken = getStringQueryParameter(req, "importToken");
+        Integer projectId = getIntegerQueryParameter(req, "projectId");
+        if (importToken != null && projectId != null) {
+            return new Session(importToken, projectId);
+        } else {
+            return new Session(getSessionId(req));
+        }
     }
 
     private String replacer(String value) {
@@ -134,39 +141,24 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Are you sure you logged in?");
     }
 
-    private void handleSQLException(@NotNull SQLException e, HttpServletResponse resp){
-        String sqlState = e.getSQLState();
-        if(sqlState == null) sqlState = "";
-        switch (sqlState){
-            case "23515":
-                resp.setStatus(403);
-                resp.addHeader("ErrorMessage", "You have no permissions for this action.");
-                break;
-            case "23516":
-            case "45000":
-            case "23505":
-                resp.setStatus(409);
-                resp.addHeader("ErrorMessage", "You are trying to create duplicate entity.");
-                break;
-            default:
-                resp.setStatus(500);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                break;
-        }
-    }
-
     protected void setErrorHeader(@NotNull HttpServletResponse resp, String errorMessage){
         resp.addHeader("ErrorMessage", errorMessage);
     }
 
-    @Nullable
-    private String getSessionId(@NotNull HttpServletRequest req){
+    private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException, AuthenticationException {
         String header = req.getHeader("Authorization");
         if(header != null){
+            validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
         }
-        return null;
+        throw new AuthenticationException("You've missed your authorization header!");
+    }
+
+    private void validateAuthHeader(String header) throws AqualityException {
+        if(!header.toLowerCase().startsWith("basic ".toLowerCase())){
+            throw new AqualityException("Use Basic Authorization Header! (Should start with 'Basic ')");
+        }
     }
 
     protected void processResponse(HttpServletResponse response, String filePath) {
@@ -207,21 +199,15 @@ public class BaseServlet extends HttpServlet{
             case "AuthenticationException":
                 setAuthorizationProblem(resp,e);
                 return;
-            case "SQLException":
-            case "SQLIntegrityConstraintViolationException":
-                handleSQLException((SQLException) e, resp);
+            case "AqualityPermissionsException":
+            case "AqualityException":
+            case "InvalidFormatException":
+            case "AqualityQueryParameterException":
+            case "AqualitySQLException":
+                AqualityException exception = (AqualityException) e;
+                resp.setStatus(exception.getResponseCode());
+                resp.addHeader("ErrorMessage", exception.getMessage());
                 return;
-            case "RPPermissionsException":
-                resp.setStatus(403);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                return;
-            case "RPException":
-                resp.setStatus(500);
-                resp.addHeader("ErrorMessage", e.getMessage());
-                return;
-            case "RPQueryParameterException":
-                resp.setStatus(422);
-                resp.addHeader("ErrorMessage", e.getMessage());
             default:
                 setUnknownIssue(resp);
         }
@@ -237,10 +223,10 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", "Unknown Issue.");
     }
 
-    public void assertRequiredField(HttpServletRequest request, String fieldName) throws RPException {
+    protected void assertRequiredField(HttpServletRequest request, String fieldName) throws AqualityException {
         String fieldValue = getStringQueryParameter(request, fieldName);
         if (fieldValue == null) {
-            throw new RPQueryParameterException(fieldName);
+            throw new AqualityQueryParameterException(fieldName);
         }
     }
 }

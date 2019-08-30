@@ -41,7 +41,6 @@ public class TestServlet extends BaseServlet implements IDelete {
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
-        resp.addHeader("Access-Control-Expose-Headers", "id");
         setEncoding(resp);
 
         try {
@@ -49,7 +48,8 @@ public class TestServlet extends BaseServlet implements IDelete {
             String requestedJson = getRequestJson(req);
             TestDto test = mapper.mapObject(TestDto.class, requestedJson);
             test = session.controllerFactory.getHandler(test).create(test, true);
-            resp.setHeader("id", test.getId().toString());
+            setJSONContentType(resp);
+            resp.getWriter().write(mapper.serialize(test));
         }catch (Exception e) {
             handleException(resp, e);
         }
@@ -58,7 +58,6 @@ public class TestServlet extends BaseServlet implements IDelete {
     @Override
     public void doPut(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
-        resp.addHeader("Access-Control-Expose-Headers", "id");
         setEncoding(resp);
 
         try {

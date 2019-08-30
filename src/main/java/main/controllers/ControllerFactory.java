@@ -1,5 +1,6 @@
 package main.controllers;
 
+import main.controllers.Administration.EmailSettingsController;
 import main.controllers.Administration.UserController;
 import main.controllers.Project.*;
 import main.model.dto.*;
@@ -10,6 +11,7 @@ public class ControllerFactory {
     public ControllerFactory(UserDto user){
         this.user = user;
     }
+
     public ProjectController getHandler(ProjectDto entity) {
         return new ProjectController(user);
     }
@@ -54,5 +56,8 @@ public class ControllerFactory {
     }
     public UserController getHandler(UserDto entity) {
         return new UserController(user);
+    }
+    public EmailSettingsController getHandler(EmailSettingsDto entity) {
+        return new EmailSettingsController(user);
     }
 }

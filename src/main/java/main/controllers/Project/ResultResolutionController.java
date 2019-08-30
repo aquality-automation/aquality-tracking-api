@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.ResultResolutionDao;
 import main.model.dto.ResultResolutionDto;
 import main.model.dto.UserDto;
@@ -18,25 +18,25 @@ public class ResultResolutionController  extends BaseController<ResultResolution
     }
 
     @Override
-    public ResultResolutionDto create(ResultResolutionDto template) throws RPException {
+    public ResultResolutionDto create(ResultResolutionDto template) throws AqualityException {
         if(baseUser.isAdmin() || baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isAdmin() || baseUser.getProjectUser(template.getProject_id()).isManager()){
             return resultResolutionDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Result Resolution", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Result Resolution", baseUser);
         }
     }
 
     @Override
-    public List<ResultResolutionDto> get(ResultResolutionDto template) throws  RPException {
+    public List<ResultResolutionDto> get(ResultResolutionDto template) throws AqualityException {
         return resultResolutionDao.searchAll(template);
     }
 
     @Override
-    public boolean delete(ResultResolutionDto template) throws  RPException {
+    public boolean delete(ResultResolutionDto template) throws AqualityException {
         if(baseUser.isAdmin()){
             return resultResolutionDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Result Resolution", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Result Resolution", baseUser);
         }
     }
 }

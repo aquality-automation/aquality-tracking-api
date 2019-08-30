@@ -1,6 +1,6 @@
 package main.model.db.imports.ImportHandlers;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.NUnitV2Handler;
 import main.model.dto.TestDto;
@@ -17,12 +17,12 @@ public class NUnitV2 extends Handler {
 
     private NUnitV2Handler handler;
 
-    public NUnitV2(File file) throws RPException {
+    public NUnitV2(File file) throws AqualityException {
         handler = new NUnitV2Handler();
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
-            throw new RPException("Cannot Parse NunitV2 file");
+            throw new AqualityException("Cannot Parse NunitV2 file");
         }
     }
 

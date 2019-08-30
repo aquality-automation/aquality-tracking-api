@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestRunDao;
 import main.model.db.dao.project.TestRunLabelDao;
 import main.model.db.dao.project.TestRunStatisticDao;
@@ -31,7 +31,7 @@ public class TestRunController extends BaseController<TestRunDto> {
     }
 
     @Override
-    public TestRunDto create(TestRunDto template) throws RPException {
+    public TestRunDto create(TestRunDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             TestRunDto testRun = testRunDao.create(template);
             if(template.getId() == null){
@@ -39,42 +39,42 @@ public class TestRunController extends BaseController<TestRunDto> {
             }
             return testRun;
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Test Run", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Test Run", baseUser);
         }
     }
 
-    public List<TestRunDto> get(TestRunDto template, boolean withChildren, Integer limit) throws  RPException {
+    public List<TestRunDto> get(TestRunDto template, boolean withChildren, Integer limit) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProjectIdById()).isViewer()){
             template.setLimit(limit);
             return fillTestRuns(testRunDao.searchAll(template), withChildren);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Test Run", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Test Run", baseUser);
         }
     }
 
     @Override
-    public List<TestRunDto> get(TestRunDto template) throws  RPException {
+    public List<TestRunDto> get(TestRunDto template) throws AqualityException {
         return get(template, false, 0);
     }
 
-    public List<TestRunLabelDto> get(TestRunLabelDto template) throws RPException{
+    public List<TestRunLabelDto> get(TestRunLabelDto template) throws AqualityException {
         return testRunLabelDao.searchAll(template);
     }
 
-    public List<TestRunStatisticDto> get(TestRunStatisticDto template) throws RPException{
+    public List<TestRunStatisticDto> get(TestRunStatisticDto template) throws AqualityException {
         return testRunStatisticDao.searchAll(template);
     }
 
     @Override
-    public boolean delete(TestRunDto template) throws  RPException {
+    public boolean delete(TestRunDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return testRunDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Test Run", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Test Run", baseUser);
         }
     }
 
-    private void createPendingResults(TestRunDto testRunTemplate) throws RPException {
+    private void createPendingResults(TestRunDto testRunTemplate) throws AqualityException {
         TestDto testTemplate = new TestDto();
         testTemplate.setTest_suite_id(testRunTemplate.getTest_suite_id());
         testTemplate.setProject_id(testRunTemplate.getProject_id());
@@ -93,7 +93,7 @@ public class TestRunController extends BaseController<TestRunDto> {
         }
     }
 
-    private List<TestRunDto> fillTestRuns(List<TestRunDto> testRuns, boolean withChildren) throws RPException {
+    private List<TestRunDto> fillTestRuns(List<TestRunDto> testRuns, boolean withChildren) throws AqualityException {
 
         if(testRuns.size() > 0){
             testRuns = fillMilestonesAndSuites(testRuns);
@@ -105,18 +105,18 @@ public class TestRunController extends BaseController<TestRunDto> {
         return testRuns;
     }
 
-    private List<TestRunDto> fillTestRunResults(List<TestRunDto> testRuns) throws RPException {
+    private List<TestRunDto> fillTestRunResults(List<TestRunDto> testRuns) throws AqualityException {
         for (TestRunDto testRun : testRuns) {
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.setTest_run_id(testRun.getId());
             testResultTemplate.setProject_id(testRun.getProject_id());
-            List<TestResultDto> results = resultController.get(testResultTemplate, 10000);
+            List<TestResultDto> results = resultController.get(testResultTemplate);
             testRun.setTestResults(results);
         }
         return testRuns;
     }
 
-    private List<TestRunDto> fillMilestonesAndSuites(List<TestRunDto> testRuns) throws RPException {
+    private List<TestRunDto> fillMilestonesAndSuites(List<TestRunDto> testRuns) throws AqualityException {
         TestSuiteDto suiteTemplate = new TestSuiteDto();
         suiteTemplate.setProject_id(testRuns.get(0).getProject_id());
         MilestoneDto milestoneTemplate = new MilestoneDto();

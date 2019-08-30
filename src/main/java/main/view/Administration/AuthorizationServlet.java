@@ -25,13 +25,12 @@ public class AuthorizationServlet extends BaseServlet implements IGet {
         String authString = req.getParameter("auth");
         boolean ldap = Boolean.parseBoolean(req.getParameter("ldap"));
         try {
-            Session session = createSession(req);
             UserDto systemUser = new UserDto();
             systemUser.setId(1);
             systemUser.setAdmin(1);
-            session.setCurrentUser(systemUser);
+            Session session = new Session(systemUser);
             UserDto user = session.getAdministrationController().auth(authString, ldap);
-            session.setCurrentUser(user);
+            session = new Session(user);
             boolean isMember = session.getProjectPermissions().size() > 0;
             resp.addHeader("accountMember", String.valueOf(isMember));
             setJSONContentType(resp);

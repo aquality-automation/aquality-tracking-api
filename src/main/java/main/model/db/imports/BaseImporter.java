@@ -1,15 +1,12 @@
 package main.model.db.imports;
 
 import main.controllers.ControllerFactory;
-import main.controllers.Project.ProjectController;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.dao.project.ImportDao;
 import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.dto.*;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -37,7 +34,7 @@ class BaseImporter {
     ImportDao importDao = new ImportDao();
     ImportDto importDto = new ImportDto();
 
-    void createResults(boolean update) throws RPException {
+    void createResults(boolean update) throws AqualityException {
         createTestSuite();
         addLogToImport("Suites are updated.");
         createTests();
@@ -71,17 +68,17 @@ class BaseImporter {
         addLogToImport("Test results were created.");
     }
 
-    private void updateImportTestRun() throws RPException {
+    private void updateImportTestRun() throws AqualityException {
         importDto.setTestrun_id(testRun.getId());
         importDto = importDao.create(importDto);
     }
 
-    void addLogToImport(String log) throws RPException {
+    void addLogToImport(String log) throws AqualityException {
         importDto.addToLog(log);
         importDto = importDao.create(importDto);
     }
 
-    private void createTestRun() throws RPException{
+    private void createTestRun() throws AqualityException {
         if(testRun.getId() != null){
             this.testRun = controllerFactory.getHandler(testRun).get(testRun, false, 1).get(0);
         }
@@ -92,7 +89,7 @@ class BaseImporter {
         }
     }
 
-    private void createTestRun(String buildName) throws RPException {
+    private void createTestRun(String buildName) throws AqualityException {
         testRun.setBuild_name(buildName);
         setTestRunStartDate();
         setTestRunFinishDate();
@@ -116,7 +113,7 @@ class BaseImporter {
         }
     }
 
-    private void createTestSuite() throws RPException {
+    private void createTestSuite() throws AqualityException {
         testSuite.setProject_id(projectId);
         List<TestSuiteDto> testSuites = controllerFactory.getHandler(testSuite).get(testSuite, false);
 
@@ -127,7 +124,7 @@ class BaseImporter {
         }
     }
 
-    private void createTests() throws RPException {
+    private void createTests() throws AqualityException {
         TestDto testTemplate = new TestDto();
         testTemplate.setProject_id(this.projectId);
         List<TestDto> allTests = testDao.searchAll(testTemplate);
@@ -151,21 +148,21 @@ class BaseImporter {
         this.tests = completedTests;
     }
 
-    private TestDto tryGetExistingTest(List<TestDto> allTests, TestDto test) throws RPException {
+    private TestDto tryGetExistingTest(List<TestDto> allTests, TestDto test) throws AqualityException {
         if (pattern != null && !pattern.equals("")) {
             return getTestByPatternOrName(allTests, test);
         }
         return getTestByName(allTests, test);
     }
 
-    private void linkTestToSuite(TestDto test) throws RPException {
+    private void linkTestToSuite(TestDto test) throws AqualityException {
         Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
         test2SuiteDto.setTest_id(test.getId());
         test2SuiteDto.setSuite_id(testSuite.getId());
         controllerFactory.getHandler(test2SuiteDto).create(test2SuiteDto);
     }
 
-    private void createResult(TestResultDto result, boolean update) throws  RPException {
+    private void createResult(TestResultDto result, boolean update) throws AqualityException {
         try{
             TestResultDto existingResult = existingResults.stream().filter(x -> x.getTest_id().equals(result.getTest_id())).findFirst().orElse(null);
 
@@ -187,14 +184,14 @@ class BaseImporter {
                 updateResultWithSimilarError(result);
             }
             controllerFactory.getHandler(result).create(result);
-        } catch (RPException e){
+        } catch (AqualityException e){
             throw e;
         } catch (Exception e){
-            throw new RPException("Failed on Result Creation for test id: " + result.getTest_id());
+            throw new AqualityException("Failed on Result Creation for test id: " + result.getTest_id());
         }
     }
 
-    private TestResultDto updateResultWithSimilarError(TestResultDto result) throws RPException {
+    private TestResultDto updateResultWithSimilarError(TestResultDto result) throws AqualityException {
         try{
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.setProject_id(result.getProject_id());
@@ -212,11 +209,11 @@ class BaseImporter {
 
             return result;
         } catch (Exception e){
-            throw new RPException("Failed on update Result with similar error");
+            throw new AqualityException("Failed on update Result with similar error");
         }
     }
 
-    private TestDto getTestByPatternOrName(List<TestDto> tests, TestDto importTest) throws RPException {
+    private TestDto getTestByPatternOrName(List<TestDto> tests, TestDto importTest) throws AqualityException {
         Pattern pattern = Pattern.compile(this.pattern);
         Matcher matcher = pattern.matcher(importTest.getBody());
 
@@ -229,7 +226,7 @@ class BaseImporter {
                 }
             }
         } else {
-            throw new RPException("You are trying to import test without uniq identification! Test Name: " + importTest.getName());
+            throw new AqualityException("You are trying to import test without uniq identification! Test Name: " + importTest.getName());
         }
         return getTestByName(tests, importTest);
     }

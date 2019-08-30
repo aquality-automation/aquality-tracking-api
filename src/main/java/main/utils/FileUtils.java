@@ -1,6 +1,6 @@
 package main.utils;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletException;
@@ -63,14 +63,14 @@ public class FileUtils {
         boolean delete = new File(path).delete();
     }
 
-    public String readFile(String path) throws RPException {
+    public String readFile(String path) throws AqualityException {
         try {
             InputStream is = new FileInputStream(path);
             return IOUtils.toString(is, "UTF-8");
         } catch (FileNotFoundException e) {
-            throw new RPException("File Not Found: " + e.getMessage());
+            throw new AqualityException("File Not Found: " + e.getMessage());
         } catch (IOException e) {
-            throw new RPException("Cannot read file: " + path);
+            throw new AqualityException("Cannot read file: " + path);
         }
     }
 

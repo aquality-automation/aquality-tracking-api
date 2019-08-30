@@ -1,12 +1,10 @@
 package main.model.db.imports;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.dto.ImportDto;
 import main.model.dto.TestRunDto;
 import main.model.dto.UserDto;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +25,7 @@ public class Importer extends BaseImporter {
 
     private HandlerFactory handlerFactory = new HandlerFactory();
 
-    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) throws RPException, ParserConfigurationException, SAXException {
+    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) {
         super(testRunTemplate.getProject_id(), pattern, user);
         this.environment = testRunTemplate.getExecution_environment();
         this.ci_build = testRunTemplate.getCi_build();
@@ -41,7 +39,7 @@ public class Importer extends BaseImporter {
         this.singleTestRun = singleTestRun;
     }
 
-    public List<ImportDto> executeImport() throws RPException {
+    public List<ImportDto> executeImport() throws AqualityException {
         if(testRunId == null && !singleTestRun){
             return parseIntoMultiple();
         }
@@ -49,7 +47,7 @@ public class Importer extends BaseImporter {
         return Collections.singletonList(parseIntoOne());
     }
 
-    private ImportDto parseIntoOne() throws RPException {
+    private ImportDto parseIntoOne() throws AqualityException {
         try {
             createImport("Import into One Test Run was started!");
             for (String pathToFile : this.files) {
@@ -65,7 +63,7 @@ public class Importer extends BaseImporter {
         }
     }
 
-    private List<ImportDto> parseIntoMultiple() throws RPException {
+    private List<ImportDto> parseIntoMultiple() throws AqualityException {
         List<ImportDto> imports = new ArrayList<>();
         for (String pathToFile : this.files) {
             try{
@@ -84,7 +82,7 @@ public class Importer extends BaseImporter {
         return imports;
     }
 
-    private void executeResultsCreation() throws RPException {
+    private void executeResultsCreation() throws AqualityException {
         fillTestRunWithInputData();
         fillTestSuiteWithInputData();
         this.createResults(testRunId != null);
@@ -93,7 +91,7 @@ public class Importer extends BaseImporter {
         this.tests = new ArrayList<>();
     }
 
-    private void storeResults(Handler handler) throws RPException {
+    private void storeResults(Handler handler) throws AqualityException {
         this.testRun = handler.getTestRun();
         this.testResults.addAll(handler.getTestResults());
         this.tests.addAll(handler.getTests());
@@ -114,14 +112,14 @@ public class Importer extends BaseImporter {
         if(testRunId != null) this.testRun.setId(testRunId);
     }
 
-    private ImportDto finishImport() throws RPException {
+    private ImportDto finishImport() throws AqualityException {
         importDto.setFinished(new Date());
         importDto.setIs_finished(1);
         importDto.addToLog("Import was finished!");
         return importDao.create(importDto);
     }
 
-    private void finishImportWithError(String log) throws RPException {
+    private void finishImportWithError(String log) throws AqualityException {
         if(log == null){
             log = "Without any error message :(";
         }
@@ -132,7 +130,7 @@ public class Importer extends BaseImporter {
         importDao.create(importDto);
     }
 
-    private void createImport(String log) throws RPException {
+    private void createImport(String log) throws AqualityException {
         importDto = new ImportDto();
         importDto.setStarted(new Date());
         importDto.setProject_id(projectId);

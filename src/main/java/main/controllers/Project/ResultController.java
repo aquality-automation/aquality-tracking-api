@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.db.dao.project.TestResultStatDao;
@@ -29,55 +29,54 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     @Override
-    public TestResultDto create(TestResultDto template) throws RPException {
+    public TestResultDto create(TestResultDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return testResultDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Test Result", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Test Result", baseUser);
         }
     }
 
-    public List<TestResultDto> get(TestResultDto template, Integer limit) throws RPException {
+    @Override
+    public List<TestResultDto> get(TestResultDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
-            template.setLimit(limit);
+            if(template.getLimit() == null){
+                template.setLimit(0);
+            }
             return fillResults(testResultDao.searchAll(template));
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Test Results", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
         }
     }
 
-    @Override
-    public List<TestResultDto> get(TestResultDto template) throws RPException {
-        return get(template, 0);
-    }
 
     @Override
-    public boolean delete(TestResultDto template) throws RPException {
+    public boolean delete(TestResultDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return testResultDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete Test Result", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete Test Result", baseUser);
         }
     }
 
-    public boolean updateMultipleTestResults(List<TestResultDto> entities) throws RPException {
+    public boolean updateMultipleTestResults(List<TestResultDto> entities) throws AqualityException {
         if(entities.size() > 0 && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())){
             return testResultDao.updateMultiply(entities);
         }else{
-            throw new RPPermissionsException("Account is not allowed to update Test Result", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to update Test Result", baseUser);
         }
     }
 
-    public List<TestResultStatDto> get(TestResultStatDto template) throws  RPException {
+    public List<TestResultStatDto> get(TestResultStatDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
             return testResultStatDao.searchAll(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Test Result Statistic", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Test Result Statistic", baseUser);
         }
     }
 
     //TODO Refactoring
-    private List<TestResultDto> fillResults(List<TestResultDto> results) throws RPException {
+    private List<TestResultDto> fillResults(List<TestResultDto> results) throws AqualityException {
 
         if(results.size() > 0){
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());

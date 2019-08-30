@@ -1,8 +1,8 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.exceptions.RPException;
-import main.exceptions.RPPermissionsException;
+import main.exceptions.AqualityException;
+import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.SuiteStatisticDao;
 import main.model.db.dao.project.TestSuiteDao;
 import main.model.dto.SuiteStatisticDto;
@@ -25,45 +25,45 @@ public class SuiteController extends BaseController<TestSuiteDto> {
     }
 
     @Override
-    public TestSuiteDto create(TestSuiteDto template) throws RPException {
+    public TestSuiteDto create(TestSuiteDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
             return testSuiteDao.create(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to create Test Suite", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to create Test Suite", baseUser);
         }
     }
 
-    public List<TestSuiteDto> get(TestSuiteDto template, boolean withChildren) throws  RPException {
+    public List<TestSuiteDto> get(TestSuiteDto template, boolean withChildren) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
             return fillTestSuites(testSuiteDao.searchAll(template), withChildren);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Test Suites", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Test Suites", baseUser);
         }
     }
 
     @Override
-    public List<TestSuiteDto> get(TestSuiteDto template) throws  RPException {
+    public List<TestSuiteDto> get(TestSuiteDto template) throws AqualityException {
         return get(template, false);
     }
 
     @Override
-    public boolean delete(TestSuiteDto template) throws  RPException {
+    public boolean delete(TestSuiteDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getId()).isManager()){
             return testSuiteDao.delete(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to delete TestSuite", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to delete TestSuite", baseUser);
         }
     }
 
-    public List<SuiteStatisticDto> get(SuiteStatisticDto template) throws RPException{
+    public List<SuiteStatisticDto> get(SuiteStatisticDto template) throws AqualityException {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProjectId()).isViewer()){
             return suiteStatisticDao.searchAll(template);
         }else{
-            throw new RPPermissionsException("Account is not allowed to view Suite Statistic", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Suite Statistic", baseUser);
         }
     }
 
-    private List<TestSuiteDto> fillTestSuites(List<TestSuiteDto> testSuites, boolean withChildren) throws RPException {
+    private List<TestSuiteDto> fillTestSuites(List<TestSuiteDto> testSuites, boolean withChildren) throws AqualityException {
         if(withChildren){
             for (TestSuiteDto suite: testSuites){
                 TestDto testTemplate = new TestDto();

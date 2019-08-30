@@ -1,7 +1,7 @@
 package main.model.db.imports.SAXHandlers;
 
 import main.model.db.imports.ResultStatus;
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
@@ -29,7 +29,7 @@ public class NUnitV3Handler extends Handler {
     private Boolean isTestCaseStarted = false;
     private Integer assertionNumber = 0;
 
-    public NUnitV3Handler() throws RPException {
+    public NUnitV3Handler() throws AqualityException {
         super();
         result.setFail_reason("$blank");
     }

@@ -1,23 +1,23 @@
 package main.model.db.imports;
 
-import main.exceptions.RPException;
+import main.exceptions.AqualityException;
 import main.model.db.imports.ImportHandlers.*;
 
 import java.io.File;
 
 class HandlerFactory {
-    Handler getHandler(File file, String type, TestNameNodeType testNameNodeType) throws RPException {
+    Handler getHandler(File file, String type, TestNameNodeType testNameNodeType) throws AqualityException {
         switch (ImportTypes.valueOf(type)){
             case MSTest:
                 if(testNameNodeType == null){
-                    throw new RPException("testNameNode is required");
+                    throw new AqualityException("testNameNode is required");
                 }
                 return new TRX(file, testNameNodeType);
             case Robot:
                 return new Robot(file);
             case TestNG:
                 if(testNameNodeType == null){
-                    throw new RPException("testNameNode is required");
+                    throw new AqualityException("testNameNode is required");
                 }
                 return new JavaTestNG(file, testNameNodeType);
             case Cucumber:
@@ -30,7 +30,7 @@ class HandlerFactory {
             case NUnit_v3:
                 return new NUnitV3(file);
             default:
-                throw new RPException(String.format("Import Type '%s' is not implemented", type));
+                throw new AqualityException(String.format("Import Type '%s' is not implemented", type));
         }
     }
 }
