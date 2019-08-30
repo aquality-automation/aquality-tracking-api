@@ -2,6 +2,7 @@ package main.view.ApplicationSettings;
 
 import main.Session;
 import main.model.dto.AppSettingsDto;
+import main.model.dto.UserDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 import main.view.IPost;
@@ -17,7 +18,7 @@ public class GeneralSettingsServlet extends BaseServlet implements IGet, IPost {
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         setGetResponseHeaders(resp);
         try {
-            Session session = createSession(req);
+            Session session = new Session(new UserDto());
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(session.getSettingsController().getApp()));
         }catch (Exception e) {

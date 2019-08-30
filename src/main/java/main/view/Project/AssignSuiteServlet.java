@@ -33,7 +33,7 @@ public class AssignSuiteServlet  extends BaseServlet {
             test2Suite.setSuite_id(Integer.parseInt(req.getParameter("suiteId")));
             test2Suite.setTest_id(Integer.parseInt(req.getParameter("testId")));
             session.controllerFactory.getHandler(test2Suite).delete(test2Suite);
-        } catch (AqualityException e) {
+        } catch (Exception e) {
             handleException(resp, e);
         }
     }

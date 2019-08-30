@@ -7,6 +7,7 @@ import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.TestSuiteDao;
+import main.utils.BooleanUtil;
 
 import java.util.List;
 
@@ -69,29 +70,30 @@ public class UserDto extends BaseDto {
     @DataBaseInsert
     private Integer audit_notifications;
     private List<ProjectUserDto> projectUsers;
+    private Integer ApiSessionProjectId;
 
     public boolean isAdmin(){
-        return admin > 0;
+        return BooleanUtil.intToBoolean(admin);
     }
 
     public boolean isCoordinator(){
-        return unit_coordinator > 0;
+        return BooleanUtil.intToBoolean(unit_coordinator);
     }
 
     public boolean isAuditor(){
-        return auditor > 0;
+        return BooleanUtil.intToBoolean(auditor);
     }
 
     public boolean isAuditAdmin(){
-        return audit_admin > 0;
+        return BooleanUtil.intToBoolean(audit_admin);
     }
 
     public boolean isManager(){
-        return  manager > 0;
+        return BooleanUtil.intToBoolean(manager);
     }
 
     public boolean isFromGlobalManagement(){
-        return isManager() || isAuditor() || isAuditAdmin() || account_manager > 0 || isCoordinator() || head > 0;
+        return isManager() || isAuditor() || isAuditAdmin() || BooleanUtil.intToBoolean(account_manager) || isCoordinator() || BooleanUtil.intToBoolean(head);
     }
 
     public ProjectUserDto getProjectUser(Integer projectId){

@@ -9,13 +9,11 @@ import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
-import main.model.dto.ProjectUserDto;
-import main.model.dto.TestRunDto;
-import main.model.dto.UserDto;
+import main.model.dto.*;
 import main.model.email.TestRunEmails;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
+import javax.naming.AuthenticationException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,19 +23,32 @@ public class Session {
     private String session;
     public  ControllerFactory controllerFactory;
 
-    public Session(String sessionId) throws AqualityException {
-        if(isSessionValid(sessionId)){
-            setUserMembership();
+    public Session(String sessionId) throws AqualityException, AuthenticationException {
+        if(isSessionValid(sessionId)) {
+            controllerFactory = new ControllerFactory(user);
+            return;
         }
-        controllerFactory = new ControllerFactory(user);
+        throw new AuthenticationException("Your session is not valid!");
     }
 
-    public Session(){
+    public Session(UserDto user) throws AqualityException {
+        this.user = user;
+        setUserMembership();
+        controllerFactory = new ControllerFactory(this.user);
+    }
+
+    @Deprecated
+    public Session(String importToken, int projectId) throws AqualityException {
         user = new UserDto();
-        user.setAdmin(1);
-        user.setUnit_coordinator(1);
-        user.setManager(1);
         controllerFactory = new ControllerFactory(user);
+        if(controllerFactory.getHandler(new ImportTokenDto()).isTokenValid(importToken, projectId)){
+            ProjectUserDto projectUser = new ProjectUserDto();
+            projectUser.setProject_id(projectId);
+            projectUser.setEngineer(1);
+            projectUser.setViewer(1);
+            user.setProjectUsers(Collections.singletonList(projectUser));
+            controllerFactory = new ControllerFactory(user);
+        }
     }
 
     public List<ProjectUserDto> getProjectPermissions(){
@@ -49,11 +60,7 @@ public class Session {
     }
 
     public Importer getImporter(List<String> filePaths, TestRunDto testRunTemplate, String pattern, String format, TestNameNodeType nodeType, boolean singleTestRun) throws AqualityException {
-        try {
-            return new Importer(filePaths, testRunTemplate, pattern, format, nodeType, singleTestRun, user);
-        } catch (ParserConfigurationException | SAXException e) {
-            throw new AqualityException("Some Internal SAX error: " + e.getMessage());
-        }
+        return new Importer(filePaths, testRunTemplate, pattern, format, nodeType, singleTestRun, user);
     }
 
     public TestRunEmails getTestRunEmails(){
@@ -68,7 +75,7 @@ public class Session {
         return new AdministrationController(user);
     }
 
-    public ProjectController getProjectController () throws AqualityException {
+    public ProjectController getProjectController (){
         return new ProjectController(user);
     }
 
@@ -84,11 +91,6 @@ public class Session {
         return user;
     }
 
-    public void setCurrentUser(UserDto user) throws AqualityException {
-        this.user = user;
-        setUserMembership();
-    }
-
     private void setUserMembership() throws AqualityException {
         ProjectUserDto projectUserDto = new ProjectUserDto();
         projectUserDto.setUser_id(user.getId());
@@ -96,17 +98,13 @@ public class Session {
     }
 
     public boolean isSessionValid() throws AqualityException {
-        return  isSessionValid(session);
+        return isSessionValid(session);
     }
 
     private boolean isSessionValid(String sessionId) throws AqualityException {
-        if(sessionId != null){
-            UserDao userDao = new UserDao();
-            user = userDao.IsAuthorized(sessionId);
-            session = sessionId;
-            return user != null;
-        }
-        user = null;
-        return false;
+        UserDao userDao = new UserDao();
+        user = userDao.GetAuthorizedUser(sessionId);
+        session = sessionId;
+        return user != null;
     }
 }

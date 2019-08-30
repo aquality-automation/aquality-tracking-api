@@ -4,9 +4,7 @@ import main.exceptions.AqualityException;
 import main.model.dto.ImportDto;
 import main.model.dto.TestRunDto;
 import main.model.dto.UserDto;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +25,7 @@ public class Importer extends BaseImporter {
 
     private HandlerFactory handlerFactory = new HandlerFactory();
 
-    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) throws AqualityException, ParserConfigurationException, SAXException {
+    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) {
         super(testRunTemplate.getProject_id(), pattern, user);
         this.environment = testRunTemplate.getExecution_environment();
         this.ci_build = testRunTemplate.getCi_build();

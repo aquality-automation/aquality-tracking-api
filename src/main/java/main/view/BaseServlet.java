@@ -7,6 +7,7 @@ import main.model.dto.DtoMapperGeneral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.naming.AuthenticationException;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,8 +25,14 @@ public class BaseServlet extends HttpServlet{
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
 
-    protected Session createSession(HttpServletRequest req) throws AqualityException {
-        return new Session(getSessionId(req));
+    protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
+        String importToken = getStringQueryParameter(req, "importToken");
+        Integer projectId = getIntegerQueryParameter(req, "projectId");
+        if (importToken != null && projectId != null) {
+            return new Session(importToken, projectId);
+        } else {
+            return new Session(getSessionId(req));
+        }
     }
 
     private String replacer(String value) {
@@ -138,14 +145,20 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("ErrorMessage", errorMessage);
     }
 
-    @Nullable
-    private String getSessionId(@NotNull HttpServletRequest req){
+    private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException, AuthenticationException {
         String header = req.getHeader("Authorization");
         if(header != null){
+            validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
         }
-        return null;
+        throw new AuthenticationException("You've missed your authorization header!");
+    }
+
+    private void validateAuthHeader(String header) throws AqualityException {
+        if(!header.toLowerCase().startsWith("basic ".toLowerCase())){
+            throw new AqualityException("Use Basic Authorization Header! (Should start with 'Basic ')");
+        }
     }
 
     protected void processResponse(HttpServletResponse response, String filePath) {

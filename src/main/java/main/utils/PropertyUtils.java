@@ -1,6 +1,5 @@
 package main.utils;
 
-
 import main.exceptions.AqualityException;
 
 import java.io.IOException;
