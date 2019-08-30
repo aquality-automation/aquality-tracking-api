@@ -6,7 +6,7 @@
     <groupId>unifi_reporting_api</groupId>
     <artifactId>api</artifactId>
     <packaging>war</packaging>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
