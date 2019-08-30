@@ -38,7 +38,6 @@ public class UserDao extends DAO<UserDto> {
         if(isApiToken){
             return IsAuthorizedToken(sessionId);
         }
-
         return IsAuthorizedUser(sessionId, sessionHash);
     }
 
@@ -55,23 +54,22 @@ public class UserDao extends DAO<UserDto> {
         UserDto user = new UserDto();
         user.setUser_name(strings[0]);
         List<UserDto> users = searchAll(user);
+
         if(users.size() > 0){
             user = users.get(0);
-            if(!user.getSession_code().equals(sessionHash)){
-                throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
-            }
-            if(new Date().after(dates.fromyyyyMMdd(strings[2]))){
-                throw new AqualityPermissionsException("Session Expired.", user);
+            if (user.getSession_code().equals(sessionHash)) {
+                if (new Date().before(dates.fromyyyyMMdd(strings[2]))) {
+                    ProjectUserDto projectUserDto = new ProjectUserDto();
+                    projectUserDto.setUser_id(user.getId());
+                    user.setProjectUsers(new ProjectUserController(user).getProjectUserForPermissions(projectUserDto));
+                    return user;
+                }
+                else{
+                    throw new AqualityPermissionsException("Session Expired.", user);
+                }
             }
         }
-        else{
-            throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
-        }
-
-        ProjectUserDto projectUserDto = new ProjectUserDto();
-        projectUserDto.setUser_id(user.getId());
-        user.setProjectUsers(new ProjectUserController(user).getProjectUserForPermissions(projectUserDto));
-        return user;
+        throw new AqualityPermissionsException("Credentials you've provided are not valid. Reenter please.", user);
     }
 
     /**

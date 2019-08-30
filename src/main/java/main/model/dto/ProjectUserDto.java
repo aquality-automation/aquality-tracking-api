@@ -2,6 +2,7 @@ package main.model.dto;
 
 import lombok.Data; import lombok.EqualsAndHashCode;
 import main.annotations.*;
+import main.utils.BooleanUtil;
 
 
 @Data @EqualsAndHashCode(callSuper = true)
@@ -29,26 +30,22 @@ public class ProjectUserDto extends BaseDto {
     private Integer viewer;
 
     public boolean isAdmin(){
-        return isPermissionTrue(admin);
+        return BooleanUtil.intToBoolean(admin);
     }
 
     public boolean isManager(){
-        return isPermissionTrue(manager);
+        return BooleanUtil.intToBoolean(manager);
     }
 
     public boolean isEngineer(){
-        return isPermissionTrue(engineer);
+        return BooleanUtil.intToBoolean(engineer);
     }
 
     public boolean isViewer(){
-        return isPermissionTrue(viewer);
+        return BooleanUtil.intToBoolean(viewer);
     }
 
     public boolean isEditor() {
         return isAdmin() || isManager() || isEngineer();
-    }
-
-    private boolean isPermissionTrue(Integer permission){
-        return permission != null && permission > 0;
     }
 }

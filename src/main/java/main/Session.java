@@ -102,13 +102,9 @@ public class Session {
     }
 
     private boolean isSessionValid(String sessionId) throws AqualityException {
-        if(sessionId != null){
-            UserDao userDao = new UserDao();
-            user = userDao.GetAuthorizedUser(sessionId);
-            session = sessionId;
-            return user != null;
-        }
-        user = null;
-        return false;
+        UserDao userDao = new UserDao();
+        user = userDao.GetAuthorizedUser(sessionId);
+        session = sessionId;
+        return user != null;
     }
 }

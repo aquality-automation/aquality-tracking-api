@@ -7,6 +7,7 @@ import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.TestSuiteDao;
+import main.utils.BooleanUtil;
 
 import java.util.List;
 
@@ -72,27 +73,27 @@ public class UserDto extends BaseDto {
     private Integer ApiSessionProjectId;
 
     public boolean isAdmin(){
-        return isPermissionTrue(admin);
+        return BooleanUtil.intToBoolean(admin);
     }
 
     public boolean isCoordinator(){
-        return isPermissionTrue(unit_coordinator);
+        return BooleanUtil.intToBoolean(unit_coordinator);
     }
 
     public boolean isAuditor(){
-        return isPermissionTrue(auditor);
+        return BooleanUtil.intToBoolean(auditor);
     }
 
     public boolean isAuditAdmin(){
-        return isPermissionTrue(audit_admin);
+        return BooleanUtil.intToBoolean(audit_admin);
     }
 
     public boolean isManager(){
-        return isPermissionTrue(manager);
+        return BooleanUtil.intToBoolean(manager);
     }
 
     public boolean isFromGlobalManagement(){
-        return isManager() || isAuditor() || isAuditAdmin() || isPermissionTrue(account_manager) || isCoordinator() || isPermissionTrue(head);
+        return isManager() || isAuditor() || isAuditAdmin() || BooleanUtil.intToBoolean(account_manager) || isCoordinator() || BooleanUtil.intToBoolean(head);
     }
 
     public ProjectUserDto getProjectUser(Integer projectId){
@@ -119,9 +120,5 @@ public class UserDto extends BaseDto {
         this.setPassword("");
         this.setSession_code("");
         return this;
-    }
-
-    private boolean isPermissionTrue(Integer permission){
-        return permission != null && permission > 0;
     }
 }
