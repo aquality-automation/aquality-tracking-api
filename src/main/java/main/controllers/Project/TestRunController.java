@@ -65,6 +65,17 @@ public class TestRunController extends BaseController<TestRunDto> {
         return testRunStatisticDao.searchAll(template);
     }
 
+    public TestRunDto getLastSuiteTestRun(Integer suiteId) throws AqualityException {
+        TestRunDto template = new TestRunDto();
+        template.setTest_suite_id(suiteId);
+        List<TestRunDto> testRuns = get(template, false, 1);
+        if(testRuns.size() > 0){
+            return testRuns.get(0);
+        }
+
+        throw new AqualityException("There are no test runs for suite with '%s' id!", suiteId);
+    }
+
     @Override
     public boolean delete(TestRunDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){

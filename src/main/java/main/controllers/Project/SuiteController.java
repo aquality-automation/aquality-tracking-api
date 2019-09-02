@@ -46,6 +46,16 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         return get(template, false);
     }
 
+    public TestSuiteDto get(String name) throws AqualityException {
+        TestSuiteDto template = new TestSuiteDto();
+        template.setName(name);
+        try{
+            return get(template, false).get(0);
+        } catch (Exception e) {
+            throw new AqualityException("The '%s' suite does not exist.", name);
+        }
+    }
+
     @Override
     public boolean delete(TestSuiteDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getId()).isManager()){
