@@ -46,9 +46,10 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         return get(template, false);
     }
 
-    public TestSuiteDto get(String name) throws AqualityException {
+    public TestSuiteDto get(String name, Integer projectId) throws AqualityException {
         TestSuiteDto template = new TestSuiteDto();
         template.setName(name);
+        template.setProject_id(projectId);
         try{
             return get(template, false).get(0);
         } catch (Exception e) {
