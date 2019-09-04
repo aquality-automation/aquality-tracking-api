@@ -65,9 +65,10 @@ public class TestRunController extends BaseController<TestRunDto> {
         return testRunStatisticDao.searchAll(template);
     }
 
-    public TestRunDto getLastSuiteTestRun(Integer suiteId) throws AqualityException {
+    public TestRunDto getLastSuiteTestRun(Integer suiteId, Integer projectId) throws AqualityException {
         TestRunDto template = new TestRunDto();
         template.setTest_suite_id(suiteId);
+        template.setProject_id(projectId);
         List<TestRunDto> testRuns = get(template, false, 1);
         if(testRuns.size() > 0){
             return testRuns.get(0);

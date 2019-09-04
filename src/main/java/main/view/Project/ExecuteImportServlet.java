@@ -117,7 +117,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         }
 
         if(addToLastTestRun) {
-            return testRunController.getLastSuiteTestRun(suiteController.get(suiteName, projectId).getId()).getId();
+            return testRunController.getLastSuiteTestRun(suiteController.get(suiteName, projectId).getId(), projectId).getId();
         }
 
         return null;
