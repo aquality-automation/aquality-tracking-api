@@ -2,6 +2,10 @@
 
 ## 0.3.2 (unreleased)
 
+Features:
+
+  - Import: NUnit V3 add possibility to import with fullname test name  -> [View Issue](https://github.com/aquality-automation/aquality-tracking-ui/issues/27)
+
 Bugfixes:
 
   - Import: Import to latest test Run not working when importing more than one file  -> [View Issue](https://github.com/aquality-automation/aquality-tracking-ui/issues/29)

@@ -3,6 +3,7 @@ package main.model.db.imports.SAXHandlers;
 import main.model.db.imports.ResultStatus;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -28,9 +29,11 @@ public class NUnitV3Handler extends Handler {
     private Boolean isReasonStarted = false;
     private Boolean isTestCaseStarted = false;
     private Integer assertionNumber = 0;
+    private TestNameNodeType testNameNodeType;
 
-    public NUnitV3Handler() throws AqualityException {
+    public NUnitV3Handler(TestNameNodeType testNameNodeType) throws AqualityException {
         super();
+        this.testNameNodeType = testNameNodeType;
         result.setFail_reason("$blank");
     }
 
@@ -59,13 +62,13 @@ public class NUnitV3Handler extends Handler {
                 testRun.setAuthor(String.format("%s\\%s", attributes.getValue("user-domain"), attributes.getValue("user")));
                 break;
             case "test-suite":
-                if(attributes.getValue("type").equals("TestFixture")) {
+                if(attributes.getValue("type").equals("TestFixture") && testNameNodeType == TestNameNodeType.featureNameTestName) {
                     currentFixture = attributes.getValue("name");
                 }
                 break;
             case "test-case":
                 isTestCaseStarted = true;
-                test.setName(String.format("%s: %s", currentFixture, attributes.getValue("name")) );
+                setTestName(attributes);
                 try {
                     result.setStart_date(convertToDate(attributes.getValue("start-time")));
                     result.setFinish_date(convertToDate(attributes.getValue("end-time")));
@@ -166,6 +169,16 @@ public class NUnitV3Handler extends Handler {
         }
     }
 
+    private void setTestName(Attributes attributes) throws SAXException {
+        if(testNameNodeType == TestNameNodeType.featureNameTestName) {
+            test.setName(String.format("%s: %s", currentFixture, attributes.getValue("name")) );
+        }
+        else if(testNameNodeType == TestNameNodeType.className) {
+            test.setName(attributes.getValue("fullname"));
+        } else {
+            throw new SAXException("testNameNodeType is not correct for NUnitV3 parser.");
+        }
+    }
 
     private Date convertToDate(String dateString) throws ParseException {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
