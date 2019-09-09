@@ -8,4 +8,8 @@ public class AqualityException extends Exception {
     public AqualityException(String error) {
         super(error);
     }
+
+    public AqualityException(String error, Object... args) {
+        super(String.format(error, args));
+    }
 }
