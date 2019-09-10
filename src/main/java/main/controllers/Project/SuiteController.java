@@ -52,7 +52,7 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         template.setProject_id(projectId);
         try{
             return get(template, false).get(0);
-        } catch (Exception e) {
+        } catch (IndexOutOfBoundsException e) {
             throw new AqualityException("The '%s' suite does not exist.", name);
         }
     }

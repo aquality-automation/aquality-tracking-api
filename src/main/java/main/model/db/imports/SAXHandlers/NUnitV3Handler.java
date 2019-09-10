@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static main.model.db.imports.ResultStatus.*;
+import static main.model.db.imports.TestNameNodeType.*;
 
 public class NUnitV3Handler extends Handler {
     private TestSuiteDto testSuite = new TestSuiteDto();
@@ -62,7 +63,7 @@ public class NUnitV3Handler extends Handler {
                 testRun.setAuthor(String.format("%s\\%s", attributes.getValue("user-domain"), attributes.getValue("user")));
                 break;
             case "test-suite":
-                if(attributes.getValue("type").equals("TestFixture") && testNameNodeType == TestNameNodeType.featureNameTestName) {
+                if(attributes.getValue("type").equals("TestFixture") && testNameNodeType == featureNameTestName) {
                     currentFixture = attributes.getValue("name");
                 }
                 break;
@@ -170,13 +171,15 @@ public class NUnitV3Handler extends Handler {
     }
 
     private void setTestName(Attributes attributes) throws SAXException {
-        if(testNameNodeType == TestNameNodeType.featureNameTestName) {
-            test.setName(String.format("%s: %s", currentFixture, attributes.getValue("name")) );
-        }
-        else if(testNameNodeType == TestNameNodeType.className) {
-            test.setName(attributes.getValue("fullname"));
-        } else {
-            throw new SAXException("testNameNodeType is not correct for NUnitV3 parser.");
+        switch (testNameNodeType) {
+            case featureNameTestName:
+                test.setName(String.format("%s: %s", currentFixture, attributes.getValue("name")) );
+                break;
+            case className:
+                test.setName(attributes.getValue("fullname"));
+                break;
+            default:
+                throw new SAXException("testNameNodeType is not correct for NUnitV3 parser.");
         }
     }
 
