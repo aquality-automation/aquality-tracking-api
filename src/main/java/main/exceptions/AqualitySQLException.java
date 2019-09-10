@@ -17,6 +17,8 @@ public class AqualitySQLException extends AqualityException {
                 return "You are trying to create duplicate entity.";
             case "42000":
                 return "You Regular expression is not valid!";
+            case "40001":
+                return "You are trying to edit entity which is locked. Please retry the operation.";
             default:
                 return String.format("Unknown SQL Error: %s", sqlcode);
         }
