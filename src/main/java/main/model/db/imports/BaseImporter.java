@@ -80,7 +80,15 @@ class BaseImporter {
 
     private void createTestRun() throws AqualityException {
         if(testRun.getId() != null){
-            this.testRun = controllerFactory.getHandler(testRun).get(testRun, false, 1).get(0);
+            TestRunDto template = new TestRunDto();
+            template.setProject_id(testRun.getProject_id());
+            template.setId(testRun.getId());
+            List<TestRunDto> testRuns = controllerFactory.getHandler(template).get(template, false, 1);
+            if(testRuns.size() > 0){
+                testRun = testRuns.get(0);
+            } else {
+                throw new AqualityException("Test run with %s id does not exist!", testRun.getId());
+            }
         }
         else{
             createTestRun((testRun.getBuild_name() != null && !testRun.getBuild_name().equals(""))

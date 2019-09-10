@@ -156,13 +156,16 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         String testNameKey = getStringQueryParameter(req, ImportParams.testNameKey.name());
 
         if(testNameKey == null){
+            if(format.equals(ImportTypes.NUnit_v3.name())) {
+                return TestNameNodeType.featureNameTestName;
+            }
             return null;
         }
 
         try {
             return TestNameNodeType.valueOf(testNameKey);
         } catch (IllegalArgumentException e) {
-            throw new InvalidParameterException("TestNameKey parameter you provide is not correct. The correct values are:'testName', 'className', 'descriptionNode'.");
+            throw new InvalidParameterException("TestNameKey parameter you provide is not correct. The correct values are:'testName', 'className', 'descriptionNode', 'featureNameTestName'.");
         }
     }
 }

@@ -3,6 +3,7 @@ package main.model.db.imports.ImportHandlers;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.NUnitV3Handler;
+import main.model.db.imports.TestNameNodeType;
 import main.model.dto.TestDto;
 import main.model.dto.TestResultDto;
 import main.model.dto.TestRunDto;
@@ -17,8 +18,8 @@ public class NUnitV3 extends Handler {
 
     private NUnitV3Handler handler;
 
-    public NUnitV3(File file) throws AqualityException {
-        handler = new NUnitV3Handler();
+    public NUnitV3(File file, TestNameNodeType testNameNodeType) throws AqualityException {
+        handler = new NUnitV3Handler(testNameNodeType);
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {

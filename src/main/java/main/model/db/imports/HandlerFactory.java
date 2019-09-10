@@ -28,7 +28,10 @@ class HandlerFactory {
             case NUnit_v2:
                 return new NUnitV2(file);
             case NUnit_v3:
-                return new NUnitV3(file);
+                if(testNameNodeType == null){
+                    throw new AqualityException("testNameNode is required");
+                }
+                return new NUnitV3(file, testNameNodeType);
             default:
                 throw new AqualityException(String.format("Import Type '%s' is not implemented", type));
         }
