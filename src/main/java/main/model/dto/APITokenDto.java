@@ -5,12 +5,12 @@ import main.annotations.*;
 
 
 @Data @EqualsAndHashCode(callSuper = true)
-public class ImportTokenDto extends BaseDto {
+public class APITokenDto extends BaseDto {
     @DataBaseSearchable
     @DataBaseName(name = "request_project_id")
     @DataBaseInsert
     private Integer id;
-    @DataBaseName(name = "request_import_token")
+    @DataBaseName(name = "request_api_token")
     @DataBaseInsert
-    private String import_token;
+    private String api_token;
 }

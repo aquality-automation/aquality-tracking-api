@@ -1,6 +1,6 @@
 package main.model.db.dao.project;
 
-import main.controllers.Project.ImportTokenController;
+import main.controllers.Project.APITokenController;
 import main.controllers.Project.ProjectUserController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
@@ -11,7 +11,6 @@ import main.utils.DateUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -81,7 +80,7 @@ public class UserDao extends DAO<UserDto> {
     private UserDto IsAuthorizedToken(String sessionId) throws AqualityException {
         String[] strings = sessionId.split(":");
         Integer projectId =  Integer.parseInt(strings[1]);
-        boolean isTokenValid = new ImportTokenController(new UserDto()).isTokenValid(strings[2],projectId);
+        boolean isTokenValid = new APITokenController(new UserDto()).isTokenValid(strings[2],projectId);
 
         if(isTokenValid){
             UserDto user = new UserDto();
