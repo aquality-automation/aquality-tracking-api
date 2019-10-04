@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Add Steps Table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `steps` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(500) NOT NULL,
+            `type` VARCHAR(50) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            UNIQUE INDEX `name_UNIQUE` (`name` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `steps`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Add step_results Table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `step_results` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `step_id` INT NOT NULL,
+            `result_id` INT NOT NULL,
+            `final_result_id` INT NOT NULL,
+            `log` LONGTEXT NULL,
+            `screenshot` BLOB NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `step_results`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Add step_to_test Table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `step_to_test` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `order` INT NOT NULL,
+            `step_id` INT NOT NULL,
+            `test_id` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `step_to_test`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="indexes for step_results" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `step_results`
+            ADD INDEX `result_to_step_idx` (`step_id` ASC),
+            ADD INDEX `to_final_result_idx` (`final_result_id` ASC),
+            ADD INDEX `to_result_idx` (`result_id` ASC);
+
+            #
+
+            ALTER TABLE `step_results`
+            ADD CONSTRAINT `result_to_step`
+            FOREIGN KEY (`step_id`)
+            REFERENCES `steps` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            ADD CONSTRAINT `to_final_result`
+            FOREIGN KEY (`final_result_id`)
+            REFERENCES `final_results` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
+            ADD CONSTRAINT `to_result`
+            FOREIGN KEY (`result_id`)
+            REFERENCES `test_results` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+        </sql>
+        <rollback>
+            ALTER TABLE `step_results`
+            DROP FOREIGN KEY `result_to_step`,
+            DROP FOREIGN KEY `to_result`,
+            DROP FOREIGN KEY `to_final_result`;
+            ALTER TABLE `step_to_test`
+            DROP INDEX `result_to_step_idx` ,
+            DROP INDEX `to_result_idx` ,
+            DROP INDEX `to_final_result_idx` ;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="indexes for step_to_test" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `step_to_test`
+            ADD INDEX `link_to_step_idx` (`step_id` ASC),
+            ADD INDEX `to_test_idx` (`test_id` ASC);
+
+            #
+
+            ALTER TABLE `step_to_test`
+            ADD CONSTRAINT `link_to_step`
+            FOREIGN KEY (`step_id`)
+            REFERENCES `steps` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            ADD CONSTRAINT `to_test`
+            FOREIGN KEY (`test_id`)
+            REFERENCES `tests` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+        </sql>
+        <rollback>
+            ALTER TABLE `step_to_test`
+            DROP FOREIGN KEY `to_test`,
+            DROP FOREIGN KEY `link_to_step`;
+            ALTER TABLE `step_to_test`
+            DROP INDEX `to_test_idx` ,
+            DROP INDEX `link_to_step_idx` ;
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
