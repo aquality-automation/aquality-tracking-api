@@ -24,8 +24,8 @@ public class ControllerFactory {
     public ImportController getHandler(ImportDto entity) {
         return new ImportController(user);
     }
-    public ImportTokenController getHandler(ImportTokenDto entity) {
-        return new ImportTokenController(user);
+    public APITokenController getHandler(APITokenDto entity) {
+        return new APITokenController(user);
     }
     public MilestoneController getHandler(MilestoneDto entity) {
         return new MilestoneController(user);

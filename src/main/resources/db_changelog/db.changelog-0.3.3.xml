@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Rename Import token column" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            CHANGE COLUMN `import_token` `api_token` VARCHAR(500) NULL DEFAULT NULL ;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            CHANGE COLUMN `api_token` `import_token` VARCHAR(500) NULL DEFAULT NULL ;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Rename INSERT import Token" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_API_TOKEN`(
+            IN request_api_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set api_token=request_api_token Where id = request_project_id;
+
+            Select id, api_token from projects Where id = request_project_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_API_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_IMPORT_TOKEN`(
+            IN request_import_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set import_token=request_import_token Where id = request_project_id;
+
+            Select id, import_token from projects Where id = request_project_id;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Rename SELECT import Token" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_API_TOKEN`(
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT id, api_token FROM projects where id = request_project_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+            #
+
+            DROP procedure IF EXISTS `SELECT_API_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_IMPORT_TOKEN`(
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT id, import_token FROM projects where id = request_project_id;
+            END
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
