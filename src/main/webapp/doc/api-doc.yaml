@@ -77,11 +77,6 @@ paths:
               type: integer
             required: true
           - in: query
-            name: importToken
-            description: 'Project API key'
-            schema:
-              type: string
-          - in: query
             name: format
             description: 'Format of the file for import'
             schema:
