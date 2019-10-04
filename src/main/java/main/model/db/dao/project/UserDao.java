@@ -93,7 +93,7 @@ public class UserDao extends DAO<UserDto> {
             return user;
         }
         else{
-            throw new AqualityPermissionsException("The import token is not valid", null);
+            throw new AqualityPermissionsException("The API token is not valid", null);
         }
     }
 }

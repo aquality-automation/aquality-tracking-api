@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class APITokenController extends BaseController<APITokenDto> {
-    private APITokenDao importTokenDao;
+    private APITokenDao apiTokenDao;
     public APITokenController(UserDto user) {
         super(user);
-        importTokenDao = new APITokenDao();
+        apiTokenDao = new APITokenDao();
     }
 
     @Override
@@ -27,7 +27,7 @@ public class APITokenController extends BaseController<APITokenDto> {
     @Override
     public APITokenDto create(APITokenDto template) throws AqualityException {
         if(baseUser.isAdmin() || baseUser.isManager() || baseUser.getProjectUser(template.getId()).isManager() || baseUser.getProjectUser(template.getId()).isAdmin()){
-            return importTokenDao.create(template);
+            return apiTokenDao.create(template);
         }else{
             throw new AqualityPermissionsException("Account is not allowed to create API Token", baseUser);
         }
@@ -42,10 +42,10 @@ public class APITokenController extends BaseController<APITokenDto> {
         String actualHash = DigestUtils.md5Hex(token + "advbc1671-nlksdui-ff");
         APITokenDto tokenDTO = new APITokenDto();
         tokenDTO.setId(projectId);
-        List<APITokenDto> importTokens = importTokenDao.searchAll(tokenDTO);
+        List<APITokenDto> apiTokens = apiTokenDao.searchAll(tokenDTO);
 
-        if(importTokens.size() > 0){
-            String expectedHash = (importTokens.get(0)).getApi_token();
+        if(apiTokens.size() > 0){
+            String expectedHash = (apiTokens.get(0)).getApi_token();
             return Objects.equals(actualHash, expectedHash);
         }
 
