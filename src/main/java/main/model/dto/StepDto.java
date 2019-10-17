@@ -22,4 +22,9 @@ public class StepDto extends BaseDto {
     @DataBaseName(name="request_type_id")
     @DataBaseInsert
     private Integer type_id;
+    @DataBaseName(name="request_project_id")
+    @DataBaseID
+    @DataBaseInsert
+    @DataBaseSearchable
+    private Integer project_id;
 }
