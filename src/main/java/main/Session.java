@@ -38,10 +38,10 @@ public class Session {
     }
 
     @Deprecated
-    public Session(String importToken, int projectId) throws AqualityException {
+    public Session(String apiToken, int projectId) throws AqualityException {
         user = new UserDto();
         controllerFactory = new ControllerFactory(user);
-        if(controllerFactory.getHandler(new ImportTokenDto()).isTokenValid(importToken, projectId)){
+        if(controllerFactory.getHandler(new APITokenDto()).isTokenValid(apiToken, projectId)){
             ProjectUserDto projectUser = new ProjectUserDto();
             projectUser.setProject_id(projectId);
             projectUser.setEngineer(1);

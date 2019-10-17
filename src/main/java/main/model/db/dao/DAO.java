@@ -157,7 +157,7 @@ public abstract class DAO<T extends BaseDto> {
                 rs.close();
             }
         } catch (SQLException e) {
-            throw new AqualitySQLException(e.getSQLState());
+            throw new AqualitySQLException(e);
         } finally {
             closeCallableStatement(callableStatement);
         }
@@ -211,7 +211,7 @@ public abstract class DAO<T extends BaseDto> {
         try {
             callableStatement.execute();
         } catch (SQLException e) {
-            throw new AqualitySQLException(e.getSQLState());
+            throw new AqualitySQLException(e);
         }
 
         return callableStatement;

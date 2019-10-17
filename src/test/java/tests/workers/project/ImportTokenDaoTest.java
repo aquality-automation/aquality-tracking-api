@@ -3,8 +3,8 @@ package tests.workers.project;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
-import main.model.db.dao.project.ImportTokenDao;
-import main.model.dto.ImportTokenDto;
+import main.model.db.dao.project.APITokenDao;
+import main.model.dto.APITokenDto;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.testng.annotations.BeforeMethod;
@@ -16,11 +16,11 @@ import java.util.List;
 import static org.testng.Assert.assertEquals;
 import static utils.Validations.assertSQLToParams;
 
-public class ImportTokenDaoTest extends ImportTokenDao {
+public class ImportTokenDaoTest extends APITokenDao {
 
     private String currentSql;
     private List<Pair<String, String>> currentParameters;
-    private List<ImportTokenDto> resultList;
+    private List<APITokenDto> resultList;
 
     @BeforeMethod
     public void cleanUpResults(){
@@ -29,23 +29,23 @@ public class ImportTokenDaoTest extends ImportTokenDao {
 
     @Test
     public void searchAllTest() throws AqualityException {
-        resultList.add(new ImportTokenDto());
-        resultList.add(new ImportTokenDto());
-        List<ImportTokenDto> result = searchAll(new ImportTokenDto());
+        resultList.add(new APITokenDto());
+        resultList.add(new APITokenDto());
+        List<APITokenDto> result = searchAll(new APITokenDto());
         assertSQLToParams(currentSql, currentParameters);
         assertEquals(result.size(), 2);
     }
 
     @Test
     public void insertTest() throws AqualityException {
-        resultList.add(new ImportTokenDto());
-        create(new ImportTokenDto());
+        resultList.add(new APITokenDto());
+        create(new APITokenDto());
         assertSQLToParams(currentSql, currentParameters);
     }
 
     @Test
     public void removeTest() throws AqualityException {
-        delete(new ImportTokenDto());
+        delete(new APITokenDto());
         assertSQLToParams(currentSql, 0);
     }
 

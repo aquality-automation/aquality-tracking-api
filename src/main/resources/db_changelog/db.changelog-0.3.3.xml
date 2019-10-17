@@ -4,13 +4,91 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+    <changeSet id="Rename Import token column" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            CHANGE COLUMN `import_token` `api_token` VARCHAR(500) NULL DEFAULT NULL ;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            CHANGE COLUMN `api_token` `import_token` VARCHAR(500) NULL DEFAULT NULL ;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Rename INSERT import Token" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_API_TOKEN`(
+            IN request_api_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set api_token=request_api_token Where id = request_project_id;
+
+            Select id, api_token from projects Where id = request_project_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_API_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_IMPORT_TOKEN`(
+            IN request_import_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set import_token=request_import_token Where id = request_project_id;
+
+            Select id, import_token from projects Where id = request_project_id;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Rename SELECT import Token" author="v.kostyukevich">
+    <sql endDelimiter="#">
+        DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+        #
+
+        CREATE PROCEDURE `SELECT_API_TOKEN`(
+        IN request_project_id VARCHAR(10)
+        )
+        BEGIN
+        SELECT id, api_token FROM projects where id = request_project_id;
+        END
+    </sql>
+    <rollback>
+        DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+        #
+
+        DROP procedure IF EXISTS `SELECT_API_TOKEN`;
+
+        #
+
+        CREATE PROCEDURE `SELECT_IMPORT_TOKEN`(
+        IN request_project_id VARCHAR(10)
+        )
+        BEGIN
+        SELECT id, import_token FROM projects where id = request_project_id;
+        END
+        </rollback>
+    </changeSet>
 
     <changeSet id="Add Steps Table" author="v.kostyukevich">
         <sql endDelimiter="#">
             CREATE TABLE `steps` (
             `id` INT NOT NULL AUTO_INCREMENT,
             `name` VARCHAR(500) NOT NULL,
-            `type` VARCHAR(50) NOT NULL,
+            `type_id` INT NOT NULL,
             PRIMARY KEY (`id`),
             UNIQUE INDEX `id_UNIQUE` (`id` ASC),
             UNIQUE INDEX `name_UNIQUE` (`name` ASC));
@@ -51,6 +129,20 @@
         </sql>
         <rollback>
             DROP TABLE `step_to_test`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Add step_types Table" author="v.kostyukevich">
+        <sql>
+            CREATE TABLE `step_types` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `step_types`;
         </rollback>
     </changeSet>
 
@@ -120,6 +212,128 @@
             ALTER TABLE `step_to_test`
             DROP INDEX `to_test_idx` ,
             DROP INDEX `link_to_step_idx` ;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="indexes for steps to types" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `steps`
+            ADD INDEX `to_step_type_idx` (`type_id` ASC);
+
+            #
+
+            ALTER TABLE `steps`
+            ADD CONSTRAINT `to_step_type`
+            FOREIGN KEY (`type_id`)
+            REFERENCES `step_types` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE;
+        </sql>
+        <rollback>
+            ALTER TABLE `steps`
+            DROP FOREIGN KEY `to_step_type`;
+            ALTER TABLE `steps`
+            DROP INDEX `to_step_type_idx`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add entities for step types" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            INSERT INTO `step_types` (`name`) VALUES ('Given');
+            #
+            INSERT INTO `step_types` (`name`) VALUES ('Then');
+            #
+            INSERT INTO `step_types` (`name`) VALUES ('When');
+        </sql>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_STEP" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_STEP`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_STEP`(
+            IN request_id  VARCHAR(11),
+            IN request_name VARCHAR(500)
+            )
+            BEGIN
+            SELECT * FROM steps WHERE
+            (request_id = '' OR id=request_id)
+            AND (request_name = '' OR name=request_name);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_STEP`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_STEP" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_STEP`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_STEP`(
+            IN request_id varchar(11),
+            IN request_name varchar(500),
+            IN request_type_id varchar(11)
+            )
+            BEGIN
+            INSERT INTO steps (id, name, type_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            IF(request_name='',null,request_name),
+            IF(request_type_id='',null,request_type_id)
+            ) ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            type_id = IF(request_type_id='',type_id,request_type_id);
+
+            SET @id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from steps where id = @id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_STEP`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure REMOVE_STEP" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_STEP`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_STEP`(
+            IN request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM steps
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_STEP`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_STEP_TYPE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_STEP_TYPE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_STEP_TYPE`()
+            BEGIN
+            SELECT * FROM step_types;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_STEP_TYPE`;
         </rollback>
     </changeSet>
 </databaseChangeLog>
