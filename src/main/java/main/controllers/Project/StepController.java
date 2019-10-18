@@ -46,4 +46,8 @@ public class StepController extends BaseController<StepDto> {
     public boolean updateOrder(List<Step2TestDto> entities) throws AqualityException {
         return step2TestDao.updateMultiply(entities);
     }
+
+    public List<StepDto> getTestSteps(Step2TestDto stepToTest) throws AqualityException {
+        return step2TestDao.getTestSteps(stepToTest);
+    }
 }

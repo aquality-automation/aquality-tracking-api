@@ -122,8 +122,8 @@
             )
             BEGIN
             SET @sql = CONCAT("SELECT * FROM ", "project_steps_",  request_project_id, " WHERE
-            ('", request_id, "' = '' OR id='", request_id, "')
-            AND ('", request_name, "' = '' OR name='", request_name, "');");
+            (", QUOTE(request_id), " = '' OR id=", QUOTE(request_id), ")
+            AND (", QUOTE(request_name), " = '' OR name=", QUOTE(request_name), ");");
             PREPARE statement FROM @sql;
             EXECUTE statement;
             DEALLOCATE PREPARE statement;
@@ -150,12 +150,12 @@
             BEGIN
             SET @sql = CONCAT("INSERT INTO project_steps_",  request_project_id, " (id, name, type_id)
             VALUES (
-            IF('", request_id, "' = '', null, '", request_id, "'),
-            IF('", request_name, "' = '', null, '", request_name, "'),
-            IF('", request_type_id, "' = '', null, '", request_type_id, "')
+            IF(", QUOTE(request_id), " = '', null, ", QUOTE(request_id), "),
+            IF(", QUOTE(request_name), " = '', null, ", QUOTE(request_name), "),
+            IF(", QUOTE(request_type_id), " = '', null, ", QUOTE(request_type_id), ")
             ) ON DUPLICATE KEY UPDATE
-            name = IF('", request_name, "' = '', name, '", request_name, "')
-            , type_id = IF('", request_type_id, "' = '', type_id, '", request_type_id, "');");
+            name = IF(", QUOTE(request_name), " = '', name, ", QUOTE(request_name), ")
+            , type_id = IF(", QUOTE(request_type_id), " = '', type_id, ", QUOTE(request_type_id), ");");
             PREPARE statement FROM @sql;
             EXECUTE statement;
             DEALLOCATE PREPARE statement;
@@ -445,6 +445,59 @@
         </sql>
         <rollback>
             DROP procedure IF EXISTS `DROP_STEPS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_STEP_TO_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_STEP_TO_TEST`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_STEP_TO_TEST`(
+            IN request_project_id  VARCHAR(11),
+            IN request_step_id varchar(11),
+            IN request_test_id varchar(11),
+            IN request_order varchar(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("INSERT INTO project_step_to_test_",  request_project_id, " (`step_id`, `test_id`, `order`)
+            VALUES (", QUOTE(request_step_id), ", " , QUOTE(request_test_id), ", " , QUOTE(request_order), ");");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_STEP_TO_TEST`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_TEST_STEPS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_STEPS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_STEPS`(
+            IN request_project_id  VARCHAR(11),
+            IN request_test_id VARCHAR(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("SELECT project_steps_",  request_project_id, ".*, project_step_to_test_",  request_project_id, ".order
+            FROM project_step_to_test_",  request_project_id, "
+            LEFT JOIN project_steps_",  request_project_id, "
+            ON project_step_to_test_",  request_project_id, ".step_id = project_steps_",  request_project_id, ".id
+            WHERE test_id=", request_test_id, " ORDER BY project_step_to_test_",  request_project_id, ".order;");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_TEST_STEPS`;
         </rollback>
     </changeSet>
 

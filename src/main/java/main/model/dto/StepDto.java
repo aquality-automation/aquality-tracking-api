@@ -27,4 +27,5 @@ public class StepDto extends BaseDto {
     @DataBaseInsert
     @DataBaseSearchable
     private Integer project_id;
+    private Integer order;
 }

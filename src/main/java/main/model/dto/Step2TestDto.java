@@ -13,7 +13,6 @@ public class Step2TestDto extends BaseDto {
     @DataBaseName(name="request_step_id")
     @DataBaseID
     @DataBaseInsert
-    @DataBaseSearchable
     private Integer step_id;
     @DataBaseName(name="request_test_id")
     @DataBaseID
@@ -23,4 +22,10 @@ public class Step2TestDto extends BaseDto {
     @DataBaseName(name="request_order")
     @DataBaseInsert
     private Integer order;
+    @DataBaseName(name="request_project_id")
+    @DataBaseInsert
+    @DataBaseSearchable
+    @DataBaseID
+    private Integer project_id;
+
 }

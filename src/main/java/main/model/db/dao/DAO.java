@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static javax.swing.UIManager.get;
+
 public abstract class DAO<T extends BaseDto> {
     private Connection connection;
     private Class<T> type;
@@ -119,8 +121,12 @@ public abstract class DAO<T extends BaseDto> {
      */
     public T create(T entity) throws AqualityException {
         List<Pair<String, String>> parameters = entity.getParameters();
+        List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
+        if(results.size() > 0){
+            return results.get(0);
+        }
 
-        return dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString()).get(0);
+        throw new AqualitySQLException(new SQLException("Possible duplicate error.", "23505"));
     }
 
     /**
