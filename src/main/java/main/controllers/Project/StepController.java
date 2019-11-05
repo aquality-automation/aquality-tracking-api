@@ -9,6 +9,7 @@ import main.model.dto.StepDto;
 import main.model.dto.UserDto;
 
 import java.util.List;
+import java.util.Objects;
 
 public class StepController extends BaseController<StepDto> {
     private StepDao stepDao;
@@ -43,8 +44,34 @@ public class StepController extends BaseController<StepDto> {
         return step2TestDao.delete(entity);
     }
 
-    public boolean updateOrder(List<Step2TestDto> entities) throws AqualityException {
-        return step2TestDao.updateMultiply(entities);
+    public List<StepDto> updateOrder(List<Step2TestDto> entities) throws AqualityException {
+        if(entities.size() < 1) {
+            throw new AqualityException("The test should have at least one step!");
+        }
+        Integer projectId = entities.get(0).getProject_id();
+        Step2TestDto step2TestFilter = new Step2TestDto();
+        step2TestFilter.setProject_id(projectId);
+        step2TestFilter.setTest_id(entities.get(0).getTest_id());
+        List<StepDto> oldSteps = getTestSteps(step2TestFilter);
+
+        for (Step2TestDto newStepLink : entities) {
+            StepDto alreadyExists = oldSteps.stream().filter(x -> Objects.equals(x.getLink_id(), newStepLink.getId())).findFirst().orElse(null);
+            if (alreadyExists != null) {
+                oldSteps.removeIf(x -> Objects.equals(x.getId(), alreadyExists.getId()));
+            }
+            step2TestDao.create(newStepLink);
+        }
+
+        if(oldSteps.size() > 0 ){
+            for (StepDto oldStep : oldSteps) {
+                Step2TestDto stepToRemove = new Step2TestDto();
+                stepToRemove.setId(oldStep.getLink_id());
+                stepToRemove.setProject_id(projectId);
+                step2TestDao.delete(stepToRemove);
+            }
+        }
+
+        return getTestSteps(step2TestFilter);
     }
 
     public List<StepDto> getTestSteps(Step2TestDto stepToTest) throws AqualityException {

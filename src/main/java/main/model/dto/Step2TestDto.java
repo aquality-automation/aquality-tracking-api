@@ -10,12 +10,14 @@ import main.annotations.DataBaseSearchable;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Step2TestDto extends BaseDto {
-    @DataBaseName(name="request_step_id")
+    @DataBaseName(name="request_id")
     @DataBaseID
+    @DataBaseInsert
+    private Integer id;
+    @DataBaseName(name="request_step_id")
     @DataBaseInsert
     private Integer step_id;
     @DataBaseName(name="request_test_id")
-    @DataBaseID
     @DataBaseInsert
     @DataBaseSearchable
     private Integer test_id;

@@ -12,9 +12,9 @@ import java.util.List;
 public class Step2TestDao extends DAO<Step2TestDto> {
     public Step2TestDao() {
         super(Step2TestDto.class);
-        insert = "{call INSERT_STEP_TO_TEST(?,?,?,?)}";
+        insert = "{call INSERT_STEP_TO_TEST(?,?,?,?,?)}";
         select = "{call SELECT_TEST_STEPS(?,?)}";
-        remove = "{call REMOVE_STEP_TO_TEST(?,?,?)}";
+        remove = "{call REMOVE_STEP_FROM_TEST(?,?)}";
     }
 
     /**

@@ -26,6 +26,7 @@ public class StepToTestServlet extends BaseServlet implements IPost, IDelete, IG
             String requestedJson = getRequestJson(req);
             Step2TestDto step2Test = mapper.mapObject(Step2TestDto.class, requestedJson);
             session.controllerFactory.getHandler(new StepDto()).assignToTest(step2Test);
+            resp.getWriter().write(mapper.serialize(step2Test));
             setJSONContentType(resp);
         }catch (Exception e) {
             handleException(resp, e);
@@ -55,8 +56,8 @@ public class StepToTestServlet extends BaseServlet implements IPost, IDelete, IG
 
         try {
             Session session = createSession(req);
-            String requestedJson = getRequestJson(req);
-            Step2TestDto step2Test = mapper.mapObject(Step2TestDto.class, requestedJson);
+            Step2TestDto step2Test = new Step2TestDto();
+            step2Test.getIDTemplateFromRequestParameters(req);
             session.controllerFactory.getHandler(new StepDto()).removeFromTest(step2Test);
             setJSONContentType(resp);
         }catch (Exception e) {

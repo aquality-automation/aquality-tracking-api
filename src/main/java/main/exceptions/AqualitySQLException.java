@@ -26,6 +26,8 @@ public class AqualitySQLException extends AqualityException {
                 return "Your Data Base does not support UTF characters, please contact administrator to allow it.";
             case "42S02":
                 return "There is some missed table in your Data Base, please contact administrator.";
+            case "S1000":
+                return "The Data Size is too big. Possibly you are trying to attach file > 3 mb.";
             default:
                 return String.format("Unknown SQL Error: %s \n Message: %s", exception.getSQLState(), exception.getMessage());
         }
@@ -37,6 +39,7 @@ public class AqualitySQLException extends AqualityException {
             case "45000":
             case "23505":
                 return 409;
+            case "S1000":
             case "42000":
             case "23000":
             case "HY000":

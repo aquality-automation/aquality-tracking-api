@@ -28,4 +28,5 @@ public class StepDto extends BaseDto {
     @DataBaseSearchable
     private Integer project_id;
     private Integer order;
+    private Integer link_id;
 }
