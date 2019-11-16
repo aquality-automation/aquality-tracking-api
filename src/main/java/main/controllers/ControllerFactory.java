@@ -1,6 +1,7 @@
 package main.controllers;
 
 import main.controllers.Administration.EmailSettingsController;
+import main.controllers.Administration.StepTypeController;
 import main.controllers.Administration.UserController;
 import main.controllers.Project.*;
 import main.model.dto.*;
@@ -59,5 +60,14 @@ public class ControllerFactory {
     }
     public EmailSettingsController getHandler(EmailSettingsDto entity) {
         return new EmailSettingsController(user);
+    }
+    public StepController getHandler(StepDto entity) {
+        return new StepController(user);
+    }
+    public StepResultController getHandler(StepResultDto entity) {
+        return new StepResultController(user);
+    }
+    public StepTypeController getHandler(StepTypeDto entity) {
+        return new StepTypeController(user);
     }
 }

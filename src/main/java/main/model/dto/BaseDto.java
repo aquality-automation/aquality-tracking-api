@@ -6,6 +6,7 @@ import main.exceptions.AqualityException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -80,11 +81,19 @@ public abstract class BaseDto {
     }
 
     public void getSearchTemplateFromRequestParameters(@NotNull HttpServletRequest req) throws AqualityException {
+        getTemplate(req, DataBaseSearchable.class);
+    }
+
+    public void getIDTemplateFromRequestParameters(@NotNull HttpServletRequest req) throws AqualityException {
+        getTemplate(req, DataBaseID.class);
+    }
+
+    private  <T extends Annotation> void getTemplate(@NotNull HttpServletRequest req, Class<T> clazz) throws AqualityException {
         Map<String, String[]> parameterMap = req.getParameterMap();
         List<Field> classFields = this.getClassFields();
         for (Field field: classFields) {
             try {
-                DataBaseSearchable searchAnnotation = field.getAnnotation(DataBaseSearchable.class);
+                T searchAnnotation = field.getAnnotation(clazz);
                 if(searchAnnotation != null && parameterMap.containsKey(field.getName())){
                     field.setAccessible(true);
                     Class<?> type = field.getType();

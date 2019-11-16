@@ -21,7 +21,7 @@ public class ProjectController extends BaseController<ProjectDto> {
 
     @Override
     public ProjectDto create(ProjectDto template) throws AqualityException {
-        if(baseUser.isAdmin()){
+        if(baseUser.isAdmin() || allowUpdateProject(template)){
             ProjectDto project = projectDao.create(template);
             updateProjectPermissions(project);
             return project;
@@ -50,10 +50,30 @@ public class ProjectController extends BaseController<ProjectDto> {
         }
     }
 
+    public boolean isStepsEnabled(Integer projectId) throws AqualityException {
+        ProjectDto project = new ProjectDto();
+        project.setId(projectId);
+        List<ProjectDto> projects = get(project);
+
+        if(projects.size() < 1) {
+            throw new AqualityException("Project with id %s does not exists!", projectId);
+        }
+
+        return projects.get(0).getSteps() == 1;
+    }
+
     private void updateProjectPermissions(ProjectDto entity) throws AqualityException {
         if(entity.getCustomer() != null && entity.getCustomer().getAccounting() == 1 && entity.getId() != 0){
             updatePermissions(entity.getCustomer().getId(), entity.getId());
         }
+    }
+
+    private boolean allowUpdateProject(ProjectDto template) {
+        if(template.getId() != null) {
+            ProjectUserDto projectUser = baseUser.getProjectUser(template.getId());
+            return baseUser.isManager() || projectUser.isManager() || projectUser.isAdmin();
+        }
+        return false;
     }
 
     //TODO create

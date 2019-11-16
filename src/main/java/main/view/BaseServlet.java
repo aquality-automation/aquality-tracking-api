@@ -122,12 +122,10 @@ public class BaseServlet extends HttpServlet{
     protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp){
         resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
         resp.addHeader("Access-Control-Allow-Origin", "*");
-        resp.addHeader("Access-Control-Allow-Headers", "Authorization");
+        resp.addHeader("Access-Control-Allow-Headers", "Authorization, authorization, ErrorMessage, Disposition");
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         resp.addHeader("Access-Control-Expose-Headers", "ErrorMessage");
-        resp.addHeader("Access-Control-Allow-Headers", "ErrorMessage");
         resp.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
-        resp.addHeader("Access-Control-Allow-Headers", "Content-Disposition");
         resp.setStatus(204);
     }
 

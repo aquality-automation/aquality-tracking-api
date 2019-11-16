@@ -17,6 +17,9 @@ public class ResultController extends BaseController<TestResultDto> {
     private ProjectUserController projectUserController;
     private ResultResolutionController resultResolutionController;
     private FinalResultController finalResultController;
+    private ProjectController projectController;
+    private StepController stepController;
+    private StepResultController stepResultController;
 
     public ResultController(UserDto user) {
         super(user);
@@ -26,12 +29,19 @@ public class ResultController extends BaseController<TestResultDto> {
         testDao = new TestDao();
         resultResolutionController = new ResultResolutionController(user);
         finalResultController = new FinalResultController(user);
+        projectController = new ProjectController(user);
+        stepController = new StepController(user);
+        stepResultController = new StepResultController(user);
     }
 
     @Override
     public TestResultDto create(TestResultDto template) throws AqualityException {
         if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
-            return testResultDao.create(template);
+            TestResultDto testResult = testResultDao.create(template);
+            if(projectController.isStepsEnabled(testResult.getProject_id()) && template.getId() == null){
+                createPendingStepResults(testResult);
+            }
+            return testResult;
         }else{
             throw new AqualityPermissionsException("Account is not allowed to create Test Result", baseUser);
         }
@@ -75,7 +85,23 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
-    //TODO Refactoring
+    private void createPendingStepResults(TestResultDto template) throws AqualityException {
+        Step2TestDto step2TestTemplate = new Step2TestDto();
+        step2TestTemplate.setProject_id(template.getProject_id());
+        step2TestTemplate.setTest_id(template.getTest_id());
+        List<StepDto> testSteps = stepController.getTestSteps(step2TestTemplate);
+        for (StepDto step : testSteps) {
+            StepResultDto stepResult = new StepResultDto();
+            stepResult.setProject_id(template.getProject_id());
+            stepResult.setResult_id(template.getId());
+            stepResult.setType_id(step.getType_id());
+            stepResult.setName(step.getName());
+            stepResult.setFinal_result_id(3);
+            stepResult.setOrder(step.getOrder());
+            stepResultController.create(stepResult);
+        }
+    }
+
     private List<TestResultDto> fillResults(List<TestResultDto> results) throws AqualityException {
 
         if(results.size() > 0){
@@ -86,20 +112,38 @@ public class ResultController extends BaseController<TestResultDto> {
             List<TestDto> tests = testDao.searchAll(testTemplate);
 
             for (TestResultDto result: results){
-
-                result.setFinal_result(finalResults.stream().filter( x -> x.getId().equals(result.getFinal_result_id())).findFirst().orElse(null));
-                result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
-                result.setTest_resolution(resolutions.stream().filter( x -> x.getId().equals(result.getTest_resolution_id())).findFirst().orElse(null));
-
-                if(result.getAssignee() != null){
-                    ProjectUserDto projectUserDto = new ProjectUserDto();
-                    projectUserDto.setUser_id(result.getAssignee());
-                    projectUserDto.setProject_id(result.getProject_id());
-                    result.setAssigned_user(projectUserController.get(projectUserDto).get(0));
-                }
+                fillResult(result, finalResults, resolutions, tests);
             }
         }
 
         return results;
     }
+
+    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<ResultResolutionDto> resolutions, List<TestDto> tests) throws AqualityException {
+        if (projectController.isStepsEnabled(result.getProject_id())) {
+            fillResultSteps(result);
+        }
+
+        result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id())).findFirst().orElse(null));
+        result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
+        result.setTest_resolution(resolutions.stream().filter(x -> x.getId().equals(result.getTest_resolution_id())).findFirst().orElse(null));
+        fillResultAssignee(result);
+    }
+
+    private void fillResultSteps(TestResultDto result) throws AqualityException {
+        StepResultDto stepResultTemplate = new StepResultDto();
+        stepResultTemplate.setResult_id(result.getId());
+        stepResultTemplate.setProject_id(result.getProject_id());
+        result.setSteps(stepResultController.get(stepResultTemplate));
+    }
+
+    private void fillResultAssignee(TestResultDto result) throws AqualityException {
+        if (result.getAssignee() != null) {
+            ProjectUserDto projectUserDto = new ProjectUserDto();
+            projectUserDto.setUser_id(result.getAssignee());
+            projectUserDto.setProject_id(result.getProject_id());
+            result.setAssigned_user(projectUserController.get(projectUserDto).get(0));
+        }
+    }
+
 }
