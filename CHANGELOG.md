@@ -5,6 +5,7 @@
 Features:
   - Rename Import Token to API Token -> [View Issue](https://github.com/aquality-automation/aquality-tracking-ui/issues/23)
   - Steps Feature -> [View Issue](https://github.com/aquality-automation/aquality-tracking-ui/issues/46)
+  - Regex Search by Errors for Import -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/17)
 
 Bugfixes:
   - Local Manager can see Local Permissions page -> [View Issue](https://github.com/aquality-automation/aquality-tracking-ui/issues/22)
