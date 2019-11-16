@@ -656,5 +656,107 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="add regexp search field to project" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            ADD COLUMN `compare_result_pattern` VARCHAR(500) NULL AFTER `steps`;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            DROP COLUMN `compare_result_pattern`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_PROJECT add request_compare_result_pattern" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1),
+            IN request_compare_result_pattern VARCHAR(500)
+            )
+            BEGIN
+            IF(request_id != '' AND request_steps != '')
+            THEN
+            IF NOT EXISTS(SELECT * from projects WHERE id = request_id AND steps = request_steps)
+            THEN
+            IF(request_steps = '1')
+            THEN
+            CALL CREATE_STEP_TABLE(request_id);
+            CALL CREATE_STEP_RESULTS_TABLE(request_id);
+            CALL CREATE_STEP_TO_TEST_TABLE(request_id);
+            ELSE
+            CALL DROP_STEPS(request_id);
+            END IF;
+            END IF;
+            END IF;
+
+            INSERT INTO projects (id, name, customer_id, steps, compare_result_pattern)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id),
+            IF(request_steps='', 0, request_steps),
+            IF(request_compare_result_pattern='', null, request_compare_result_pattern)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name, request_name),
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id),
+            steps=IF(request_steps='', steps, request_steps),
+            compare_result_pattern=IF(request_compare_result_pattern='', compare_result_pattern, request_compare_result_pattern);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1)
+            )
+            BEGIN
+            IF(request_id != '' AND request_steps != '')
+            THEN
+            IF NOT EXISTS(SELECT * from projects WHERE id = request_id AND steps = request_steps)
+            THEN
+            IF(request_steps = '1')
+            THEN
+            CALL CREATE_STEP_TABLE(request_id);
+            CALL CREATE_STEP_RESULTS_TABLE(request_id);
+            CALL CREATE_STEP_TO_TEST_TABLE(request_id);
+            ELSE
+            CALL DROP_STEPS(request_id);
+            END IF;
+            END IF;
+            END IF;
+
+            INSERT INTO projects (id, name, customer_id, steps, compare_result_pattern)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id),
+            IF(request_steps='', 0, request_steps)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name, request_name),
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id),
+            steps=IF(request_steps='', steps, request_steps);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
 
