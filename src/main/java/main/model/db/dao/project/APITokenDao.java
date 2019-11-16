@@ -4,29 +4,29 @@ package main.model.db.dao.project;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
-import main.model.dto.ImportTokenDto;
+import main.model.dto.APITokenDto;
 import main.utils.RandomStringGenerator;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.Date;
 import java.util.List;
 
-public class ImportTokenDao extends DAO<ImportTokenDto> {
+public class APITokenDao extends DAO<APITokenDto> {
 
-    public ImportTokenDao(){
-        super(ImportTokenDto.class);
-        select = "{call SELECT_IMPORT_TOKEN(?)}";
-        insert = "{call INSERT_IMPORT_TOKEN(?,?)}";
+    public APITokenDao(){
+        super(APITokenDto.class);
+        select = "{call SELECT_API_TOKEN(?)}";
+        insert = "{call INSERT_API_TOKEN(?,?)}";
     }
 
     @Override
-    public ImportTokenDto create(ImportTokenDto entity) throws AqualityException {
+    public APITokenDto create(APITokenDto entity) throws AqualityException {
         String token = generateToken();
-        entity.setImport_token(DigestUtils.md5Hex(token + "advbc1671-nlksdui-ff"));
+        entity.setApi_token(DigestUtils.md5Hex(token + "advbc1671-nlksdui-ff"));
         List<Pair<String, String>> parameters = entity.getParameters();
 
         CallStoredProcedure(insert, parameters);
-        entity.setImport_token(token);
+        entity.setApi_token(token);
         return entity;
     }
 

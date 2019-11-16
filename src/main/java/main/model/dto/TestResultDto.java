@@ -8,6 +8,7 @@ import main.annotations.DataBaseSearchable;
 import main.utils.CustomerDateAndTimeDeserialize;
 
 import java.util.Date;
+import java.util.List;
 
 @Data @EqualsAndHashCode(callSuper = true)
 public class TestResultDto extends BaseDto {
@@ -78,4 +79,5 @@ public class TestResultDto extends BaseDto {
     @DataBaseName(name="request_fail_reason_regex")
     @DataBaseSearchable
     private String fail_reason_regex;
+    private List<StepResultDto> steps;
 }

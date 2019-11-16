@@ -22,7 +22,7 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
 
     @Override
     public ProjectUserDto create(ProjectUserDto template) throws AqualityException {
-        if(baseUser.isAdmin() || baseUser.getProjectUser(template.getProject_id()).isAdmin()){
+        if(isEditorSession(template)){
             return projectUserDao.create(template);
         }else{
             throw new AqualityPermissionsException("Account is not allowed to create Project User", baseUser);
@@ -40,7 +40,7 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
 
     @Override
     public boolean delete(ProjectUserDto template) throws AqualityException {
-        if(baseUser.isAdmin() || baseUser.getProjectUser(template.getProject_id()).isAdmin()){
+        if(isEditorSession(template)){
             return projectUserDao.delete(template);
         }else{
             throw new AqualityPermissionsException("Account is not allowed to delete Project User", baseUser);
@@ -58,5 +58,11 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
             projectUser.setUser(userController.get(projectUser.getUser()).get(0));
         }
         return projectUsers;
+    }
+
+    private boolean isEditorSession(ProjectUserDto template){
+        return baseUser.isAdmin() || baseUser.isManager()
+                || baseUser.getProjectUser(template.getProject_id()).isAdmin()
+                || baseUser.getProjectUser(template.getProject_id()).isManager();
     }
 }

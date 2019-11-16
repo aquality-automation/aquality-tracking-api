@@ -6,6 +6,7 @@ import main.utils.FileUtils;
 import main.utils.TestNGCucumberJsonParser.*;
 import main.model.db.imports.Handler;
 import main.model.dto.*;
+import main.utils.TestNGCucumberJsonParser.StepDto;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

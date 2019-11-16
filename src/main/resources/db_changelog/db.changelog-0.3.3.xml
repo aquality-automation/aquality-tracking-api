@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+    <changeSet id="Rename Import token column" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            CHANGE COLUMN `import_token` `api_token` VARCHAR(500) NULL DEFAULT NULL ;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            CHANGE COLUMN `api_token` `import_token` VARCHAR(500) NULL DEFAULT NULL ;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Rename INSERT import Token" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_API_TOKEN`(
+            IN request_api_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set api_token=request_api_token Where id = request_project_id;
+
+            Select id, api_token from projects Where id = request_project_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_IMPORT_TOKEN`;
+
+            #
+
+            DROP procedure IF EXISTS `INSERT_API_TOKEN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_IMPORT_TOKEN`(
+            IN request_import_token VARCHAR(500),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            Update projects Set import_token=request_import_token Where id = request_project_id;
+
+            Select id, import_token from projects Where id = request_project_id;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Rename SELECT import Token" author="v.kostyukevich">
+    <sql endDelimiter="#">
+        DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+        #
+
+        CREATE PROCEDURE `SELECT_API_TOKEN`(
+        IN request_project_id VARCHAR(10)
+        )
+        BEGIN
+        SELECT id, api_token FROM projects where id = request_project_id;
+        END
+    </sql>
+    <rollback>
+        DROP procedure IF EXISTS `SELECT_IMPORT_TOKEN`;
+
+        #
+
+        DROP procedure IF EXISTS `SELECT_API_TOKEN`;
+
+        #
+
+        CREATE PROCEDURE `SELECT_IMPORT_TOKEN`(
+        IN request_project_id VARCHAR(10)
+        )
+        BEGIN
+        SELECT id, import_token FROM projects where id = request_project_id;
+        END
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="Add step_types Table" author="v.kostyukevich">
+        <sql>
+            CREATE TABLE `step_types` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `step_types`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add entities for step types" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            INSERT INTO `step_types` (`name`) VALUES ('Given');
+            #
+            INSERT INTO `step_types` (`name`) VALUES ('Then');
+            #
+            INSERT INTO `step_types` (`name`) VALUES ('When');
+        </sql>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_STEP" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_STEP`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_STEP`(
+            IN request_project_id  VARCHAR(11),
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(500)
+            )
+            BEGIN
+            SET @sql = CONCAT("SELECT * FROM ", "project_steps_",  request_project_id, " WHERE
+            (", QUOTE(request_id), " = '' OR id=", QUOTE(request_id), ")
+            AND (", QUOTE(request_name), " = '' OR name=", QUOTE(request_name), ");");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_STEP`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_STEP" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_STEP`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_STEP`(
+            IN request_project_id  VARCHAR(11),
+            IN request_id varchar(11),
+            IN request_name varchar(500),
+            IN request_type_id varchar(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("INSERT INTO project_steps_",  request_project_id, " (id, name, type_id)
+            VALUES (
+            IF(", QUOTE(request_id), " = '', null, ", QUOTE(request_id), "),
+            IF(", QUOTE(request_name), " = '', null, ", QUOTE(request_name), "),
+            IF(", QUOTE(request_type_id), " = '', null, ", QUOTE(request_type_id), ")
+            ) ON DUPLICATE KEY UPDATE
+            name = IF(", QUOTE(request_name), " = '', name, ", QUOTE(request_name), ")
+            , type_id = IF(", QUOTE(request_type_id), " = '', type_id, ", QUOTE(request_type_id), ");");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+
+            SET @id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            CALL SELECT_STEP(request_project_id, @id, '');
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_STEP`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure REMOVE_STEP" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_STEP`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_STEP`(
+            IN request_project_id varchar(11),
+            IN request_id varchar(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("DELETE FROM ", "project_steps_",  request_project_id, " WHERE id='", request_id, "';");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_STEP`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_STEP_TYPE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_STEP_TYPE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_STEP_TYPE`()
+            BEGIN
+            SELECT * FROM step_types;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_STEP_TYPE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add step setting to project" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            ADD COLUMN `steps` INT(1) NOT NULL DEFAULT '0' AFTER `customer_id`;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            DROP COLUMN `steps`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update stored procedure INSERT_PROJECT with steps" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1)
+            )
+            BEGIN
+            IF(request_id != '' AND request_steps != '')
+            THEN
+            IF NOT EXISTS(SELECT * from projects WHERE id = request_id AND steps = request_steps)
+            THEN
+            IF(request_steps = '1')
+            THEN
+            CALL CREATE_STEP_TABLE(request_id);
+            CALL CREATE_STEP_RESULTS_TABLE(request_id);
+            CALL CREATE_STEP_TO_TEST_TABLE(request_id);
+            ELSE
+            CALL DROP_STEPS(request_id);
+            END IF;
+            END IF;
+            END IF;
+
+            INSERT INTO projects (id, name, customer_id, steps)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id),
+            IF(request_steps='', 0, request_steps)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name, request_name),
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id),
+            steps=IF(request_steps='', steps, request_steps);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1)
+            )
+            BEGIN
+
+            INSERT INTO projects (id, name, customer_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure CREATE_STEP_RESULTS_TABLE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `CREATE_STEP_RESULTS_TABLE`;
+
+            #
+
+            CREATE PROCEDURE `CREATE_STEP_RESULTS_TABLE`(
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("
+            CREATE TABLE `project_step_results_", request_project_id, "` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `result_id` INT NOT NULL,
+            `type_id` INT NOT NULL,
+            `name` VARCHAR(500) NOT NULL,
+            `order` INT NOT NULL,
+            `final_result_id` INT NOT NULL DEFAULT '3',
+            `log` TEXT NULL,
+            `start_time` DATETIME NULL,
+            `finish_time` DATETIME NULL,
+            `comment` TEXT NULL,
+            `attachment` longtext NULL,
+
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `", request_project_id, "_step_res_to_final_res_idx` (`final_result_id` ASC),
+            INDEX `", request_project_id, "_step_res_to_test_res_idx` (`result_id` ASC),
+            INDEX `", request_project_id, "_step_res_to_types_idx` (`type_id` ASC),
+            CONSTRAINT `", request_project_id, "_step_res_to_final_res`
+            FOREIGN KEY (`final_result_id`)
+            REFERENCES `final_results` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
+            CONSTRAINT `", request_project_id, "_step_res_to_types`
+            FOREIGN KEY (`type_id`)
+            REFERENCES `step_types` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
+            CONSTRAINT `", request_project_id, "_step_res_to_test_res`
+            FOREIGN KEY (`result_id`)
+            REFERENCES `test_results` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+            ");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `CREATE_STEP_RESULTS_TABLE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure CREATE_STEP_TABLE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `CREATE_STEP_TABLE`;
+
+            #
+
+            CREATE PROCEDURE `CREATE_STEP_TABLE`(
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("
+            CREATE TABLE `project_steps_", request_project_id, "` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `type_id` INT NOT NULL,
+            `name` VARCHAR(500) NOT NULL,
+            `parameters` VARCHAR(500) NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            UNIQUE INDEX `name_UNIQUE` (`name` ASC),
+            INDEX `", request_project_id, "_steps_to_types_idx` (`type_id` ASC),
+            CONSTRAINT `", request_project_id, "_steps_to_types`
+            FOREIGN KEY (`type_id`)
+            REFERENCES `step_types` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE);
+            ");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `CREATE_STEP_TABLE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure CREATE_STEP_TO_TEST_TABLE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `CREATE_STEP_TO_TEST_TABLE`;
+
+            #
+
+            CREATE PROCEDURE `CREATE_STEP_TO_TEST_TABLE`(
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("
+            CREATE TABLE `project_step_to_test_", request_project_id, "` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `step_id` INT NOT NULL,
+            `test_id` INT NOT NULL,
+            `order` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `", request_project_id, "_link_to_test_idx` (`test_id` ASC),
+            INDEX `", request_project_id, "_link_to_step_idx` (`step_id` ASC),
+            CONSTRAINT `", request_project_id, "_link_to_test`
+            FOREIGN KEY (`test_id`)
+            REFERENCES `tests` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            CONSTRAINT `", request_project_id, "_link_to_step`
+            FOREIGN KEY (`step_id`)
+            REFERENCES `project_steps_", request_project_id, "` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+            ");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `CREATE_STEP_TO_TEST_TABLE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure DROP_STEPS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `DROP_STEPS`;
+
+            #
+
+            CREATE PROCEDURE `DROP_STEPS`(
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("DROP TABLE IF EXISTS project_step_to_test_", request_project_id);
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            SET @sql = CONCAT("DROP TABLE IF EXISTS project_step_results_", request_project_id);
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            SET @sql = CONCAT("DROP TABLE IF EXISTS project_steps_", request_project_id);
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `DROP_STEPS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_STEP_TO_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_STEP_TO_TEST`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_STEP_TO_TEST`(
+            IN request_id  VARCHAR(11),
+            IN request_project_id  VARCHAR(11),
+            IN request_step_id varchar(11),
+            IN request_test_id varchar(11),
+            IN request_order varchar(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("INSERT INTO project_step_to_test_",  request_project_id, " (`id`, `step_id`, `test_id`, `order`)
+            VALUES (
+            IF(", QUOTE(request_id), " = '', null, ", QUOTE(request_id), "),
+            ", QUOTE(request_step_id), ",
+            ", QUOTE(request_test_id), ",
+            ", QUOTE(request_order), ")
+            ON DUPLICATE KEY UPDATE
+            project_step_to_test_",  request_project_id, ".order = IF(", QUOTE(request_order), " = '', project_step_to_test_",  request_project_id, ".order, ", QUOTE(request_order), ")
+            ;");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_STEP_TO_TEST`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_TEST_STEPS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_STEPS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_STEPS`(
+            IN request_project_id  VARCHAR(11),
+            IN request_test_id VARCHAR(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("SELECT project_steps_",  request_project_id, ".*,
+            project_step_to_test_",  request_project_id, ".order,
+            project_step_to_test_",  request_project_id, ".id as link_id
+            FROM project_step_to_test_",  request_project_id, "
+            LEFT JOIN project_steps_",  request_project_id, "
+            ON project_step_to_test_",  request_project_id, ".step_id = project_steps_",  request_project_id, ".id
+            WHERE test_id=", request_test_id, " ORDER BY project_step_to_test_",  request_project_id, ".order;");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_TEST_STEPS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure REMOVE_STEP_FROM_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_STEP_FROM_TEST`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_STEP_FROM_TEST`(
+            IN request_project_id varchar(11),
+            IN request_id varchar(11)
+            )
+            BEGIN
+            SET @sql = CONCAT("DELETE FROM ", "project_step_to_test_",  request_project_id, " WHERE id='", request_id, "';");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_STEP_FROM_TEST`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_STEP_RESULT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_STEP_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_STEP_RESULT`(
+            IN request_project_id  VARCHAR(11),
+            IN request_id varchar(11),
+            IN request_result_id varchar(11),
+            IN request_type_id varchar(11),
+            IN request_name varchar(500),
+            IN request_order varchar(11),
+            IN request_final_result_id varchar(11),
+            IN request_log text,
+            IN request_start_time VARCHAR(500),
+            IN request_finish_time VARCHAR(500),
+            IN request_comment text,
+            IN request_attachment longtext
+            )
+            BEGIN
+            SET @sql = CONCAT("INSERT INTO project_step_results_",  request_project_id, " (`id`, `result_id`, `type_id`, `name`, `order`, `final_result_id`, `log`, `start_time`, `finish_time`, `comment`, `attachment`)
+            VALUES (
+            IF(", QUOTE(request_id), " = '', null, ", QUOTE(request_id), "),
+            IF(", QUOTE(request_result_id), " = '', null, ", QUOTE(request_result_id), "),
+            IF(", QUOTE(request_type_id), " = '', null, ", QUOTE(request_type_id), "),
+            IF(", QUOTE(request_name), " = '', null, ", QUOTE(request_name), "),
+            IF(", QUOTE(request_order), " = '', null, ", QUOTE(request_order), "),
+            IF(", QUOTE(request_final_result_id), " = '', null, ", QUOTE(request_final_result_id), "),
+            IF(", QUOTE(request_log), " = '', null, ", QUOTE(request_log), "),
+            IF(", QUOTE(request_start_time), " = '', null, ", QUOTE(request_start_time), "),
+            IF(", QUOTE(request_finish_time), " = '', null, ", QUOTE(request_finish_time), "),
+            IF(", QUOTE(request_comment), " = '', null, ", QUOTE(request_comment), "),
+            IF(", QUOTE(request_attachment), " = '', null, ", QUOTE(request_attachment), ")
+            ) ON DUPLICATE KEY UPDATE
+            final_result_id = IF(", QUOTE(request_final_result_id), " = '', final_result_id, ", QUOTE(request_final_result_id), "),
+            log = IF(", QUOTE(request_log), " = '', log, ", QUOTE(request_log), "),
+            start_time = IF(", QUOTE(request_start_time), " = '', start_time, ", QUOTE(request_start_time), "),
+            finish_time = IF(", QUOTE(request_finish_time), " = '', finish_time, ", QUOTE(request_finish_time), "),
+            comment = IF(", QUOTE(request_comment), " = '', comment, ", QUOTE(request_comment), "),
+            attachment = IF(", QUOTE(request_attachment), " = '', attachment, IF(", QUOTE(request_attachment), " = '$blank', null, ", QUOTE(request_attachment), "))
+            ;");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+
+            SET @id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            CALL SELECT_STEP_RESULT(request_project_id, @id, '');
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_STEP_RESULT`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure SELECT_STEP_RESULT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_STEP_RESULT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_STEP_RESULT`(
+            IN request_project_id  VARCHAR(11),
+            IN request_id VARCHAR(11),
+            IN request_result_id VARCHAR(500)
+            )
+            BEGIN
+            SET @sql = CONCAT("SELECT * FROM ", "project_step_results_",  request_project_id, " WHERE
+            (", QUOTE(request_id), " = '' OR id=", QUOTE(request_id), ")
+            AND (", QUOTE(request_result_id), " = '' OR result_id=", QUOTE(request_result_id), ")
+            ORDER BY project_step_results_",  request_project_id, ".order;");
+            PREPARE statement FROM @sql;
+            EXECUTE statement;
+            DEALLOCATE PREPARE statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_STEP_RESULT`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure REMOVE_PROJECT to remove steps" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_PROJECT`(IN request_id VARCHAR(10))
+            BEGIN
+            DELETE FROM projects
+            WHERE id=request_id;
+
+            CALL DROP_STEPS(request_id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_PROJECT`(IN request_id VARCHAR(10))
+            BEGIN
+            DELETE FROM projects
+            WHERE id=request_id;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add regexp search field to project" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            ADD COLUMN `compare_result_pattern` VARCHAR(500) NULL AFTER `steps`;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            DROP COLUMN `compare_result_pattern`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="stored procedure INSERT_PROJECT add request_compare_result_pattern" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1),
+            IN request_compare_result_pattern VARCHAR(500)
+            )
+            BEGIN
+            IF(request_id != '' AND request_steps != '')
+            THEN
+            IF NOT EXISTS(SELECT * from projects WHERE id = request_id AND steps = request_steps)
+            THEN
+            IF(request_steps = '1')
+            THEN
+            CALL CREATE_STEP_TABLE(request_id);
+            CALL CREATE_STEP_RESULTS_TABLE(request_id);
+            CALL CREATE_STEP_TO_TEST_TABLE(request_id);
+            ELSE
+            CALL DROP_STEPS(request_id);
+            END IF;
+            END IF;
+            END IF;
+
+            INSERT INTO projects (id, name, customer_id, steps, compare_result_pattern)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id),
+            IF(request_steps='', 0, request_steps),
+            IF(request_compare_result_pattern='', null, request_compare_result_pattern)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name, request_name),
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id),
+            steps=IF(request_steps='', steps, request_steps),
+            compare_result_pattern=IF(request_compare_result_pattern='', compare_result_pattern, request_compare_result_pattern);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1)
+            )
+            BEGIN
+            IF(request_id != '' AND request_steps != '')
+            THEN
+            IF NOT EXISTS(SELECT * from projects WHERE id = request_id AND steps = request_steps)
+            THEN
+            IF(request_steps = '1')
+            THEN
+            CALL CREATE_STEP_TABLE(request_id);
+            CALL CREATE_STEP_RESULTS_TABLE(request_id);
+            CALL CREATE_STEP_TO_TEST_TABLE(request_id);
+            ELSE
+            CALL DROP_STEPS(request_id);
+            END IF;
+            END IF;
+            END IF;
+
+            INSERT INTO projects (id, name, customer_id, steps, compare_result_pattern)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id),
+            IF(request_steps='', 0, request_steps)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name, request_name),
+            customer_id=IF(request_customer_id='', customer_id, request_customer_id),
+            steps=IF(request_steps='', steps, request_steps);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

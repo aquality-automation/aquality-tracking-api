@@ -28,4 +28,10 @@ public class ProjectDto extends BaseDto{
     @DataBaseName(name = "request_user_id")
     @DataBaseSearchable
     private Integer user_id;
+    @DataBaseName(name = "request_steps")
+    @DataBaseInsert
+    private Integer steps;
+    @DataBaseName(name = "request_compare_result_pattern")
+    @DataBaseInsert
+    private String compare_result_pattern;
 }

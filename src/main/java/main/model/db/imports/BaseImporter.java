@@ -3,9 +3,11 @@ package main.model.db.imports;
 import main.controllers.ControllerFactory;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.ImportDao;
+import main.model.db.dao.project.ProjectDao;
 import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.dto.*;
+import main.utils.RegexpUtil;
 
 import java.io.File;
 import java.util.*;
@@ -24,6 +26,7 @@ class BaseImporter {
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
+    private ProjectDao projectDao = new ProjectDao();
     private TestResultDao testResultDao = new TestResultDao();
     private TestDao testDao = new TestDao();
     protected int projectId;
@@ -201,13 +204,23 @@ class BaseImporter {
 
     private TestResultDto updateResultWithSimilarError(TestResultDto result) throws AqualityException {
         try{
+            ProjectDto project = new ProjectDto();
+            project.setId(result.getProject_id());
+            project = projectDao.getEntityById(project);
+
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.setProject_id(result.getProject_id());
             testResultTemplate.setTest_id(result.getTest().getId());
             testResultTemplate.setLimit(10000);
             List<TestResultDto> testResults = testResultDao.searchAll(testResultTemplate);
             if(testResults.size() > 0){
-                TestResultDto similarResult = testResults.stream().filter(x -> x.getFail_reason() != null && x.getFail_reason().equals(result.getFail_reason())).findFirst().orElse(null);
+                TestResultDto similarResult = null;
+                if(project.getCompare_result_pattern() != null) {
+                    similarResult = compareByRegexp(result, testResults, project.getCompare_result_pattern());
+                }
+                if(similarResult == null){
+                    similarResult = testResults.stream().filter(x -> x.getFail_reason() != null && x.getFail_reason().equals(result.getFail_reason())).findFirst().orElse(null);
+                }
                 if(similarResult != null){
                     result.setComment(similarResult.getComment());
                     result.setTest_resolution_id(similarResult.getTest_resolution_id());
@@ -219,6 +232,17 @@ class BaseImporter {
         } catch (Exception e){
             throw new AqualityException("Failed on update Result with similar error");
         }
+    }
+
+    private TestResultDto compareByRegexp(TestResultDto result, List<TestResultDto> oldResults, String expression) {
+        for (TestResultDto oldResult : oldResults) {
+            if(oldResult.getFail_reason() != null){
+                if(RegexpUtil.compareByRegexpGroups(result.getFail_reason(), oldResult.getFail_reason(), expression)){
+                    return oldResult;
+                }
+            }
+        }
+        return null;
     }
 
     private TestDto getTestByPatternOrName(List<TestDto> tests, TestDto importTest) throws AqualityException {
