@@ -62,10 +62,6 @@ public class UserDto extends BaseDto {
     @DataBaseName(name="request_head")
     @DataBaseInsert
     private Integer head;
-    @DataBaseName(name="request_account_manager")
-    @DataBaseInsert
-    @DataBaseSearchable
-    private Integer account_manager;
     @DataBaseName(name="request_audit_notifications")
     @DataBaseInsert
     private Integer audit_notifications;
@@ -93,7 +89,7 @@ public class UserDto extends BaseDto {
     }
 
     public boolean isFromGlobalManagement(){
-        return isManager() || isAuditor() || isAuditAdmin() || BooleanUtil.intToBoolean(account_manager) || isCoordinator() || BooleanUtil.intToBoolean(head);
+        return isManager() || isAuditor() || isAuditAdmin() || isCoordinator() || BooleanUtil.intToBoolean(head);
     }
 
     public ProjectUserDto getProjectUser(Integer projectId){
