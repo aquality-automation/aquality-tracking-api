@@ -32,13 +32,17 @@ public class ProjectController extends BaseController<ProjectDto> {
 
     @Override
     public List<ProjectDto> get(ProjectDto template) throws AqualityException {
+        return get(template, true);
+    }
+
+    public List<ProjectDto> get(ProjectDto template, boolean withChildren) throws AqualityException {
         if (baseUser.getApiSessionProjectId() != null) {
             template.setId(baseUser.getApiSessionProjectId());
         } else {
             template.setUser_id(baseUser.getId());
         }
         List<ProjectDto> projects = projectDao.searchAll(template);
-        return fillCustomers(projects);
+        return fillCustomers(projects, withChildren);
     }
 
     @Override
@@ -53,7 +57,7 @@ public class ProjectController extends BaseController<ProjectDto> {
     public boolean isStepsEnabled(Integer projectId) throws AqualityException {
         ProjectDto project = new ProjectDto();
         project.setId(projectId);
-        List<ProjectDto> projects = get(project);
+        List<ProjectDto> projects = get(project, false);
 
         if(projects.size() < 1) {
             throw new AqualityException("Project with id %s does not exists!", projectId);
@@ -81,9 +85,13 @@ public class ProjectController extends BaseController<ProjectDto> {
     }
 
     //TODO Refactoring
-    private List<ProjectDto> fillCustomers(List<ProjectDto> projects) throws AqualityException {
+    private List<ProjectDto> fillCustomers(List<ProjectDto> projects, boolean withChildren) throws AqualityException {
         List<ProjectDto> filledProjects = new ArrayList<>();
-        List<CustomerDto> customerDtoList = customerController.get(new CustomerDto(), true);
+        CustomerDto customerTemplate = new CustomerDto();
+        if(projects.size() == 1) {
+            customerTemplate.setId(projects.get(0).getCustomer_id());
+        }
+        List<CustomerDto> customerDtoList = customerController.get(new CustomerDto(), withChildren);
         for (ProjectDto filledProject : projects) {
             if (filledProject.getCustomer_id() != null) {
                 int customerId = filledProject.getCustomer_id();
