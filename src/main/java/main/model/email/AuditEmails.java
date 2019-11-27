@@ -18,10 +18,12 @@ public class AuditEmails extends Emails {
     private AuditStatisticDao auditStatisticController;
     private AppProperties appProperties = new AppProperties();
 
-    public AuditEmails() {
+    public AuditEmails() throws AqualityException {
+        super();
         auditStatisticController = new AuditStatisticDao();
     }
-    public List<EmailDto> GetUpcomingEmails() throws AqualityException {
+
+    public List<EmailDto> getUpcomingEmails() throws AqualityException {
         List<AuditStatisticDto> audits = auditStatisticController.getAll();
         List<String> recipients = getRecipients();
 
@@ -32,7 +34,8 @@ public class AuditEmails extends Emails {
 
         return emails;
     }
-    public List<EmailDto> GetOverdueEmails() throws AqualityException {
+
+    public List<EmailDto> getOverdueEmails() throws AqualityException {
         List<AuditStatisticDto> audits = auditStatisticController.getAll();
         List<String> recipients = getRecipients();
         List<AuditStatisticDto> overdueAudits = audits.stream()
@@ -45,9 +48,9 @@ public class AuditEmails extends Emails {
             EmailDto email = new EmailDto();
             email.setSubject(String.format("[%s] Overdue Project Audit - %s", appProperties.getName(), overdueAudit.getName()));
             email.setContent("<p style=\"font-family: Calibri, sans-serif; font-size: 11pt; line-height: 4px;\">Next Audit Date for the <strong><a style=\"color: #6b6b6b;\" href=\""
-                    + hostUri() +"#/project/" + overdueAudit.getId()+"\">" + overdueAudit.getName() +"</a>&nbsp; </strong>project is overdue and requires your attention.</p>\n" +
+                    + baseURL +"#/project/" + overdueAudit.getId()+"\">" + overdueAudit.getName() +"</a>&nbsp; </strong>project is overdue and requires your attention.</p>\n" +
                     "<p style=\"font-family: Calibri, sans-serif; font-size: 11pt; line-height: 4px;\">Please follow this <a style=\"color: #6b6b6b;\" href=\""
-                    + hostUri() + "#/audit\">link</a> to access Audits Dashboard.</p>\n" +
+                    + baseURL + "#/audit\">link</a> to access Audits Dashboard.</p>\n" +
                     "<p>&nbsp;</p>" +
                     "<p style=\"font-family: Calibri, sans-serif; font-size: 10pt; line-height: 2px;\">Best Regards,</p>\n" +
                     "<p style=\"font-family: Calibri, sans-serif; font-size: 10pt; line-height: 2px;\">" + appProperties.getName() + " Administration</p>\n" +
@@ -78,10 +81,10 @@ public class AuditEmails extends Emails {
             EmailDto email = new EmailDto();
             email.setSubject(String.format("[%s] Upcoming Project Audit - %s", appProperties.getName(), upcAudit.getName()));
             email.setContent("<p style=\"font-family: Calibri, sans-serif; font-size: 11pt; line-height: 4px;\">Next Audit for the <strong><a style=\"color: #6b6b6b;\" href=\""
-                    + hostUri() +"#/project/" + upcAudit.getId()+"\">" + upcAudit.getName() + "</a> </strong>project should be submitted within<strong> "
+                    + baseURL +"#/project/" + upcAudit.getId()+"\">" + upcAudit.getName() + "</a> </strong>project should be submitted within<strong> "
                     + days + " days.</strong></p>\n" +
                     "<p style=\"font-family: Calibri, sans-serif; font-size: 11pt; line-height: 4px;\">Please follow this <a style=\"color: #6b6b6b;\" href=\""
-                    + hostUri() + "#/audit\">link</a> to access Audits Dashboard and create a new Audit.</p>\n" +
+                    + baseURL + "#/audit\">link</a> to access Audits Dashboard and create a new Audit.</p>\n" +
                     "<p>&nbsp;</p>\n" +
                     "<p style=\"font-family: Calibri, sans-serif; font-size: 10pt; line-height: 2px;\">Best Regards,</p>\n" +
                     "<p style=\"font-family: Calibri, sans-serif; font-size: 10pt; line-height: 2px;\">" + appProperties.getName() + " Administration</p>\n" +
