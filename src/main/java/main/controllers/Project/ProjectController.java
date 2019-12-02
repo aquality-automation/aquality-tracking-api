@@ -23,7 +23,6 @@ public class ProjectController extends BaseController<ProjectDto> {
     public ProjectDto create(ProjectDto template) throws AqualityException {
         if(baseUser.isAdmin() || allowUpdateProject(template)){
             ProjectDto project = projectDao.create(template);
-            updateProjectPermissions(project);
             return project;
         }else{
             throw new AqualityPermissionsException("Account is not allowed to create Projects", baseUser);
@@ -54,7 +53,7 @@ public class ProjectController extends BaseController<ProjectDto> {
         }
     }
 
-    public boolean isStepsEnabled(Integer projectId) throws AqualityException {
+    boolean isStepsEnabled(Integer projectId) throws AqualityException {
         ProjectDto project = new ProjectDto();
         project.setId(projectId);
         List<ProjectDto> projects = get(project, false);
@@ -66,12 +65,6 @@ public class ProjectController extends BaseController<ProjectDto> {
         return projects.get(0).getSteps() == 1;
     }
 
-    private void updateProjectPermissions(ProjectDto entity) throws AqualityException {
-        if(entity.getCustomer() != null && entity.getCustomer().getAccounting() == 1 && entity.getId() != 0){
-            updatePermissions(entity.getCustomer().getId(), entity.getId());
-        }
-    }
-
     private boolean allowUpdateProject(ProjectDto template) {
         if(template.getId() != null) {
             ProjectUserDto projectUser = baseUser.getProjectUser(template.getId());
@@ -80,18 +73,15 @@ public class ProjectController extends BaseController<ProjectDto> {
         return false;
     }
 
-    //TODO create
-    private void updatePermissions(Integer customer_id, Integer project_id) throws AqualityException {
-    }
-
-    //TODO Refactoring
     private List<ProjectDto> fillCustomers(List<ProjectDto> projects, boolean withChildren) throws AqualityException {
         List<ProjectDto> filledProjects = new ArrayList<>();
         CustomerDto customerTemplate = new CustomerDto();
         if(projects.size() == 1) {
             customerTemplate.setId(projects.get(0).getCustomer_id());
         }
+
         List<CustomerDto> customerDtoList = customerController.get(new CustomerDto(), withChildren);
+
         for (ProjectDto filledProject : projects) {
             if (filledProject.getCustomer_id() != null) {
                 int customerId = filledProject.getCustomer_id();
