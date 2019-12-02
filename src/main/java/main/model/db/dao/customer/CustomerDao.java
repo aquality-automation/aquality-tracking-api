@@ -9,6 +9,6 @@ public class CustomerDao extends DAO<CustomerDto>{
         super(CustomerDto.class);
         select = "{call SELECT_CUSTOMER(?)}";
         remove = "{call REMOVE_CUSTOMER(?)}";
-        insert = "{call INSERT_CUSTOMER(?,?,?,?,?)}";
+        insert = "{call INSERT_CUSTOMER(?,?,?)}";
     }
 }

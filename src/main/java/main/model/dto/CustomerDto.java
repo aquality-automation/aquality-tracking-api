@@ -22,18 +22,8 @@ public class CustomerDto extends BaseDto{
     @DataBaseInsert
     private Integer coordinator_id = 0;
     private UserDto coordinator;
-    @DataBaseName(name = "request_accounting")
-    @DataBaseInsert
-    private Integer accounting = 0;
-    @DataBaseName(name = "request_account_manager_id")
-    @DataBaseInsert
-    private Integer account_manager_id;
-    private UserDto account_manager;
     @JsonDeserialize(using=CustomerDateAndTimeDeserialize.class)
     private Date created;
-    private List<CustomerCommentDto> comments;
-    private List<CustomerAttachmentDto> attachments;
     private List<ProjectDto> projects;
     private Integer projects_count;
-    private List<? extends UserDto> account_team;
 }

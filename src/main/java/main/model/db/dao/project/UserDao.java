@@ -19,8 +19,8 @@ import java.util.List;
 public class UserDao extends DAO<UserDto> {
     public UserDao() {
         super(UserDto.class);
-        select = "{call SELECT_USERS(?,?,?,?,?,?,?)}";
-        insert = "{call INSERT_USER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}";
+        select = "{call SELECT_USERS(?,?,?,?,?,?)}";
+        insert = "{call INSERT_USER(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}";
         remove = "{call REMOVE_USER(?)}";
     }
 

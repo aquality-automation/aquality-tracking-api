@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Drop customers" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP TABLE `customer_account_members`
+            #
+            DROP TABLE `customer_attachment`
+            #
+            DROP TABLE `customer_comments`
+            #
+            DROP PROCEDURE `INSERT_CUSTOMER_ATTACHMENT`;
+            #
+            DROP PROCEDURE `INSERT_CUSTOMER_COMMENT`;
+            #
+            DROP PROCEDURE `INSERT_CUSTOMER_MEMBER`;
+            #
+            DROP PROCEDURE `REMOVE_CUSTOMER_ATTACHMENT`;
+            #
+            DROP PROCEDURE `REMOVE_CUSTOMER_MEMBER`;
+            #
+            DROP PROCEDURE `SELECT_CUSTOMER_ATTACHMENT`;
+            #
+            DROP PROCEDURE `SELECT_CUSTOMER_COMMENT`;
+            #
+            DROP PROCEDURE `SELECT_CUSTOMER_MEMBER`;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Restrict customer coordinator deletion" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `customer`
+            ADD INDEX `customer_to_user_idx` (`coordinator_id` ASC);
+
+            #
+
+            ALTER TABLE `customer`
+            ADD CONSTRAINT `customer_to_user`
+            FOREIGN KEY (`coordinator_id`)
+            REFERENCES `users` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Remove account manager permissions and accounting from customers" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `users`
+            DROP COLUMN `account_manager`;
+
+            #
+
+            ALTER TABLE `customer`
+            DROP COLUMN `account_manager_id`,
+            DROP COLUMN `accounting`;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="remove accounting from INSERT_CUSTOMER" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_CUSTOMER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_CUSTOMER`(
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(150),
+            IN request_coordinator_id VARCHAR(11)
+            )
+            BEGIN
+            INSERT INTO customer (id, name, coordinator_id)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_coordinator_id='',null,request_coordinator_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = IF(request_name='',name,request_name),
+            coordinator_id = IF(request_coordinator_id='',coordinator_id,request_coordinator_id)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from customer where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="remove account manager permission from INSERT_USER" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_USER`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_USER`(
+            In request_id varchar(10),
+            IN request_user_name VARCHAR(100),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_password VARCHAR(100),
+            IN request_admin VARCHAR(1),
+            IN request_manager VARCHAR(1),
+            IN request_auditor VARCHAR(1),
+            IN request_audit_admin VARCHAR(1),
+            IN request_unit_coordinator VARCHAR(1),
+            IN request_email VARCHAR(150),
+            IN request_ldap_user VARCHAR(1),
+            IN request_head VARCHAR(1),
+            IN request_audit_notifications VARCHAR(1)
+            )
+            BEGIN
+            INSERT INTO users (id, first_name, second_name, user_name, password, admin, manager, auditor, audit_admin, email, ldap_user,unit_coordinator,audit_notifications,head)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_first_name,
+            request_second_name,
+            request_user_name,
+            request_password,
+            IF(request_admin='',0,request_admin),
+            IF(request_manager='',0,request_manager),
+            IF(request_auditor='',0,request_auditor),
+            IF(request_audit_admin='',0,request_audit_admin),
+            request_email,
+            IF(request_ldap_user='',0,request_ldap_user),
+            IF(request_unit_coordinator='',0,request_unit_coordinator),
+            IF(request_audit_notifications='',1,request_audit_notifications),
+            IF(request_head='',0,request_head)
+            )
+            ON DUPLICATE KEY UPDATE
+            user_name = IF(request_user_name = '', user_name, request_user_name),
+            first_name = IF(request_first_name = '', first_name, request_first_name),
+            second_name = IF(request_second_name = '', second_name, request_second_name),
+            password = IF(request_password = '', password, request_password),
+            admin = IF(request_admin = '', admin, request_admin),
+            manager = IF(request_manager = '', manager, request_manager),
+            auditor = IF(request_auditor='', auditor, request_auditor),
+            audit_admin = IF(request_audit_admin='',audit_admin,request_audit_admin),
+            email = IF(request_email='', email, request_email),
+            ldap_user = IF(request_ldap_user='', ldap_user, request_ldap_user),
+            head = IF(request_head='', head, request_head),
+            unit_coordinator = IF(request_unit_coordinator='',unit_coordinator,request_unit_coordinator),
+            audit_notifications = IF(request_audit_notifications='',audit_notifications,request_audit_notifications)
+            ;
+
+            SET @result_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from users where id = @result_id;
+
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="remove account manager permission from SELECT_USERS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_USERS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_USERS`(
+            IN request_id VARCHAR(10),
+            IN request_first_name VARCHAR(100),
+            IN request_second_name VARCHAR(100),
+            IN request_user_name VARCHAR(100),
+            IN request_unit_coordinator VARCHAR(11),
+            IN request_auditor VARCHAR(11)
+            )
+            BEGIN
+            SELECT
+            users.*,
+            session_code,
+            sessions.created as session_created
+            FROM users as users
+            LEFT JOIN user_sessions as sessions
+            ON users.last_session_id = sessions.id
+            WHERE (request_id= '' OR users.id=request_id)
+            AND (request_first_name= '' OR first_name=request_first_name)
+            AND (request_second_name = '' OR second_name=request_second_name)
+            AND (request_user_name = '' OR user_name=request_user_name)
+            AND (request_unit_coordinator ='' OR request_unit_coordinator=unit_coordinator)
+            AND (request_auditor ='' OR request_auditor=auditor)
+            ;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="remove account manager permission from SELECT_PROJECT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_PROJECT`(
+            IN request_name VARCHAR(500),
+            IN request_id VARCHAR(10),
+            IN request_customer_id VARCHAR(11),
+            IN request_user_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT DISTINCT proj.*
+            FROM projects as proj
+            LEFT JOIN user_roles as us_r ON proj.id = us_r.project_id
+            LEFT JOIN customer as cus_r ON proj.customer_id = cus_r.id
+            WHERE (request_id = '' OR proj.id=request_id)
+            AND (request_name = '' OR proj.name=request_name)
+            AND (request_customer_id = '' OR proj.customer_id=request_customer_id)
+            AND (request_user_id = ''
+            OR user_id=request_user_id
+            OR 1=(SELECT admin From users WHERE id = request_user_id)
+            OR 1=(SELECT head From users WHERE id = request_user_id)
+            OR 1=(SELECT unit_coordinator From users WHERE id = request_user_id)
+            OR 1=(SELECT manager From users WHERE id = request_user_id)
+            OR 1=(SELECT auditor From users WHERE id = request_user_id)
+            OR 1=(SELECT audit_admin From users WHERE id = request_user_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
