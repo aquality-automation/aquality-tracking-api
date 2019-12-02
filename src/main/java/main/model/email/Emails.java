@@ -1,26 +1,27 @@
 package main.model.email;
 
 import main.exceptions.AqualityException;
+import main.model.db.dao.settings.EmailSettingsDao;
+import main.model.dto.EmailDto;
+import main.model.dto.EmailSettingsDto;
 import main.utils.DateUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import main.utils.EmailUtil;
 
 abstract class Emails {
+    String baseURL;
     DateUtils dateUtils = new DateUtils();
 
-    String hostUri() throws AqualityException {
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        Properties prop = new Properties();
+    Emails() throws AqualityException {
+        EmailSettingsDao emailSettingsDao = new EmailSettingsDao();
+        EmailSettingsDto settings = emailSettingsDao.getEntityById(new EmailSettingsDto());
+        baseURL = settings.getBase_url();
+    }
 
-        InputStream resource = classloader.getResourceAsStream("hostinfo.properties");
-        try {
-            prop.load(resource);
-        } catch (IOException e) {
-            throw new AqualityException("Not able to load properties");
-        }
-
-        return String.format("http://%s/", prop.getProperty("frontURI"));
+    boolean sendEmail(EmailDto email) throws AqualityException {
+        EmailSettingsDao emailSettingsDao = new EmailSettingsDao();
+        EmailSettingsDto settings = emailSettingsDao.getAll().get(0);
+        settings.setPassword(emailSettingsDao.getAdminSecret(settings.getPassword()));
+        EmailUtil emailUtil = new EmailUtil(settings);
+        return emailUtil.sendHtmlEmail(email.getRecipients(), email.getSubject(), email.getContent());
     }
 }

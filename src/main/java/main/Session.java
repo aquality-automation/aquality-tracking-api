@@ -63,7 +63,7 @@ public class Session {
         return new Importer(filePaths, testRunTemplate, pattern, format, nodeType, singleTestRun, user);
     }
 
-    public TestRunEmails getTestRunEmails(){
+    public TestRunEmails getTestRunEmails() throws AqualityException {
         return new TestRunEmails();
     }
 

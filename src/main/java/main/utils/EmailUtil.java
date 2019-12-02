@@ -21,7 +21,7 @@ public class EmailUtil {
         this.emailSettingsDto = emailSettingsDto;
     }
 
-    public void SendHtmlEmail(List<String> to, String subject, String content) throws MessagingException, IOException, URISyntaxException {
+    public boolean sendHtmlEmail(List<String> to, String subject, String content) {
         Properties properties = System.getProperties();
 
         properties.setProperty("mail.smtp.host", emailSettingsDto.getHost());
@@ -69,14 +69,16 @@ public class EmailUtil {
             message.setContent(multipart);
 
             Transport.send(message);
+            return true;
         }catch(SendFailedException e){
             for(String email: to){
                 System.out.println("Can't send email to: " + email);
             }
             e.printStackTrace();
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
-            throw e;
+            return false;
         }
     }
 
