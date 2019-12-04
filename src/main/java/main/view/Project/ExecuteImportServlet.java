@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.Date;
 import java.util.List;
 
 @WebServlet("/import")
@@ -144,12 +145,16 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
         FileUtils fileUtils = new FileUtils();
-        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString()));
+        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString(), String.valueOf(new Date().getTime())));
     }
 
     private void cleanup(List<String> filePaths){
-        FileUtils fileUtils = new FileUtils();
-        fileUtils.removeFiles(filePaths);
+        if(filePaths.size() > 0) {
+            FileUtils fileUtils = new FileUtils();
+            String fileFolderPath = fileUtils.getFileFolderPath(filePaths.get(0));
+            fileUtils.removeFiles(filePaths);
+            fileUtils.removeFile(fileFolderPath);
+        }
     }
 
     private TestNameNodeType getTestNameNodeType(HttpServletRequest req) {
