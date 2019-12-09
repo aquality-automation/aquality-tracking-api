@@ -43,7 +43,7 @@ public abstract class BaseDto {
                 if(nameAnnotation != null && searchAnnotation != null){
                     field.setAccessible(true);
                     String value = getStringValue(field.get(this));
-                    if(nameAnnotation.name().equals("request_limit") && value.equals("0")){
+                    if(nameAnnotation.name().equals("request_limit") && (value.equals("0") || value.equals(""))){
                         value = "100000";
                     }
                     Pair<String, String> pair = new Pair<>(nameAnnotation.name(), value);

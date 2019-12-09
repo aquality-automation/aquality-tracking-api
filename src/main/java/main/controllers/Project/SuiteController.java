@@ -3,24 +3,28 @@ package main.controllers.Project;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
-import main.model.db.dao.project.SuiteStatisticDao;
-import main.model.db.dao.project.TestSuiteDao;
-import main.model.dto.SuiteStatisticDto;
-import main.model.dto.TestDto;
-import main.model.dto.TestSuiteDto;
-import main.model.dto.UserDto;
+import main.model.db.dao.project.*;
+import main.model.dto.*;
+import main.view.Project.TestResult;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SuiteController extends BaseController<TestSuiteDto> {
     private TestSuiteDao testSuiteDao;
+    private TestRunDao testRunDao;
+    private Test2SuiteDao test2SuiteDao;
+    private TestResultDao testResultDao;
     private SuiteStatisticDao suiteStatisticDao;
     private TestController testController;
 
     public SuiteController(UserDto user) {
         super(user);
         testSuiteDao = new TestSuiteDao();
+        testRunDao = new TestRunDao();
+        testResultDao = new TestResultDao();
         suiteStatisticDao = new SuiteStatisticDao();
+        test2SuiteDao = new Test2SuiteDao();
         testController = new TestController(user);
     }
 
@@ -85,5 +89,62 @@ public class SuiteController extends BaseController<TestSuiteDto> {
             }
         }
         return testSuites;
+    }
+
+    public void syncLegacyTests(TestSuiteDto template, Integer notExecutedFor, boolean removeNotExecutedResults) throws AqualityException {
+        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getId()).isManager()){
+            TestRunDto testRunTemplate = new TestRunDto();
+            testRunTemplate.setTest_suite_id(template.getId());
+            testRunTemplate.setLimit(notExecutedFor);
+            List<TestRunDto> testRuns = testRunDao.searchAll(testRunTemplate);
+            List<TestDto> legacyTests = getLegacyTests(testRuns, template.getId());
+            legacyTests.forEach(test -> {
+                Test2SuiteDto test2Suite = new Test2SuiteDto();
+                test2Suite.setTest_id(test.getId());
+                test2Suite.setSuite_id(template.getId());
+                try {
+                    test2SuiteDao.delete(test2Suite);
+                    if(removeNotExecutedResults) {
+                        removePendingResultsForTest(test);
+                    }
+                } catch (AqualityException e) {
+                    e.printStackTrace();
+                }
+            });
+        }else{
+            throw new AqualityPermissionsException("Account is not allowed to Sync Test Suite", baseUser);
+        }
+    }
+
+    private void removePendingResultsForTest(TestDto test) throws AqualityException {
+        TestResultDto testResultTemplate = new TestResultDto();
+        testResultTemplate.setTest_id(test.getId());
+        testResultTemplate.setFinal_result_id(3);
+        testResultTemplate.setTest_resolution_id(1);
+        List<TestResultDto> testResults = testResultDao.searchAll(testResultTemplate);
+        testResults.forEach(testResult -> {
+            try {
+                testResultDao.delete(testResult);
+            } catch (AqualityException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private List<TestDto> getLegacyTests(List<TestRunDto> testRuns, Integer suiteId) throws AqualityException {
+        TestDto testTemplate = new TestDto();
+        testTemplate.setTest_suite_id(suiteId);
+        List<TestDto> tests = testController.get(testTemplate);
+        for (TestRunDto testRun : testRuns) {
+            TestResultDto testResultTemplate = new TestResultDto();
+            testResultTemplate.setTest_run_id(testRun.getId());
+            List<TestResultDto> testResults = testResultDao.searchAll(testResultTemplate);
+            tests = tests.stream().filter(test -> {
+                TestResultDto currentResult = testResults.stream().filter(result -> result.getTest_id().equals(test.getId())).findFirst().orElse(null);
+                return currentResult == null || currentResult.getFinal_result_id() == 3;
+            }).collect(Collectors.toList());
+        }
+
+        return tests;
     }
 }
