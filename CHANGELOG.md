@@ -7,6 +7,7 @@ Features:
 
 Bugfixes:
   - It should not be possible to delete Customer that assigned to the projects -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/9)
+  - It is not possible to import several test run results one by one -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/35)
 
 ## 0.3.3 (2019-11-16)
 
