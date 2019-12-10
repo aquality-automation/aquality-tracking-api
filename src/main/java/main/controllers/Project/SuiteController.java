@@ -91,21 +91,16 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         return testSuites;
     }
 
-    public void syncLegacyTests(TestSuiteDto template, Integer notExecutedFor, boolean removeNotExecutedResults) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getId()).isManager()){
-            TestRunDto testRunTemplate = new TestRunDto();
-            testRunTemplate.setTest_suite_id(template.getId());
-            testRunTemplate.setLimit(notExecutedFor);
-            List<TestRunDto> testRuns = testRunDao.searchAll(testRunTemplate);
-            List<TestDto> legacyTests = getLegacyTests(testRuns, template.getId());
+    public void syncLegacyTests(List<TestDto> legacyTests, Integer suiteId, boolean removeNotExecutedResults) throws AqualityException {
+        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(suiteId).isManager()){
             legacyTests.forEach(test -> {
                 Test2SuiteDto test2Suite = new Test2SuiteDto();
                 test2Suite.setTest_id(test.getId());
-                test2Suite.setSuite_id(template.getId());
+                test2Suite.setSuite_id(suiteId);
                 try {
                     test2SuiteDao.delete(test2Suite);
                     if(removeNotExecutedResults) {
-                        removePendingResultsForTest(test);
+                        removePendingResultsForTest(suiteId, test.getId());
                     }
                 } catch (AqualityException e) {
                     e.printStackTrace();
@@ -116,12 +111,8 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         }
     }
 
-    private void removePendingResultsForTest(TestDto test) throws AqualityException {
-        TestResultDto testResultTemplate = new TestResultDto();
-        testResultTemplate.setTest_id(test.getId());
-        testResultTemplate.setFinal_result_id(3);
-        testResultTemplate.setTest_resolution_id(1);
-        List<TestResultDto> testResults = testResultDao.searchAll(testResultTemplate);
+    private void removePendingResultsForTest(Integer suiteId, Integer testId) throws AqualityException {
+        List<TestResultDto> testResults = testResultDao.selectSuiteLegacyResults(suiteId, testId);
         testResults.forEach(testResult -> {
             try {
                 testResultDao.delete(testResult);
@@ -131,20 +122,28 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         });
     }
 
-    private List<TestDto> getLegacyTests(List<TestRunDto> testRuns, Integer suiteId) throws AqualityException {
-        TestDto testTemplate = new TestDto();
-        testTemplate.setTest_suite_id(suiteId);
-        List<TestDto> tests = testController.get(testTemplate);
-        for (TestRunDto testRun : testRuns) {
-            TestResultDto testResultTemplate = new TestResultDto();
-            testResultTemplate.setTest_run_id(testRun.getId());
-            List<TestResultDto> testResults = testResultDao.searchAll(testResultTemplate);
-            tests = tests.stream().filter(test -> {
-                TestResultDto currentResult = testResults.stream().filter(result -> result.getTest_id().equals(test.getId())).findFirst().orElse(null);
-                return currentResult == null || currentResult.getFinal_result_id() == 3;
-            }).collect(Collectors.toList());
-        }
+    public List<TestDto> findLegacyTests(Integer suiteId, Integer notExecutedFor) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUserBySuiteId(suiteId).isManager()) {
+            TestRunDto testRunTemplate = new TestRunDto();
+            testRunTemplate.setTest_suite_id(suiteId);
+            testRunTemplate.setLimit(notExecutedFor);
+            List<TestRunDto> testRuns = testRunDao.searchAll(testRunTemplate);
+            TestDto testTemplate = new TestDto();
+            testTemplate.setTest_suite_id(suiteId);
+            List<TestDto> tests = testController.get(testTemplate);
+            for (TestRunDto testRun : testRuns) {
+                TestResultDto testResultTemplate = new TestResultDto();
+                testResultTemplate.setTest_run_id(testRun.getId());
+                List<TestResultDto> testResults = testResultDao.searchAll(testResultTemplate);
+                tests = tests.stream().filter(test -> {
+                    TestResultDto currentResult = testResults.stream().filter(result -> result.getTest_id().equals(test.getId())).findFirst().orElse(null);
+                    return currentResult == null || currentResult.getFinal_result_id() == 3;
+                }).collect(Collectors.toList());
+            }
 
-        return tests;
+            return tests;
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to Sync Test Suite", baseUser);
+        }
     }
 }
