@@ -55,12 +55,12 @@ public class FileUtils {
 
     public void removeFiles(List<String> filePaths){
         for (String path : filePaths){
-            boolean delete = new File(path).delete();
+            removeFile(path);
         }
     }
 
     public void removeFile(String path){
-        boolean delete = new File(path).delete();
+        new File(path).delete();
     }
 
     public String readFile(String path) throws AqualityException {
@@ -74,9 +74,8 @@ public class FileUtils {
         }
     }
 
-    public String readFile(File file) throws IOException {
-        InputStream is = new FileInputStream(file);
-        return IOUtils.toString(is, "UTF-8");
+    public String getFileFolderPath(String path) {
+        return new File(path).getParent();
     }
 
     private String getFileName(final Part part) {

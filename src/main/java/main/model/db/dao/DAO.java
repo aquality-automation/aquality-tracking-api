@@ -86,7 +86,13 @@ public abstract class DAO<T extends BaseDto> {
      * @return entity
      */
     public T getEntityById(T entity) throws AqualityException {
-        return searchAll(entity).get(0);
+        List<T> all = searchAll(entity);
+        if(all.size() > 0) {
+            return all.get(0);
+        }
+        else{
+            throw new AqualityException("No Entities was found by %s", entity.getIDParameters());
+        }
     }
 
 

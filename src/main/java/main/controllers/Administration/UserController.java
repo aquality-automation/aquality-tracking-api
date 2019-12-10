@@ -76,7 +76,7 @@ public class UserController extends BaseController<UserDto> {
         return userDao.create(user);
     }
 
-    public UserDto auth(String authString, boolean ldap) throws AqualityException {
+    UserDto auth(String authString, boolean ldap) throws AqualityException {
         Base64 base64= new Base64();
         String authStringDecoded = StringUtils.newStringUtf8(base64.decode(authString));
         String[] authStringSplit = authStringDecoded.split(":");

@@ -43,8 +43,7 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> {
         return test2SuiteDao.searchAll(template);
     }
 
-    //TODO Refactoring
-    public List<TestSuiteDto> convertToSuites(List<Test2SuiteDto> test2Suites, List<TestSuiteDto> suites) throws AqualityException {
+    List<TestSuiteDto> convertToSuites(List<Test2SuiteDto> test2Suites, List<TestSuiteDto> suites) {
         return test2Suites.stream().map(test2suite
                 -> suites.stream().filter(x -> x.getId().equals(test2suite.getSuite_id())).findFirst().orElse(null)).collect(Collectors.toList());
     }

@@ -1,6 +1,16 @@
 # CHANGELOG
 
-## 0.3.3 (unreleased)
+## 0.3.4 (2019-12-10)
+
+Features:
+  - Remove Customers Feature -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/25)
+  - Add possibility to sync testsuites according to Not Executed results -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/32)
+
+Bugfixes:
+  - It should not be possible to delete Customer that assigned to the projects -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/9)
+  - It is not possible to import several test run results one by one -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/35)
+
+## 0.3.3 (2019-11-16)
 
 Features:
   - Rename Import Token to API Token -> [View Issue](https://github.com/aquality-automation/aquality-tracking-ui/issues/23)

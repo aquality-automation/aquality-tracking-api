@@ -34,4 +34,7 @@ public class EmailSettingsDto extends BaseDto {
     @DataBaseName(name="request_default_email_pattern")
     @DataBaseInsert
     private String default_email_pattern;
+    @DataBaseName(name="request_base_url")
+    @DataBaseInsert
+    private String base_url;
 }
