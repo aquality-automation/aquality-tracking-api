@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.3.5 (unreleased)
+
+Bugfixes:
+  - Add ALLOW_UNQUOTED_CONTROL_CHARS for mapper -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/45)
+
 ## 0.3.4 (2019-12-10)
 
 Features:
