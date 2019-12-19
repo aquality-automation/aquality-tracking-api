@@ -2,6 +2,9 @@
 
 ## 0.3.5 (unreleased)
 
+Features:
+  - Import: Mark import as debug  -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/47)
+
 Bugfixes:
   - Add ALLOW_UNQUOTED_CONTROL_CHARS for mapper -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/45)
 
