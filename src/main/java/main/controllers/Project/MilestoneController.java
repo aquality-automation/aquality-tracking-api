@@ -37,7 +37,7 @@ public class MilestoneController extends BaseController<MilestoneDto> {
 
     @Override
     public boolean delete(MilestoneDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if(baseUser.isManager() || baseUser.getProjectUserByMilestoneId(template.getId()).isEditor()){
             return milestoneDao.delete(template);
         }else{
             throw new AqualityPermissionsException("Account is not allowed to delete Milestones", baseUser);

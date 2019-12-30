@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="create SELECT_LATEST_RESULTS_BY_MILESTONE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LATEST_RESULTS_BY_MILESTONE`(
+            IN request_milestone_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT *
+            FROM test_results
+            JOIN
+            (
+            SELECT res.test_id, MAX(res.finish_date) AS finish_date, test_suite_id
+            FROM
+            (
+            SELECT test_results.*, test_runs.test_suite_id FROM test_results
+            RIGHT JOIN test_runs ON test_results.test_run_id = test_runs.id
+            WHERE milestone_id = request_milestone_id AND test_runs.debug = 0
+            ) AS res
+            GROUP BY res.test_id, res.test_suite_id
+            ) AS tests
+            ON test_results.test_id = tests.test_id AND test_results.finish_date = tests.finish_date;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
