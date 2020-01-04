@@ -2,9 +2,12 @@
 
 ## 0.3.5 (unreleased)
 
+Features:
+  - Milestone View: Add functionality that displays the latest results of the tests from the test runs -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/11)
+  - List of predefined Resolutions -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/26)
+
 Bugfixes:
   - Add ALLOW_UNQUOTED_CONTROL_CHARS for mapper -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/45)
-  - Milestone View: Add functionality that displays the latest results of the tests from the test runs -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/11)
 
 ## 0.3.4 (2019-12-10)
 

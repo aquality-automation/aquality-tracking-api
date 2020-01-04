@@ -37,4 +37,128 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="create Predefined Resolutions Table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TABLE IF EXISTS `predefined_resolutions`;
+
+            #
+
+            CREATE TABLE `predefined_resolutions` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `project_id` INT NOT NULL,
+            `resolution_id` INT NOT NULL,
+            `comment` MEDIUMTEXT NULL,
+            `assignee` INT NULL,
+            `expression` VARCHAR(500) NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `predefined_to_project_idx` (`project_id` ASC),
+            INDEX `predefined_to_resolution_idx` (`resolution_id` ASC),
+            INDEX `predefined_to_user_idx` (`assignee` ASC),
+            CONSTRAINT `predefined_to_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            CONSTRAINT `predefined_to_resolution`
+            FOREIGN KEY (`resolution_id`)
+            REFERENCES `result_resolution` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
+            CONSTRAINT `predefined_to_user`
+            FOREIGN KEY (`assignee`)
+            REFERENCES `users` (`id`)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE);
+
+        </sql>
+        <rollback>
+            DROP TABLE IF EXISTS `predefined_resolutions`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create SELECT_PREDEFINED_RESOLUTION" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_PREDEFINED_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_PREDEFINED_RESOLUTION` (
+            IN request_id VARCHAR(10),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM predefined_resolutions
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id  = '' OR project_id=request_project_id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_PREDEFINED_RESOLUTION`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create INSERT_PREDEFINED_RESOLUTION" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PREDEFINED_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PREDEFINED_RESOLUTION` (
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_resolution_id varchar(11),
+            In request_assignee varchar(11),
+            In request_comment mediumtext,
+            In request_expression varchar(500)
+            )
+            BEGIN
+            INSERT INTO predefined_resolutions (`id`, `project_id`, `resolution_id`, `comment`, `assignee`, `expression`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_project_id,
+            IF(request_resolution_id='',null,request_resolution_id),
+            IF(request_comment='',null,request_comment),
+            IF(request_assignee='',null,request_assignee),
+            IF(request_expression='',null,request_expression)
+            )
+            ON DUPLICATE KEY UPDATE
+            resolution_id = IF(request_resolution_id='', resolution_id, request_resolution_id),
+            comment = apply_or_remove_value(request_comment, comment),
+            assignee = apply_or_remove_value(request_assignee, assignee),
+            expression = IF(request_expression='', expression, request_expression)
+            ;
+
+            SET @entity_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from predefined_resolutions where id = @entity_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_PREDEFINED_RESOLUTION`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create REMOVE_PREDEFINED_RESOLUTION" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_PREDEFINED_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_PREDEFINED_RESOLUTION` (
+            In request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM predefined_resolutions
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_PREDEFINED_RESOLUTION`;
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
