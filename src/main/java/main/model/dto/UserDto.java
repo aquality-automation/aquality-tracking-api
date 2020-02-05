@@ -6,6 +6,7 @@ import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.exceptions.AqualityException;
+import main.model.db.dao.project.MilestoneDao;
 import main.model.db.dao.project.TestSuiteDao;
 import main.utils.BooleanUtil;
 
@@ -109,6 +110,14 @@ public class UserDto extends BaseDto {
         TestSuiteDto template = new TestSuiteDto();
         template.setId(suite_id);
         template = testSuiteDao.searchAll(template).get(0);
+        return getProjectUser(template.getProject_id());
+    }
+
+    public ProjectUserDto getProjectUserByMilestoneId(Integer milestone_id) throws AqualityException {
+        MilestoneDao milestoneDao = new MilestoneDao();
+        MilestoneDto template = new MilestoneDto();
+        template.setId(milestone_id);
+        template = milestoneDao.searchAll(template).get(0);
         return getProjectUser(template.getProject_id());
     }
 
