@@ -18,11 +18,15 @@ class BaseImporter {
     private ControllerFactory controllerFactory;
     private String pattern;
     protected File file;
+    private List<PredefinedResolutionDto> predefinedResolutions;
 
-    BaseImporter(int projectId, String pattern, UserDto user){
+    BaseImporter(int projectId, String pattern, UserDto user) throws AqualityException {
         this.projectId = projectId;
         this.pattern = pattern;
         controllerFactory = new ControllerFactory(user);
+        PredefinedResolutionDto predefinedResolutionTemplate = new PredefinedResolutionDto();
+        predefinedResolutionTemplate.setProject_id(this.projectId);
+        predefinedResolutions = controllerFactory.getHandler(predefinedResolutionTemplate).get(predefinedResolutionTemplate);
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
@@ -37,38 +41,44 @@ class BaseImporter {
     ImportDao importDao = new ImportDao();
     ImportDto importDto = new ImportDto();
 
-    void createResults(boolean update) throws AqualityException {
+    void processImport(boolean update) throws AqualityException {
         createTestSuite();
-        addLogToImport("Suites are updated.");
         createTests();
-        addLogToImport("Tests are updated.");
         createTestRun();
-        addLogToImport("Test Run is updated.");
-        updateImportTestRun();
+        createResults(update);
+    }
 
-        TestResultDto template = new TestResultDto();
-        template.setTest_run_id(testRun.getId());
-        template.setProject_id(testRun.getProject_id());
-        template.setLimit(10000);
-        existingResults = testResultDao.searchAll(template);
+    private void createResults(boolean update) throws AqualityException {
+        existingResults = getExistingResults();
 
-        int testRunId = testRun.getId();
-        addLogToImport("Starting test results creation.");
+        logToImport("Starting test results creation.");
+
         for (int i = 0; i < testResults.size(); i++) {
             TestResultDto result = testResults.get(i);
+
             if(result.getInternalTestId() != null){
                 result.setTest(tests.stream().filter(x-> Objects.equals(x.getInternalId(), result.getInternalTestId())).findFirst().orElse(null));
             }else{
                 result.setTest(tests.get(i));
             }
+
             result.setTest_id(result.getTest().getId());
-            result.setTest_run_id(testRunId);
+            result.setTest_run_id(testRun.getId());
             result.setFinal_result_updated(result.getFinish_date());
             result.setProject_id(testRun.getProject_id());
 
             createResult(result, update);
         }
-        addLogToImport("Test results were created.");
+
+        logToImport("Test results were created.");
+    }
+
+    private List<TestResultDto> getExistingResults() throws AqualityException {
+        TestResultDto template = new TestResultDto();
+        template.setTest_run_id(testRun.getId());
+        template.setProject_id(testRun.getProject_id());
+        template.setLimit(10000);
+        return testResultDao.searchAll(template);
     }
 
     private void updateImportTestRun() throws AqualityException {
@@ -76,7 +86,7 @@ class BaseImporter {
         importDto = importDao.create(importDto);
     }
 
-    void addLogToImport(String log) throws AqualityException {
+    void logToImport(String log) throws AqualityException {
         importDto.addToLog(log);
         importDto = importDao.create(importDto);
     }
@@ -98,6 +108,8 @@ class BaseImporter {
                     ? testRun.getBuild_name()
                     : file.getName().substring(0, file.getName().lastIndexOf(".")));
         }
+        updateImportTestRun();
+        logToImport("Test Run is updated.");
     }
 
     private void createTestRun(String buildName) throws AqualityException {
@@ -133,6 +145,8 @@ class BaseImporter {
         } else {
             testSuite.setId(controllerFactory.getHandler(testSuite).create(testSuite).getId());
         }
+
+        logToImport("Suites are updated.");
     }
 
     private void createTests() throws AqualityException {
@@ -157,6 +171,8 @@ class BaseImporter {
             completedTests.add(test);
         }
         this.tests = completedTests;
+
+        logToImport("Tests are updated.");
     }
 
     private TestDto tryGetExistingTest(List<TestDto> allTests, TestDto test) throws AqualityException {
@@ -192,7 +208,7 @@ class BaseImporter {
             }
 
             if(result.getFail_reason() != null && !result.getFail_reason().equals("")){
-                updateResultWithSimilarError(result);
+                predictResultResolution(result);
             }
             controllerFactory.getHandler(result).create(result);
         } catch (AqualityException e){
@@ -202,7 +218,13 @@ class BaseImporter {
         }
     }
 
-    private TestResultDto updateResultWithSimilarError(TestResultDto result) throws AqualityException {
+    private void predictResultResolution(TestResultDto result) throws AqualityException {
+        if(!tryFillByPredefinedResolution(result, predefinedResolutions)) {
+            updateResultWithSimilarError(result);
+        }
+    }
+
+    private void updateResultWithSimilarError(TestResultDto result) throws AqualityException {
         try{
             ProjectDto project = new ProjectDto();
             project.setId(result.getProject_id());
@@ -227,8 +249,6 @@ class BaseImporter {
                     result.setAssignee(similarResult.getAssignee());
                 }
             }
-
-            return result;
         } catch (Exception e){
             throw new AqualityException("Failed on update Result with similar error");
         }
@@ -243,6 +263,21 @@ class BaseImporter {
             }
         }
         return null;
+    }
+
+    private boolean tryFillByPredefinedResolution(TestResultDto result, List<PredefinedResolutionDto> predefinedResolutions) {
+        if (result.getFail_reason() != null) {
+            for (PredefinedResolutionDto predefinedResolution : predefinedResolutions) {
+                if (RegexpUtil.match(result.getFail_reason(), predefinedResolution.getExpression())) {
+                    result.setTest_resolution_id(predefinedResolution.getResolution_id());
+                    result.setComment(predefinedResolution.getComment());
+                    result.setAssignee(predefinedResolution.getAssignee());
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private TestDto getTestByPatternOrName(List<TestDto> tests, TestDto importTest) throws AqualityException {
