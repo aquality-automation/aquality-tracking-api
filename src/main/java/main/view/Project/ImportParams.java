@@ -13,5 +13,6 @@ public enum ImportParams {
     format,
     singleTestRun,
     testNameKey,
-    addToLastTestRun
+    addToLastTestRun,
+    debug
 }

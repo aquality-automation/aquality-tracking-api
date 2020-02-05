@@ -35,6 +35,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
     private String suiteName;
     private Integer testRunId;
     private Boolean addToLastTestRun;
+    private Boolean debug;
     private String environment;
     private String cilink;
     private Boolean singleTestRun;
@@ -92,6 +93,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         addToLastTestRun = getBooleanQueryParameter(req, ImportParams.addToLastTestRun.name());
         environment = getStringQueryParameter(req, ImportParams.environment.name());
         cilink = getStringQueryParameter(req, ImportParams.cilink.name());
+        debug = getBooleanQueryParameter(req, ImportParams.debug.name());
         validateRequest();
     }
 
@@ -108,6 +110,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         testRunTemplate.setExecution_environment(environment);
         testRunTemplate.setTest_suite(testSuiteTemplate);
         testRunTemplate.setId(getTestRunId());
+        testRunTemplate.setDebug(debug ? 1 : 0);
 
         return testRunTemplate;
     }
