@@ -60,7 +60,7 @@ public class TestController extends BaseController<TestDto> {
 
     @Override
     public boolean delete(TestDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if(baseUser.isManager() || baseUser.getProjectUserByTestId(template.getProject_id()).isEditor()){
             return testDao.delete(template);
         }else{
             throw new AqualityPermissionsException("Account is not allowed to delete Test", baseUser);

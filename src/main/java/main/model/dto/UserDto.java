@@ -7,6 +7,7 @@ import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.MilestoneDao;
+import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestSuiteDao;
 import main.utils.BooleanUtil;
 
@@ -94,15 +95,10 @@ public class UserDto extends BaseDto {
     }
 
     public ProjectUserDto getProjectUser(Integer projectId){
-        ProjectUserDto emptyPU = new ProjectUserDto();
-        emptyPU.setViewer(0);
-        emptyPU.setAdmin(0);
-        emptyPU.setManager(0);
-        emptyPU.setEngineer(0);
         if(projectUsers != null){
-           return projectUsers.stream().filter(x -> x.getProject_id().equals(projectId)).findFirst().orElse(emptyPU);
+           return projectUsers.stream().filter(x -> x.getProject_id().equals(projectId)).findFirst().orElse(getEmptyProjectUser());
         }
-        return emptyPU;
+        return getEmptyProjectUser();
     }
 
     public ProjectUserDto getProjectUserBySuiteId(Integer suite_id) throws AqualityException {
@@ -110,6 +106,14 @@ public class UserDto extends BaseDto {
         TestSuiteDto template = new TestSuiteDto();
         template.setId(suite_id);
         template = testSuiteDao.searchAll(template).get(0);
+        return getProjectUser(template.getProject_id());
+    }
+
+    public ProjectUserDto getProjectUserByTestId(Integer test_id) throws AqualityException {
+        TestDao testDao = new TestDao();
+        TestDto template = new TestDto();
+        template.setId(test_id);
+        template = testDao.searchAll(template).get(0);
         return getProjectUser(template.getProject_id());
     }
 
@@ -125,5 +129,14 @@ public class UserDto extends BaseDto {
         this.setPassword("");
         this.setSession_code("");
         return this;
+    }
+
+    private ProjectUserDto getEmptyProjectUser(){
+        ProjectUserDto emptyPU = new ProjectUserDto();
+        emptyPU.setViewer(0);
+        emptyPU.setAdmin(0);
+        emptyPU.setManager(0);
+        emptyPU.setEngineer(0);
+        return emptyPU;
     }
 }
