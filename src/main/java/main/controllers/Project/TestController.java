@@ -49,7 +49,7 @@ public class TestController extends BaseController<TestDto> {
         if(baseUser.isFromGlobalManagement() || baseUser.getProjectUserByTestId(template.getId()).isViewer()){
             return fillTests(testDao.searchAll(template), withChildren);
         }else{
-            throw new AqualityPermissionsException("Account is not allowed to view Milestones", baseUser);
+            throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
         }
     }
 
