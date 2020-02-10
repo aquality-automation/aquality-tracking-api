@@ -109,12 +109,17 @@ public class UserDto extends BaseDto {
         return getProjectUser(template.getProject_id());
     }
 
-    public ProjectUserDto getProjectUserByTestId(Integer test_id) throws AqualityException {
-        TestDao testDao = new TestDao();
-        TestDto template = new TestDto();
-        template.setId(test_id);
-        template = testDao.searchAll(template).get(0);
-        return getProjectUser(template.getProject_id());
+    public ProjectUserDto getProjectUserByTest(TestDto testDto) throws AqualityException {
+        if(testDto.getProject_id() != null){
+            return getProjectUser(testDto.getProject_id());
+        }
+
+        try {
+            TestDao testDao = new TestDao();
+            return getProjectUser(testDao.searchAll(testDto).get(0).getProject_id());
+        }catch (IndexOutOfBoundsException e){
+            throw new AqualityException("Cannot define project id");
+        }
     }
 
     public ProjectUserDto getProjectUserByMilestoneId(Integer milestone_id) throws AqualityException {

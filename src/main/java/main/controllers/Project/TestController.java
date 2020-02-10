@@ -46,7 +46,7 @@ public class TestController extends BaseController<TestDto> {
     }
 
     public List<TestDto> get(TestDto template, boolean withChildren) throws AqualityException {
-        if(baseUser.isFromGlobalManagement() || baseUser.getProjectUserByTestId(template.getId()).isViewer()){
+        if(baseUser.isFromGlobalManagement() || baseUser.getProjectUserByTest(template).isViewer()){
             return fillTests(testDao.searchAll(template), withChildren);
         }else{
             throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
