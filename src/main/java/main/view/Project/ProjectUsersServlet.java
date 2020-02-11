@@ -23,8 +23,8 @@ public class ProjectUsersServlet extends BaseServlet implements IGet {
         try {
             Session session = createSession(req);
             ProjectUserDto projectUserDto = new ProjectUserDto();
-            Integer userId = (req.getParameterMap().containsKey("userId")&& !req.getParameter("userId").equals(""))? Integer.parseInt(req.getParameter("projectId")) : null;
-            Integer projectId = (req.getParameterMap().containsKey("projectId")&& !req.getParameter("projectId").equals(""))? Integer.parseInt(req.getParameter("projectId")) : null;
+            Integer userId = getIntegerQueryParameter(req, "userId");
+            Integer projectId = getIntegerQueryParameter(req, "projectId");
             projectUserDto.setProject_id(projectId);
             projectUserDto.setUser_id(userId);
             List<ProjectUserDto> projectUsers = session.controllerFactory.getHandler(projectUserDto).get(projectUserDto);

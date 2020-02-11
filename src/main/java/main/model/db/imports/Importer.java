@@ -21,7 +21,7 @@ public class Importer extends BaseImporter {
 
     private HandlerFactory handlerFactory = new HandlerFactory();
 
-    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) {
+    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) throws AqualityException {
         super(testRunTemplate.getProject_id(), pattern, user);
         this.testRunTemplate = testRunTemplate;
         this.suiteName = testRunTemplate.getTest_suite().getName();
@@ -77,7 +77,7 @@ public class Importer extends BaseImporter {
     private void executeResultsCreation() throws AqualityException {
         fillTestRunWithInputData();
         fillTestSuiteWithInputData();
-        this.createResults(testRunTemplate.getId() != null);
+        this.processImport(testRunTemplate.getId() != null);
         this.testRun = new TestRunDto();
         this.testResults = new ArrayList<>();
         this.tests = new ArrayList<>();
@@ -88,7 +88,7 @@ public class Importer extends BaseImporter {
         this.testResults.addAll(handler.getTestResults());
         this.tests.addAll(handler.getTests());
         this.testSuite = handler.getTestSuite();
-        addLogToImport("File was parsed correctly!");
+        logToImport("File was parsed correctly!");
     }
 
     private void fillTestSuiteWithInputData(){

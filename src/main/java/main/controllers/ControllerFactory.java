@@ -70,4 +70,7 @@ public class ControllerFactory {
     public StepTypeController getHandler(StepTypeDto entity) {
         return new StepTypeController(user);
     }
+    public PredefinedResolutionController getHandler(PredefinedResolutionDto entity) {
+        return new PredefinedResolutionController(user);
+    }
 }
