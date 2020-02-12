@@ -7,6 +7,7 @@ import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.MilestoneDao;
+import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestSuiteDao;
 import main.utils.BooleanUtil;
 
@@ -94,15 +95,10 @@ public class UserDto extends BaseDto {
     }
 
     public ProjectUserDto getProjectUser(Integer projectId){
-        ProjectUserDto emptyPU = new ProjectUserDto();
-        emptyPU.setViewer(0);
-        emptyPU.setAdmin(0);
-        emptyPU.setManager(0);
-        emptyPU.setEngineer(0);
         if(projectUsers != null){
-           return projectUsers.stream().filter(x -> x.getProject_id().equals(projectId)).findFirst().orElse(emptyPU);
+           return projectUsers.stream().filter(x -> x.getProject_id().equals(projectId)).findFirst().orElse(getEmptyProjectUser());
         }
-        return emptyPU;
+        return getEmptyProjectUser();
     }
 
     public ProjectUserDto getProjectUserBySuiteId(Integer suite_id) throws AqualityException {
@@ -111,6 +107,19 @@ public class UserDto extends BaseDto {
         template.setId(suite_id);
         template = testSuiteDao.searchAll(template).get(0);
         return getProjectUser(template.getProject_id());
+    }
+
+    public ProjectUserDto getProjectUserByTest(TestDto testDto) throws AqualityException {
+        if(testDto.getProject_id() != null){
+            return getProjectUser(testDto.getProject_id());
+        }
+
+        try {
+            TestDao testDao = new TestDao();
+            return getProjectUser(testDao.searchAll(testDto).get(0).getProject_id());
+        }catch (IndexOutOfBoundsException e){
+            throw new AqualityException("Cannot define project id");
+        }
     }
 
     public ProjectUserDto getProjectUserByMilestoneId(Integer milestone_id) throws AqualityException {
@@ -125,5 +134,14 @@ public class UserDto extends BaseDto {
         this.setPassword("");
         this.setSession_code("");
         return this;
+    }
+
+    private ProjectUserDto getEmptyProjectUser(){
+        ProjectUserDto emptyPU = new ProjectUserDto();
+        emptyPU.setViewer(0);
+        emptyPU.setAdmin(0);
+        emptyPU.setManager(0);
+        emptyPU.setEngineer(0);
+        return emptyPU;
     }
 }
