@@ -6,6 +6,7 @@ Features:
   - Milestone View: Add functionality that displays the latest results of the tests from the test runs -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/11)
   - List of predefined Resolutions -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/26)
   - Import: Mark import as debug  -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/47)
+  - Add JUnit 5 support -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/33)
   
 Bugfixes:
   - Add ALLOW_UNQUOTED_CONTROL_CHARS for mapper -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/45)
