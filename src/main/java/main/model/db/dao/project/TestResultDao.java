@@ -19,6 +19,7 @@ public class TestResultDao extends DAO<TestResultDto> {
 
 
     private String syncSuiteQuery = "{call SELECT_LEGACY_RESULTS(?,?)}";
+    private String latestResultsByMilestone = "{call SELECT_LATEST_RESULTS_BY_MILESTONE(?)}";
 
     /**
      * @param suiteId suite id for search
@@ -31,5 +32,11 @@ public class TestResultDao extends DAO<TestResultDto> {
         parameters.add(new ConnectionUrlParser.Pair<>("request_test_suite_id", suiteId.toString()));
         parameters.add(new ConnectionUrlParser.Pair<>("request_test_id", testId.toString()));
         return dtoMapper.mapObjects(CallStoredProcedure(syncSuiteQuery, parameters).toString());
+    }
+
+    public List<TestResultDto> selectLatestResultsByMilestone(@NotNull Integer milestoneId) throws AqualityException {
+        List<ConnectionUrlParser.Pair<String, String>> parameters = new ArrayList<>();
+        parameters.add(new ConnectionUrlParser.Pair<>("request_milestone_id", milestoneId.toString()));
+        return dtoMapper.mapObjects(CallStoredProcedure(latestResultsByMilestone, parameters).toString());
     }
 }

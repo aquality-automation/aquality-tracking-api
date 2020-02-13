@@ -12,35 +12,27 @@ import java.util.Date;
 import java.util.List;
 
 public class Importer extends BaseImporter {
-    private String environment;
-    private String build_name;
-    private Integer testRunId;
     private List<String> files;
     private String type;
     private TestNameNodeType testNameNodeType;
     private String suiteName;
-    private String author;
-    private String ci_build;
+    private TestRunDto testRunTemplate;
     private boolean singleTestRun;
 
     private HandlerFactory handlerFactory = new HandlerFactory();
 
-    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) {
+    public Importer(List<String> files, TestRunDto testRunTemplate, String pattern, String type, TestNameNodeType testNameNodeType, boolean singleTestRun, UserDto user) throws AqualityException {
         super(testRunTemplate.getProject_id(), pattern, user);
-        this.environment = testRunTemplate.getExecution_environment();
-        this.ci_build = testRunTemplate.getCi_build();
-        this.build_name = testRunTemplate.getBuild_name();
+        this.testRunTemplate = testRunTemplate;
         this.suiteName = testRunTemplate.getTest_suite().getName();
-        this.testRunId = testRunTemplate.getId();
         this.files = files;
-        this.author = testRunTemplate.getAuthor();
         this.type = type;
         this.testNameNodeType = testNameNodeType;
         this.singleTestRun = singleTestRun;
     }
 
     public List<ImportDto> executeImport() throws AqualityException {
-        if(testRunId == null && !singleTestRun){
+        if(testRunTemplate.getId() == null && !singleTestRun){
             return parseIntoMultiple();
         }
 
@@ -85,7 +77,7 @@ public class Importer extends BaseImporter {
     private void executeResultsCreation() throws AqualityException {
         fillTestRunWithInputData();
         fillTestSuiteWithInputData();
-        this.createResults(testRunId != null);
+        this.processImport(testRunTemplate.getId() != null);
         this.testRun = new TestRunDto();
         this.testResults = new ArrayList<>();
         this.tests = new ArrayList<>();
@@ -96,7 +88,7 @@ public class Importer extends BaseImporter {
         this.testResults.addAll(handler.getTestResults());
         this.tests.addAll(handler.getTests());
         this.testSuite = handler.getTestSuite();
-        addLogToImport("File was parsed correctly!");
+        logToImport("File was parsed correctly!");
     }
 
     private void fillTestSuiteWithInputData(){
@@ -105,11 +97,12 @@ public class Importer extends BaseImporter {
 
     private void fillTestRunWithInputData(){
         testRun.setProject_id(this.projectId);
-        testRun.setCi_build(this.ci_build);
-        if(author != null) this.testRun.setAuthor(author);
-        if(environment != null) this.testRun.setExecution_environment(environment);
-        if(build_name != null) this.testRun.setBuild_name(build_name);
-        if(testRunId != null) this.testRun.setId(testRunId);
+        testRun.setCi_build(testRunTemplate.getCi_build());
+        this.testRun.setAuthor(testRunTemplate.getAuthor());
+        this.testRun.setExecution_environment(testRunTemplate.getExecution_environment());
+        this.testRun.setBuild_name(testRunTemplate.getBuild_name());
+        this.testRun.setId(testRunTemplate.getId());
+        this.testRun.setDebug(testRunTemplate.getDebug());
     }
 
     private ImportDto finishImport() throws AqualityException {
