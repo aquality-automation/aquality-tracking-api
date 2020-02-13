@@ -161,4 +161,93 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Add apply_or_remove_id function" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP function IF EXISTS `apply_or_remove_id`;
+
+            #
+
+            CREATE FUNCTION `apply_or_remove_id`(
+            request_value varchar(10),
+            current_value varchar(10)
+            ) RETURNS varchar(10) CHARSET latin1
+            BEGIN
+            RETURN IF (request_value='', current_value, IF(request_value = '0', null, request_value));
+            END
+        </sql>
+        <rollback>
+            DROP function IF EXISTS `apply_or_remove_id`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_TEST_RUN to use functions" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_RUN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_start_time VARCHAR(500),
+            IN request_execution_environment VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_finish_time VARCHAR(500),
+            IN request_author VARCHAR(500),
+            IN request_label_id VARCHAR(11),
+            IN request_debug VARCHAR(1),
+            IN request_ci_build VARCHAR(500)
+            )
+            BEGIN
+            INSERT INTO test_runs (
+            id,
+            build_name,
+            start_time,
+            milestone_id,
+            test_suite_id,
+            project_id,
+            execution_environment,
+            finish_time,
+            author,
+            label_id,
+            debug,
+            ci_build)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            request_build_name,
+            if(request_start_time = '', FROM_UNIXTIME('0'), FROM_UNIXTIME(request_start_time)),
+            IF(request_milestone_id = '', null, request_milestone_id),
+            IF(request_test_suite_id = '', null, request_test_suite_id),
+            IF(request_project_id = '', 0, request_project_id),
+            apply_or_remove_value(request_execution_environment, execution_environment),
+            If(request_finish_time = '', null, FROM_UNIXTIME(request_finish_time)),
+            IF(request_author = '', null, request_author),
+            IF(request_label_id = '', 1, request_label_id),
+            IF(request_debug = '', '0', request_debug),
+            request_ci_build
+            )
+            ON DUPLICATE KEY UPDATE
+            build_name = IF(request_build_name = '', build_name, request_build_name),
+            start_time = IF(request_start_time = '', start_time, FROM_UNIXTIME(request_start_time)),
+            milestone_id = apply_or_remove_id(request_milestone_id, milestone_id),
+            test_suite_id = IF(request_test_suite_id = '', test_suite_id, request_test_suite_id),
+            project_id = IF(request_project_id = '',project_id, request_project_id ),
+            execution_environment = apply_or_remove_value(request_execution_environment, execution_environment),
+            finish_time = If(request_finish_time = '', finish_time, FROM_UNIXTIME(request_finish_time)),
+            author = apply_or_remove_value(request_author, author),
+            label_id = IF(request_label_id = '', label_id, request_label_id),
+            debug = IF(request_debug = '', debug, request_debug),
+            ci_build = IF(request_ci_build = '', ci_build, request_ci_build);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from test_runs where id = @result_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
