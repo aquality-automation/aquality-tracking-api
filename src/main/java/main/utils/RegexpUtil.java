@@ -26,6 +26,12 @@ public class RegexpUtil {
         return result;
     }
 
+    public static boolean match(String value, String expression) {
+        Pattern pattern = Pattern.compile(expression, Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(value);
+        return matcher.matches();
+    }
+
     private static List<String> getGroups(Matcher matcher) {
         List<String> groups = new ArrayList<>();
         while (matcher.find()) {

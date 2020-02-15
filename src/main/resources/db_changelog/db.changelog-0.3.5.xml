@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="create SELECT_LATEST_RESULTS_BY_MILESTONE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LATEST_RESULTS_BY_MILESTONE`(
+            IN request_milestone_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT *
+            FROM test_results
+            JOIN
+            (
+            SELECT res.test_id, MAX(res.finish_date) AS finish_date, test_suite_id
+            FROM
+            (
+            SELECT test_results.*, test_runs.test_suite_id FROM test_results
+            RIGHT JOIN test_runs ON test_results.test_run_id = test_runs.id
+            WHERE milestone_id = request_milestone_id AND test_runs.debug = 0
+            ) AS res
+            GROUP BY res.test_id, res.test_suite_id
+            ) AS tests
+            ON test_results.test_id = tests.test_id AND test_results.finish_date = tests.finish_date;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create Predefined Resolutions Table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TABLE IF EXISTS `predefined_resolutions`;
+
+            #
+
+            CREATE TABLE `predefined_resolutions` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `project_id` INT NOT NULL,
+            `resolution_id` INT NOT NULL,
+            `comment` MEDIUMTEXT NULL,
+            `assignee` INT NULL,
+            `expression` VARCHAR(500) NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `predefined_to_project_idx` (`project_id` ASC),
+            INDEX `predefined_to_resolution_idx` (`resolution_id` ASC),
+            INDEX `predefined_to_user_idx` (`assignee` ASC),
+            CONSTRAINT `predefined_to_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            CONSTRAINT `predefined_to_resolution`
+            FOREIGN KEY (`resolution_id`)
+            REFERENCES `result_resolution` (`id`)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
+            CONSTRAINT `predefined_to_user`
+            FOREIGN KEY (`assignee`)
+            REFERENCES `users` (`id`)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE);
+
+        </sql>
+        <rollback>
+            DROP TABLE IF EXISTS `predefined_resolutions`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create SELECT_PREDEFINED_RESOLUTION" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_PREDEFINED_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_PREDEFINED_RESOLUTION` (
+            IN request_id VARCHAR(10),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM predefined_resolutions
+            WHERE (request_id = '' OR id=request_id)
+            AND (request_project_id  = '' OR project_id=request_project_id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_PREDEFINED_RESOLUTION`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create INSERT_PREDEFINED_RESOLUTION" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PREDEFINED_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PREDEFINED_RESOLUTION` (
+            In request_id varchar(11),
+            In request_project_id varchar(11),
+            In request_resolution_id varchar(11),
+            In request_assignee varchar(11),
+            In request_comment mediumtext,
+            In request_expression varchar(500)
+            )
+            BEGIN
+            INSERT INTO predefined_resolutions (`id`, `project_id`, `resolution_id`, `comment`, `assignee`, `expression`)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_project_id,
+            IF(request_resolution_id='',null,request_resolution_id),
+            IF(request_comment='',null,request_comment),
+            IF(request_assignee='',null,request_assignee),
+            IF(request_expression='',null,request_expression)
+            )
+            ON DUPLICATE KEY UPDATE
+            resolution_id = IF(request_resolution_id='', resolution_id, request_resolution_id),
+            comment = apply_or_remove_value(request_comment, comment),
+            assignee = apply_or_remove_value(request_assignee, assignee),
+            expression = IF(request_expression='', expression, request_expression)
+            ;
+
+            SET @entity_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from predefined_resolutions where id = @entity_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_PREDEFINED_RESOLUTION`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create REMOVE_PREDEFINED_RESOLUTION" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_PREDEFINED_RESOLUTION`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_PREDEFINED_RESOLUTION` (
+            In request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM predefined_resolutions
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_PREDEFINED_RESOLUTION`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Add apply_or_remove_id function" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP function IF EXISTS `apply_or_remove_id`;
+
+            #
+
+            CREATE FUNCTION `apply_or_remove_id`(
+            request_value varchar(10),
+            current_value varchar(10)
+            ) RETURNS varchar(10) CHARSET latin1
+            BEGIN
+            RETURN IF (request_value='', current_value, IF(request_value = '0', null, request_value));
+            END
+        </sql>
+        <rollback>
+            DROP function IF EXISTS `apply_or_remove_id`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_TEST_RUN to use functions" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_RUN`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_start_time VARCHAR(500),
+            IN request_execution_environment VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_finish_time VARCHAR(500),
+            IN request_author VARCHAR(500),
+            IN request_label_id VARCHAR(11),
+            IN request_debug VARCHAR(1),
+            IN request_ci_build VARCHAR(500)
+            )
+            BEGIN
+            INSERT INTO test_runs (
+            id,
+            build_name,
+            start_time,
+            milestone_id,
+            test_suite_id,
+            project_id,
+            execution_environment,
+            finish_time,
+            author,
+            label_id,
+            debug,
+            ci_build)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            request_build_name,
+            if(request_start_time = '', FROM_UNIXTIME('0'), FROM_UNIXTIME(request_start_time)),
+            IF(request_milestone_id = '', null, request_milestone_id),
+            IF(request_test_suite_id = '', null, request_test_suite_id),
+            IF(request_project_id = '', 0, request_project_id),
+            apply_or_remove_value(request_execution_environment, execution_environment),
+            If(request_finish_time = '', null, FROM_UNIXTIME(request_finish_time)),
+            IF(request_author = '', null, request_author),
+            IF(request_label_id = '', 1, request_label_id),
+            IF(request_debug = '', '0', request_debug),
+            request_ci_build
+            )
+            ON DUPLICATE KEY UPDATE
+            build_name = IF(request_build_name = '', build_name, request_build_name),
+            start_time = IF(request_start_time = '', start_time, FROM_UNIXTIME(request_start_time)),
+            milestone_id = apply_or_remove_id(request_milestone_id, milestone_id),
+            test_suite_id = IF(request_test_suite_id = '', test_suite_id, request_test_suite_id),
+            project_id = IF(request_project_id = '',project_id, request_project_id ),
+            execution_environment = apply_or_remove_value(request_execution_environment, execution_environment),
+            finish_time = If(request_finish_time = '', finish_time, FROM_UNIXTIME(request_finish_time)),
+            author = apply_or_remove_value(request_author, author),
+            label_id = IF(request_label_id = '', label_id, request_label_id),
+            debug = IF(request_debug = '', debug, request_debug),
+            ci_build = IF(request_ci_build = '', ci_build, request_ci_build);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from test_runs where id = @result_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

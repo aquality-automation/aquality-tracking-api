@@ -4,6 +4,7 @@ public enum ImportTypes {
     MSTest,
     Robot,
     TestNG,
+    JUnit,
     Cucumber,
     TestNGCucumber,
     PHPCodeception,

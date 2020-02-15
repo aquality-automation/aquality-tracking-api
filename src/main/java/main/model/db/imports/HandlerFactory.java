@@ -15,6 +15,7 @@ class HandlerFactory {
                 return new TRX(file, testNameNodeType);
             case Robot:
                 return new Robot(file);
+            case JUnit:
             case TestNG:
                 if(testNameNodeType == null){
                     throw new AqualityException("testNameNode is required");
