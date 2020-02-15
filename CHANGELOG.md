@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.3.5 (unreleased)
+## 0.3.5 (2020-02-15)
 
 Features:
   - Milestone View: Add functionality that displays the latest results of the tests from the test runs -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/11)
