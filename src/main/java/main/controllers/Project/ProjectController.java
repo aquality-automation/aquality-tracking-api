@@ -2,6 +2,7 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.controllers.CustomerController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
@@ -9,7 +10,7 @@ import main.model.dto.*;
 
 import java.util.*;
 
-public class ProjectController extends BaseController<ProjectDto> {
+public class ProjectController extends BaseController<ProjectDto> implements IController<ProjectDto> {
     private ProjectDao projectDao;
     private CustomerController customerController;
 
@@ -21,10 +22,10 @@ public class ProjectController extends BaseController<ProjectDto> {
 
     @Override
     public ProjectDto create(ProjectDto template) throws AqualityException {
-        if(baseUser.isAdmin() || allowUpdateProject(template)){
+        if (baseUser.isAdmin() || allowUpdateProject(template)) {
             ProjectDto project = projectDao.create(template);
             return project;
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Projects", baseUser);
         }
     }
@@ -46,9 +47,9 @@ public class ProjectController extends BaseController<ProjectDto> {
 
     @Override
     public boolean delete(ProjectDto template) throws AqualityException {
-        if(baseUser.isAdmin()){
+        if (baseUser.isAdmin()) {
             return projectDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Projects", baseUser);
         }
     }
@@ -58,7 +59,7 @@ public class ProjectController extends BaseController<ProjectDto> {
         project.setId(projectId);
         List<ProjectDto> projects = get(project, false);
 
-        if(projects.size() < 1) {
+        if (projects.size() < 1) {
             throw new AqualityException("Project with id %s does not exists!", projectId);
         }
 
@@ -66,7 +67,7 @@ public class ProjectController extends BaseController<ProjectDto> {
     }
 
     private boolean allowUpdateProject(ProjectDto template) {
-        if(template.getId() != null) {
+        if (template.getId() != null) {
             ProjectUserDto projectUser = baseUser.getProjectUser(template.getId());
             return baseUser.isManager() || projectUser.isManager() || projectUser.isAdmin();
         }
@@ -76,7 +77,7 @@ public class ProjectController extends BaseController<ProjectDto> {
     private List<ProjectDto> fillCustomers(List<ProjectDto> projects, boolean withChildren) throws AqualityException {
         List<ProjectDto> filledProjects = new ArrayList<>();
         CustomerDto customerTemplate = new CustomerDto();
-        if(projects.size() == 1) {
+        if (projects.size() == 1) {
             customerTemplate.setId(projects.get(0).getCustomer_id());
         }
 
@@ -93,8 +94,6 @@ public class ProjectController extends BaseController<ProjectDto> {
         }
         return filledProjects;
     }
-
-
 
 
 }

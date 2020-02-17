@@ -1,6 +1,7 @@
 package main.controllers.Administration;
 
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.settings.AppSettingsDao;
@@ -15,7 +16,7 @@ import org.apache.poi.util.NotImplemented;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-public class AppSettingsController extends BaseController<AppSettingsDto> {
+public class AppSettingsController extends BaseController<AppSettingsDto> implements IController<AppSettingsDto> {
     private AppSettingsDao appSettingsDao;
     private LdapDao ldapDao;
 
@@ -26,23 +27,24 @@ public class AppSettingsController extends BaseController<AppSettingsDto> {
     }
 
     public LdapDto getLdap() throws AqualityException {
-        if(baseUser.isAdmin()){
+        if (baseUser.isAdmin()) {
             return ldapDao.getAll().get(0);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to view LDAP Settings", baseUser);
         }
     }
+
     public AppSettingsDto getApp() throws AqualityException {
         return appSettingsDao.getAll().get(0);
     }
 
     public LdapDto create(LdapDto template) throws AqualityException {
-        if(baseUser.isAdmin()){
+        if (baseUser.isAdmin()) {
             template.setAdminSecret(template.getAdminSecret() == null || template.getAdminSecret().equals("")
                     ? ""
                     : hideAdminSecret(template.getAdminSecret()));
             return ldapDao.create(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to update LDAP Settings", baseUser);
         }
     }
@@ -50,19 +52,21 @@ public class AppSettingsController extends BaseController<AppSettingsDto> {
 
     @Override
     public AppSettingsDto create(AppSettingsDto template) throws AqualityException {
-        if(baseUser.isAdmin()){
+        if (baseUser.isAdmin()) {
             return appSettingsDao.create(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to update Application Settings", baseUser);
         }
     }
 
-    @Override @NotImplemented
+    @Override
+    @NotImplemented
     public List<AppSettingsDto> get(AppSettingsDto entity) throws AqualityException {
         throw new UnsupportedOperationException();
     }
 
-    @Override @NotImplemented
+    @Override
+    @NotImplemented
     public boolean delete(AppSettingsDto entity) throws AqualityException {
         throw new UnsupportedOperationException();
     }
@@ -79,11 +83,11 @@ public class AppSettingsController extends BaseController<AppSettingsDto> {
     }
 
     private String hideAdminSecret(String secret) throws AqualityException {
-        try{
+        try {
             Base64 base64 = new Base64();
-            secret = base64.encodeToString(("JmbGFzYmRmamtiYXNsZA"+secret+"qYXNkaGxma2poYXNka2xqZmJka2").getBytes("utf-8"));
-            return base64.encodeToString(("YXNkamhmbGtqYXNkaGx"+secret+"a2poYXNka2xqZmJka2phc2JmbGFzYmRmamtiYXNsZA").getBytes("utf-8"));
-        }catch (UnsupportedEncodingException e){
+            secret = base64.encodeToString(("JmbGFzYmRmamtiYXNsZA" + secret + "qYXNkaGxma2poYXNka2xqZmJka2").getBytes("utf-8"));
+            return base64.encodeToString(("YXNkamhmbGtqYXNkaGx" + secret + "a2poYXNka2xqZmJka2phc2JmbGFzYmRmamtiYXNsZA").getBytes("utf-8"));
+        } catch (UnsupportedEncodingException e) {
             throw new AqualityException("Cannot hide Admin Secret.");
         }
     }

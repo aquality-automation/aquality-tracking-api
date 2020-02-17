@@ -1,6 +1,7 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
+import main.controllers.IProjectController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Test2SuiteDao;
@@ -11,7 +12,7 @@ import main.model.dto.UserDto;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Test2SuiteController extends BaseController<Test2SuiteDto> {
+public class Test2SuiteController extends BaseController<Test2SuiteDto> implements IProjectController<Test2SuiteDto> {
 
     private Test2SuiteDao test2SuiteDao;
 
@@ -21,25 +22,25 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> {
     }
 
     @Override
-    public Test2SuiteDto create(Test2SuiteDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getSuite_id()).isEditor()){
+    public Test2SuiteDto create(Test2SuiteDto template, Integer projectId) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(projectId).isEditor()) {
             return test2SuiteDao.create(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Project User", baseUser);
         }
     }
 
     @Override
-    public boolean delete(Test2SuiteDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getSuite_id()).isEditor()){
+    public boolean delete(Test2SuiteDto template, Integer projectId) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(projectId).isEditor()) {
             return test2SuiteDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Test from Suite", baseUser);
         }
     }
 
     @Override
-    public List<Test2SuiteDto> get(Test2SuiteDto template) throws AqualityException {
+    public List<Test2SuiteDto> get(Test2SuiteDto template, Integer projectId) throws AqualityException {
         return test2SuiteDao.searchAll(template);
     }
 

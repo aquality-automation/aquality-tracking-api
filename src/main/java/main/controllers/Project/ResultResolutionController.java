@@ -1,6 +1,7 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.ResultResolutionDao;
@@ -9,7 +10,7 @@ import main.model.dto.UserDto;
 
 import java.util.List;
 
-public class ResultResolutionController  extends BaseController<ResultResolutionDto> {
+public class ResultResolutionController extends BaseController<ResultResolutionDto> implements IController<ResultResolutionDto> {
     private ResultResolutionDao resultResolutionDao;
 
     public ResultResolutionController(UserDto user) {
@@ -19,9 +20,9 @@ public class ResultResolutionController  extends BaseController<ResultResolution
 
     @Override
     public ResultResolutionDto create(ResultResolutionDto template) throws AqualityException {
-        if(baseUser.isAdmin() || baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isAdmin() || baseUser.getProjectUser(template.getProject_id()).isManager()){
+        if (baseUser.isAdmin() || baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isAdmin() || baseUser.getProjectUser(template.getProject_id()).isManager()) {
             return resultResolutionDao.create(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Result Resolution", baseUser);
         }
     }
@@ -33,9 +34,9 @@ public class ResultResolutionController  extends BaseController<ResultResolution
 
     @Override
     public boolean delete(ResultResolutionDto template) throws AqualityException {
-        if(baseUser.isAdmin()){
+        if (baseUser.isAdmin()) {
             return resultResolutionDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Result Resolution", baseUser);
         }
     }

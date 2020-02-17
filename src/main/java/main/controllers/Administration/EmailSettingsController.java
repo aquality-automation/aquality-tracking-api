@@ -1,6 +1,7 @@
 package main.controllers.Administration;
 
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.settings.EmailSettingsDao;
 import main.model.dto.EmailSettingsDto;
@@ -9,7 +10,7 @@ import org.apache.poi.util.NotImplemented;
 
 import java.util.List;
 
-public class EmailSettingsController extends BaseController<EmailSettingsDto> {
+public class EmailSettingsController extends BaseController<EmailSettingsDto> implements IController<EmailSettingsDto> {
     private EmailSettingsDao emailSettingsDao;
 
     public EmailSettingsController(UserDto user) {
@@ -29,7 +30,8 @@ public class EmailSettingsController extends BaseController<EmailSettingsDto> {
         return emailSettingsDao.create(template);
     }
 
-    @Override @NotImplemented
+    @Override
+    @NotImplemented
     public boolean delete(EmailSettingsDto entity) throws AqualityException {
         throw new UnsupportedOperationException();
     }

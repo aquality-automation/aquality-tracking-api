@@ -1,6 +1,7 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.StepResultDao;
 import main.model.dto.StepResultDto;
@@ -8,8 +9,9 @@ import main.model.dto.UserDto;
 
 import java.util.List;
 
-public class StepResultController extends BaseController<StepResultDto> {
+public class StepResultController extends BaseController<StepResultDto> implements IController<StepResultDto> {
     private StepResultDao stepResultDao;
+
     public StepResultController(UserDto user) {
         super(user);
         stepResultDao = new StepResultDao();

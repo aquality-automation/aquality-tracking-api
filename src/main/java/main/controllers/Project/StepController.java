@@ -1,6 +1,7 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.Step2TestDao;
 import main.model.db.dao.project.StepDao;
@@ -11,7 +12,7 @@ import main.model.dto.UserDto;
 import java.util.List;
 import java.util.Objects;
 
-public class StepController extends BaseController<StepDto> {
+public class StepController extends BaseController<StepDto> implements IController<StepDto> {
     private StepDao stepDao;
     private Step2TestDao step2TestDao;
 
@@ -45,7 +46,7 @@ public class StepController extends BaseController<StepDto> {
     }
 
     public List<StepDto> updateOrder(List<Step2TestDto> entities) throws AqualityException {
-        if(entities.size() < 1) {
+        if (entities.size() < 1) {
             throw new AqualityException("The test should have at least one step!");
         }
         Integer projectId = entities.get(0).getProject_id();
@@ -62,7 +63,7 @@ public class StepController extends BaseController<StepDto> {
             step2TestDao.create(newStepLink);
         }
 
-        if(oldSteps.size() > 0 ){
+        if (oldSteps.size() > 0) {
             for (StepDto oldStep : oldSteps) {
                 Step2TestDto stepToRemove = new Step2TestDto();
                 stepToRemove.setId(oldStep.getLink_id());

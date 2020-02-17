@@ -2,6 +2,7 @@ package main.controllers.Administration;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.PasswordDao;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class UserController extends BaseController<UserDto> {
+public class UserController extends BaseController<UserDto> implements IController<UserDto> {
     private UserDao userDao;
     private PasswordDao passwordDao;
     private UserSessionDao userSessionDao;
@@ -38,12 +39,12 @@ public class UserController extends BaseController<UserDto> {
 
     @Override
     public UserDto create(UserDto template) throws AqualityException {
-        if(baseUser.isAdmin() || baseUser.getId().equals(template.getId())){
-            if(template.getPassword() != null){
+        if (baseUser.isAdmin() || baseUser.getId().equals(template.getId())) {
+            if (template.getPassword() != null) {
                 template.setPassword(saltPassword(template, template.getPassword()));
             }
             return userDao.create(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create User", baseUser);
         }
     }
@@ -55,9 +56,9 @@ public class UserController extends BaseController<UserDto> {
 
     @Override
     public boolean delete(UserDto template) throws AqualityException {
-        if(baseUser.isAdmin()){
+        if (baseUser.isAdmin()) {
             return userDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete User", baseUser);
         }
     }
@@ -77,7 +78,7 @@ public class UserController extends BaseController<UserDto> {
     }
 
     UserDto auth(String authString, boolean ldap) throws AqualityException {
-        Base64 base64= new Base64();
+        Base64 base64 = new Base64();
         String authStringDecoded = StringUtils.newStringUtf8(base64.decode(authString));
         String[] authStringSplit = authStringDecoded.split(":");
         ConnectionUrlParser.Pair<String, PrivateKey> privateKeyPair
@@ -94,7 +95,7 @@ public class UserController extends BaseController<UserDto> {
 
         UserDto user = ldap ? handleLDAPAuthorization(authStringSplit[0], password) : checkUser(authStringSplit[0], password);
 
-        if(user != null){
+        if (user != null) {
             user.setSession_code(generateSessionCode(user));
             updateSession(user);
             return user;
@@ -113,7 +114,7 @@ public class UserController extends BaseController<UserDto> {
     }
 
     private String generateSessionCode(UserDto user) {
-        Base64 base64= new Base64();
+        Base64 base64 = new Base64();
         DateUtils dates = new DateUtils();
         String encode = null;
         try {
@@ -124,9 +125,9 @@ public class UserController extends BaseController<UserDto> {
         return encode;
     }
 
-    private String saltPassword(UserDto user, String password){
+    private String saltPassword(UserDto user, String password) {
         String passHash = DigestUtils.md5Hex(password);
-        return DigestUtils.md5Hex(user.getEmail()+passHash+"kjr1fdd00das");
+        return DigestUtils.md5Hex(user.getEmail() + passHash + "kjr1fdd00das");
     }
 
     private UserDto checkUser(String user_name, String password) throws AqualityException {
@@ -134,11 +135,11 @@ public class UserController extends BaseController<UserDto> {
         user.setUser_name(user_name);
         List<UserDto> users = userDao.searchAll(user);
 
-        if(users.size() > 0){
+        if (users.size() > 0) {
             user = users.get(0);
             String correctHex = user.getPassword();
             String actualHex = saltPassword(user, password);
-            if(correctHex.equals(actualHex)){
+            if (correctHex.equals(actualHex)) {
                 return user;
             }
         }
@@ -150,12 +151,12 @@ public class UserController extends BaseController<UserDto> {
         LDAPAuthenticator ldap = new LDAPAuthenticator();
         UserDto user;
         user = ldap.tryAuthWithLdap(userName, password);
-        if(user != null){
+        if (user != null) {
             UserDto templateUser = new UserDto();
             templateUser.setUser_name(user.getUser_name());
             List<UserDto> users = get(templateUser);
 
-            if(users.size() > 0){
+            if (users.size() > 0) {
                 user.setId(users.get(0).getId());
             }
 

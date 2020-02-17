@@ -1,6 +1,7 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
+import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.ImportDao;
@@ -10,7 +11,7 @@ import org.apache.poi.util.NotImplemented;
 
 import java.util.List;
 
-public class ImportController extends BaseController<ImportDto> {
+public class ImportController extends BaseController<ImportDto> implements IController<ImportDto> {
     private ImportDao importDao;
 
     public ImportController(UserDto user) {
@@ -20,19 +21,21 @@ public class ImportController extends BaseController<ImportDto> {
 
     @Override
     public List<ImportDto> get(ImportDto template) throws AqualityException {
-        if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()) {
             return importDao.searchAll(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to view Imports", baseUser);
         }
     }
 
-    @Override @NotImplemented
+    @Override
+    @NotImplemented
     public ImportDto create(ImportDto entity) throws AqualityException {
         throw new UnsupportedOperationException();
     }
 
-    @Override @NotImplemented
+    @Override
+    @NotImplemented
     public boolean delete(ImportDto entity) throws AqualityException {
         throw new UnsupportedOperationException();
     }
