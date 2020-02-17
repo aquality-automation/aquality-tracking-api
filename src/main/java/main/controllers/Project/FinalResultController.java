@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.FinalResultDao;
@@ -10,7 +9,7 @@ import main.model.dto.UserDto;
 
 import java.util.List;
 
-public class FinalResultController extends BaseController<FinalResultDto> implements IController<FinalResultDto> {
+public class FinalResultController extends BaseController<FinalResultDto> {
     private FinalResultDao finalResultDao;
 
     public FinalResultController(UserDto user) {

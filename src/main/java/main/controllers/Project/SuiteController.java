@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
@@ -10,7 +9,7 @@ import main.model.dto.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SuiteController extends BaseController<TestSuiteDto> implements IController<TestSuiteDto> {
+public class SuiteController extends BaseController<TestSuiteDto> {
     private TestSuiteDao testSuiteDao;
     private TestRunDao testRunDao;
     private Test2SuiteDao test2SuiteDao;

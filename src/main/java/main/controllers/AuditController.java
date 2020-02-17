@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AuditController extends BaseController<AuditDto> implements IController<AuditDto> {
+public class AuditController extends BaseController<AuditDto> {
     private AuditDao auditDao;
     private AuditStatusDao auditStatusDao;
     private ServiceDao serviceDao;

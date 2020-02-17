@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestDao;
@@ -11,7 +10,7 @@ import main.model.dto.*;
 
 import java.util.List;
 
-public class ResultController extends BaseController<TestResultDto> implements IController<TestResultDto> {
+public class ResultController extends BaseController<TestResultDto> {
     private TestResultDao testResultDao;
     private TestResultStatDao testResultStatDao;
     private TestDao testDao;
@@ -70,8 +69,8 @@ public class ResultController extends BaseController<TestResultDto> implements I
         }
     }
 
-    public List<TestResultDto> getLatestResultsByMilestone(Integer milestoneId) throws AqualityException {
-        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUserByMilestoneId(milestoneId).isViewer()) {
+    public List<TestResultDto> getLatestResultsByMilestone(Integer projectId, Integer milestoneId) throws AqualityException {
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
             return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId));
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);

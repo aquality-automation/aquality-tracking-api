@@ -2,7 +2,6 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.controllers.CustomerController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
@@ -10,7 +9,7 @@ import main.model.dto.*;
 
 import java.util.*;
 
-public class ProjectController extends BaseController<ProjectDto> implements IController<ProjectDto> {
+public class ProjectController extends BaseController<ProjectDto> {
     private ProjectDao projectDao;
     private CustomerController customerController;
 

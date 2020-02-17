@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.ImportDao;
@@ -11,7 +10,7 @@ import org.apache.poi.util.NotImplemented;
 
 import java.util.List;
 
-public class ImportController extends BaseController<ImportDto> implements IController<ImportDto> {
+public class ImportController extends BaseController<ImportDto> {
     private ImportDao importDao;
 
     public ImportController(UserDto user) {

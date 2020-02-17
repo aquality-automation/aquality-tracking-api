@@ -2,7 +2,6 @@ package main.controllers.Administration;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.PasswordDao;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class UserController extends BaseController<UserDto> implements IController<UserDto> {
+public class UserController extends BaseController<UserDto> {
     private UserDao userDao;
     private PasswordDao passwordDao;
     private UserSessionDao userSessionDao;

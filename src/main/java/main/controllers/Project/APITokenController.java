@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.APITokenDao;
@@ -13,7 +12,7 @@ import org.apache.poi.util.NotImplemented;
 import java.util.List;
 import java.util.Objects;
 
-public class APITokenController extends BaseController<APITokenDto> implements IController<APITokenDto> {
+public class APITokenController extends BaseController<APITokenDto> {
     private APITokenDao apiTokenDao;
 
     public APITokenController(UserDto user) {

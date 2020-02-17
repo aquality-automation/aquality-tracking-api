@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Suite2DashboardDao;
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SuiteDashboardController extends BaseController<SuiteDashboardDto> implements IController<SuiteDashboardDto> {
+public class SuiteDashboardController extends BaseController<SuiteDashboardDto> {
     private Suite2DashboardDao suite2DashboardDao;
     private SuiteDashboardDao suiteDashboardDao;
     private SuiteController suiteController;

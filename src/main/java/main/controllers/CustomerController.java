@@ -10,7 +10,7 @@ import main.model.dto.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CustomerController extends BaseController<CustomerDto> implements IController<CustomerDto> {
+public class CustomerController extends BaseController<CustomerDto> {
     private CustomerDao customerDao;
     private UserDao userDao;
 

@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.PredefinedResolutionDao;
@@ -9,7 +8,7 @@ import main.model.dto.*;
 
 import java.util.List;
 
-public class PredefinedResolutionController extends BaseController<PredefinedResolutionDto> implements IController<PredefinedResolutionDto> {
+public class PredefinedResolutionController extends BaseController<PredefinedResolutionDto> {
     private PredefinedResolutionDao predefinedResolutionDao;
     private ProjectUserController projectUserController;
     private ResultResolutionController resultResolutionController;

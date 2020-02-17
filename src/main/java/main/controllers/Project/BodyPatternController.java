@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.BodyPatternDao;
@@ -10,7 +9,7 @@ import main.model.dto.UserDto;
 
 import java.util.List;
 
-public class BodyPatternController extends BaseController<BodyPatternDto> implements IController<BodyPatternDto> {
+public class BodyPatternController extends BaseController<BodyPatternDto> {
     private BodyPatternDao bodyPatternDao;
 
     public BodyPatternController(UserDto user) {

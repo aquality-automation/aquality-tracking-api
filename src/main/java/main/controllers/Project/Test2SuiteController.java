@@ -1,7 +1,6 @@
 package main.controllers.Project;
 
 import main.controllers.BaseController;
-import main.controllers.IProjectController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Test2SuiteDao;
@@ -12,7 +11,7 @@ import main.model.dto.UserDto;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Test2SuiteController extends BaseController<Test2SuiteDto> implements IProjectController<Test2SuiteDto> {
+public class Test2SuiteController extends BaseController<Test2SuiteDto> {
 
     private Test2SuiteDao test2SuiteDao;
 
@@ -21,7 +20,6 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> implemen
         test2SuiteDao = new Test2SuiteDao();
     }
 
-    @Override
     public Test2SuiteDto create(Test2SuiteDto template, Integer projectId) throws AqualityException {
         if (baseUser.isManager() || baseUser.getProjectUser(projectId).isEditor()) {
             return test2SuiteDao.create(template);
@@ -30,7 +28,6 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> implemen
         }
     }
 
-    @Override
     public boolean delete(Test2SuiteDto template, Integer projectId) throws AqualityException {
         if (baseUser.isManager() || baseUser.getProjectUser(projectId).isEditor()) {
             return test2SuiteDao.delete(template);
@@ -39,9 +36,23 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> implemen
         }
     }
 
-    @Override
     public List<Test2SuiteDto> get(Test2SuiteDto template, Integer projectId) throws AqualityException {
         return test2SuiteDao.searchAll(template);
+    }
+
+    @Override
+    public List<Test2SuiteDto> get(Test2SuiteDto entity) throws AqualityException {
+        return get(entity, null);
+    }
+
+    @Override
+    public Test2SuiteDto create(Test2SuiteDto entity) throws AqualityException {
+        return create(entity, null);
+    }
+
+    @Override
+    public boolean delete(Test2SuiteDto entity) throws AqualityException {
+        return delete(entity, null);
     }
 
     List<TestSuiteDto> convertToSuites(List<Test2SuiteDto> test2Suites, List<TestSuiteDto> suites) {

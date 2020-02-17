@@ -101,14 +101,6 @@ public class UserDto extends BaseDto {
         return getEmptyProjectUser();
     }
 
-    public ProjectUserDto getProjectUserByMilestoneId(Integer milestone_id) throws AqualityException {
-        MilestoneDao milestoneDao = new MilestoneDao();
-        MilestoneDto template = new MilestoneDto();
-        template.setId(milestone_id);
-        template = milestoneDao.searchAll(template).get(0);
-        return getProjectUser(template.getProject_id());
-    }
-
     public UserDto toPublic(){
         this.setPassword("");
         this.setSession_code("");

@@ -1,7 +1,6 @@
 package main.controllers.Administration;
 
 import main.controllers.BaseController;
-import main.controllers.IController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.settings.AppSettingsDao;
@@ -16,7 +15,7 @@ import org.apache.poi.util.NotImplemented;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-public class AppSettingsController extends BaseController<AppSettingsDto> implements IController<AppSettingsDto> {
+public class AppSettingsController extends BaseController<AppSettingsDto> {
     private AppSettingsDao appSettingsDao;
     private LdapDao ldapDao;
 
