@@ -20,7 +20,6 @@ public class StepServlet extends BaseServlet implements IGet, IPost, IDelete {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             StepDto step = new StepDto();
@@ -36,7 +35,6 @@ public class StepServlet extends BaseServlet implements IGet, IPost, IDelete {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -52,13 +50,11 @@ public class StepServlet extends BaseServlet implements IGet, IPost, IDelete {
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
-
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             StepDto step = new StepDto();
             step.setId(Integer.parseInt(req.getParameter("id")));
-            step.setProject_id(projectId);
+            step.setProject_id(getProjectId(req));
             session.controllerFactory.getHandler(step).delete(step);
         }catch (Exception e) {
             handleException(resp, e);

@@ -14,12 +14,11 @@ public class AssignSuiteServlet extends BaseServlet {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             Test2SuiteDto test2Suite = new Test2SuiteDto();
             test2Suite.setSuite_id(Integer.parseInt(req.getParameter("suiteId")));
             test2Suite.setTest_id(Integer.parseInt(req.getParameter("testId")));
-            session.controllerFactory.getHandler(test2Suite).create(test2Suite, projectId);
+            session.controllerFactory.getHandler(test2Suite).create(test2Suite, getProjectId(req));
         } catch (Exception e) {
             handleException(resp, e);
         }
@@ -29,12 +28,11 @@ public class AssignSuiteServlet extends BaseServlet {
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             Test2SuiteDto test2Suite = new Test2SuiteDto();
             test2Suite.setSuite_id(Integer.parseInt(req.getParameter("suiteId")));
             test2Suite.setTest_id(Integer.parseInt(req.getParameter("testId")));
-            session.controllerFactory.getHandler(test2Suite).delete(test2Suite, projectId);
+            session.controllerFactory.getHandler(test2Suite).delete(test2Suite, getProjectId(req));
         } catch (Exception e) {
             handleException(resp, e);
         }

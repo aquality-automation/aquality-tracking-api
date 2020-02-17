@@ -31,7 +31,8 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
 
     @Override
     public List<ProjectUserDto> get(ProjectUserDto template) throws AqualityException {
-        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer() || template.getUser_id() != null) {
+        boolean isViewer = template.getProject_id() != null && baseUser.getProjectUser(template.getProject_id()).isViewer();
+        if (baseUser.isFromGlobalManagement() || isViewer || template.getUser_id() != null) {
             return fillProjectUsers(projectUserDao.searchAll(template));
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Project Users", baseUser);
@@ -60,7 +61,7 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
         return projectUsers;
     }
 
-    private boolean isEditorSession(ProjectUserDto template) {
+    private boolean isEditorSession(ProjectUserDto template) throws AqualityException {
         return baseUser.isAdmin() || baseUser.isManager()
                 || baseUser.getProjectUser(template.getProject_id()).isAdmin()
                 || baseUser.getProjectUser(template.getProject_id()).isManager();

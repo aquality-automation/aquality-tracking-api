@@ -20,9 +20,7 @@ public class StepsOrderServlet extends BaseServlet implements IPost {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             List<Step2TestDto> step2Tests = mapper.mapObjects(Step2TestDto.class, requestedJson);

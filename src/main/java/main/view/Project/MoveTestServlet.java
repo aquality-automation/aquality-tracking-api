@@ -18,13 +18,12 @@ public class MoveTestServlet extends BaseServlet implements IGet {
         setGetResponseHeaders(resp);
         try {
             validateGet(req);
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             session.controllerFactory.getHandler(new TestDto()).moveTest(
                     Integer.parseInt(req.getParameter("from")),
                     Integer.parseInt(req.getParameter("to")),
                     Boolean.parseBoolean(req.getParameter("remove")),
-                    projectId);
+                    getProjectId(req));
         }catch (Exception e) {
             handleException(resp, e);
         }

@@ -20,12 +20,11 @@ public class AuditDownloadAttachmentServlet extends BaseServlet implements IGet 
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         setGetResponseHeaders(resp);
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("id")) {
                 AuditAttachmentDto auditAttachmentDto = new AuditAttachmentDto();
                 auditAttachmentDto.setId(Integer.parseInt(req.getParameter("id")));
-                List<AuditAttachmentDto> auditAttachments = session.getAuditController().get(auditAttachmentDto, projectId);
+                List<AuditAttachmentDto> auditAttachments = session.getAuditController().get(auditAttachmentDto, getProjectId(req));
                 processResponse(resp, auditAttachments.get(0).getPath());
             } else {
                 resp.setStatus(400);

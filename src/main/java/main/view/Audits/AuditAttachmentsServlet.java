@@ -26,12 +26,11 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         setGetResponseHeaders(resp);
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("audit_id")) {
                 AuditAttachmentDto auditAttachmentDtoTemplate  = new AuditAttachmentDto();
                 auditAttachmentDtoTemplate.setAudit_id(Integer.parseInt(req.getParameter("audit_id")));
-                List<AuditAttachmentDto> attachments = session.getAuditController().get(auditAttachmentDtoTemplate, projectId);
+                List<AuditAttachmentDto> attachments = session.getAuditController().get(auditAttachmentDtoTemplate, getProjectId(req));
                 setJSONContentType(resp);
                 resp.getWriter().write(mapper.serialize(attachments));
             } else {
@@ -47,12 +46,11 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("id")) {
                 AuditAttachmentDto auditAttachmentDtoTemplate = new AuditAttachmentDto();
                 auditAttachmentDtoTemplate.setId(Integer.parseInt(req.getParameter("id")));
-                session.getAuditController().delete(auditAttachmentDtoTemplate, projectId);
+                session.getAuditController().delete(auditAttachmentDtoTemplate, getProjectId(req));
             } else {
                 setAuthorizationProblem(resp);
             }

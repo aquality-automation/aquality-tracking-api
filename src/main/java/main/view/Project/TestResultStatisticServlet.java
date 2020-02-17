@@ -20,10 +20,9 @@ public class TestResultStatisticServlet extends BaseServlet implements IGet {
         setGetResponseHeaders(resp);
         setEncoding(resp);
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             TestResultStatDto testResultStatDto = new TestResultStatDto();
-            testResultStatDto.setProject_id(projectId);
+            testResultStatDto.setProject_id(getProjectId(req));
             testResultStatDto.setTestrun_started_from_date(req.getParameter("testRunStartedFrom"));
             testResultStatDto.setTestrun_started_to_date(req.getParameter("testRunStartedTo"));
             List<TestResultStatDto> testResultStats = session.controllerFactory.getHandler(new TestResultDto()).get(testResultStatDto);

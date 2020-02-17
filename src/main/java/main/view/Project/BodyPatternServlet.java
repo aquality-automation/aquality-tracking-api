@@ -21,10 +21,9 @@ public class BodyPatternServlet extends BaseServlet implements IGet, IPost, IDel
         setEncoding(resp);
 
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             BodyPatternDto bodyPatternDto = new BodyPatternDto();
-            bodyPatternDto.setProject_id(projectId);
+            bodyPatternDto.setProject_id(getProjectId(req));
             List<BodyPatternDto> bodyPatterns = session.controllerFactory.getHandler(bodyPatternDto).get(bodyPatternDto);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(bodyPatterns));
@@ -39,7 +38,7 @@ public class BodyPatternServlet extends BaseServlet implements IGet, IPost, IDel
         setEncoding(resp);
 
         try {
-            validateAndGetProjectId(req);
+
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             BodyPatternDto bodyPatternDto = mapper.mapObject(BodyPatternDto.class, requestedJson);
@@ -55,7 +54,7 @@ public class BodyPatternServlet extends BaseServlet implements IGet, IPost, IDel
         setEncoding(resp);
 
         try {
-            validateAndGetProjectId(req);
+
             Session session = createSession(req);
             BodyPatternDto entity = new BodyPatternDto();
             entity.setId(getIntegerQueryParameter(req, "id"));

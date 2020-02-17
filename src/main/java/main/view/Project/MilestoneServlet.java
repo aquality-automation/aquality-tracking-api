@@ -19,11 +19,10 @@ public class MilestoneServlet extends BaseServlet implements IPost, IGet, IDelet
         setDeleteResponseHeaders(resp);
 
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             MilestoneDto milestoneDto = new MilestoneDto();
             milestoneDto.setId(Integer.parseInt(req.getParameter("id")));
-            milestoneDto.setProject_id(projectId);
+            milestoneDto.setProject_id(getProjectId(req));
             session.controllerFactory.getHandler(milestoneDto).delete(milestoneDto);
         }catch (Exception e) {
             handleException(resp, e);
@@ -36,7 +35,6 @@ public class MilestoneServlet extends BaseServlet implements IPost, IGet, IDelet
         setEncoding(resp);
 
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             MilestoneDto milestoneTemplate = new MilestoneDto();
             milestoneTemplate.getSearchTemplateFromRequestParameters(req);
@@ -54,7 +52,6 @@ public class MilestoneServlet extends BaseServlet implements IPost, IGet, IDelet
         setEncoding(resp);
 
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             MilestoneDto milestone = mapper.mapObject(MilestoneDto.class, requestedJson);

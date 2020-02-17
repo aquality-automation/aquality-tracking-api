@@ -14,18 +14,15 @@ import java.util.List;
 @WebServlet("/test")
 public class TestServlet extends BaseServlet implements IDelete {
 
-
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            validateAndGetProjectId(req);
+
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.getSearchTemplateFromRequestParameters(req);
-
             boolean withChildren = false;
             if(req.getParameterMap().containsKey("withChildren")){
                 withChildren = req.getParameter("withChildren").equals("1");
@@ -43,9 +40,7 @@ public class TestServlet extends BaseServlet implements IDelete {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             TestDto test = mapper.mapObject(TestDto.class, requestedJson);
@@ -61,9 +56,7 @@ public class TestServlet extends BaseServlet implements IDelete {
     public void doPut(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             List<TestDto> tests = mapper.mapObjects(TestDto.class, requestedJson);
@@ -76,13 +69,11 @@ public class TestServlet extends BaseServlet implements IDelete {
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
-
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.setId(Integer.parseInt(req.getParameter("id")));
-            test.setProject_id(projectId);
+            test.setProject_id(getProjectId(req));
             session.controllerFactory.getHandler(test).delete(test);
         }catch (Exception e) {
             handleException(resp, e);

@@ -77,20 +77,8 @@ public class BaseServlet extends HttpServlet {
                 : null;
     }
 
-    protected Integer validateAndGetProjectId(@NotNull HttpServletRequest req) throws AqualityException {
-        return getProjectId(req, true);
-    }
-
-    protected Integer getProjectId(@NotNull HttpServletRequest req, Boolean withValidation) throws AqualityException {
-
-        Integer projectId = (req.getParameterMap().containsKey(PROJECT_ID_KEY) && !req.getParameter(PROJECT_ID_KEY).isEmpty())
-                ? getIntegerQueryParameter(req, PROJECT_ID_KEY)
-                : null;
-        if (projectId == null && withValidation) {
-            throw new AqualityException("Project id is not defined!");
-        }
-
-        return projectId;
+    protected Integer getProjectId(@NotNull HttpServletRequest req) {
+        return getIntegerQueryParameter(req, PROJECT_ID_KEY);
     }
 
     protected Boolean getBooleanQueryParameter(@NotNull HttpServletRequest req, String name) {

@@ -65,7 +65,7 @@ public class ProjectController extends BaseController<ProjectDto> {
         return projects.get(0).getSteps() == 1;
     }
 
-    private boolean allowUpdateProject(ProjectDto template) {
+    private boolean allowUpdateProject(ProjectDto template) throws AqualityException {
         if (template.getId() != null) {
             ProjectUserDto projectUser = baseUser.getProjectUser(template.getId());
             return baseUser.isManager() || projectUser.isManager() || projectUser.isAdmin();

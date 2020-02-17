@@ -21,9 +21,7 @@ public class SyncSuiteServlet extends BaseServlet implements IGet, IPost {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Integer notExecutedFor;
             Session session = createSession(req);
             if (!req.getParameterMap().containsKey("notExecutedFor")) {
@@ -33,7 +31,7 @@ public class SyncSuiteServlet extends BaseServlet implements IGet, IPost {
             Integer suiteId = getIntegerQueryParameter(req, "suiteId");
             TestSuiteDto testSuite = new TestSuiteDto();
             testSuite.getSearchTemplateFromRequestParameters(req);
-            List<TestDto> legacyTests = session.controllerFactory.getHandler(testSuite).findLegacyTests(projectId, suiteId, notExecutedFor);
+            List<TestDto> legacyTests = session.controllerFactory.getHandler(testSuite).findLegacyTests(getProjectId(req), suiteId, notExecutedFor);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(legacyTests));
         } catch (Exception e) {
@@ -47,13 +45,12 @@ public class SyncSuiteServlet extends BaseServlet implements IGet, IPost {
         setEncoding(resp);
 
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             boolean removeNotExecutedResults = getBooleanQueryParameter(req, "removeNotExecutedResults");
             Integer suiteId = getIntegerQueryParameter(req, "suiteId");
             List<TestDto> legacyTests = mapper.mapObjects(TestDto.class, requestedJson);
-            session.controllerFactory.getHandler(new TestSuiteDto()).syncLegacyTests(projectId, legacyTests, suiteId, removeNotExecutedResults);
+            session.controllerFactory.getHandler(new TestSuiteDto()).syncLegacyTests(getProjectId(req), legacyTests, suiteId, removeNotExecutedResults);
             setJSONContentType(resp);
         } catch (Exception e) {
             handleException(resp, e);

@@ -19,11 +19,10 @@ public class ResultResolutionServlet extends BaseServlet implements IGet, IPost,
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setGetResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             ResultResolutionDto resultResolutionDto = new ResultResolutionDto();
-            resultResolutionDto.setProject_id(getProjectId(req, false));
+            resultResolutionDto.setProject_id(getProjectId(req));
             List<ResultResolutionDto> resultResolutions = session.controllerFactory.getHandler(resultResolutionDto).get(resultResolutionDto);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(resultResolutions));
@@ -36,7 +35,6 @@ public class ResultResolutionServlet extends BaseServlet implements IGet, IPost,
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -51,10 +49,9 @@ public class ResultResolutionServlet extends BaseServlet implements IGet, IPost,
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
-            if(getProjectId(req, false) != null) {
+            if(getProjectId(req) != null) {
                 ResultResolutionDto resultResolutionTemplate = new ResultResolutionDto();
                 resultResolutionTemplate.setId(Integer.parseInt(req.getParameter("id")));
                 session.controllerFactory.getHandler(resultResolutionTemplate).delete(resultResolutionTemplate);

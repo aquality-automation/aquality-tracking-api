@@ -20,7 +20,6 @@ public class AuditorServlet extends BaseServlet implements IPost {
         setEncoding(resp);
 
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             List<AuditorDto> auditors = mapper.mapObjects(AuditorDto.class, requestedJson);

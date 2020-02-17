@@ -20,9 +20,7 @@ public class TestSuiteServlet extends BaseServlet implements IDelete, IPost, IGe
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             boolean withChildren = false;
             if(req.getParameterMap().containsKey("withChildren")){
@@ -42,9 +40,7 @@ public class TestSuiteServlet extends BaseServlet implements IDelete, IPost, IGe
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             TestSuiteDto testSuite = mapper.mapObject(TestSuiteDto.class, requestedJson);
@@ -59,13 +55,11 @@ public class TestSuiteServlet extends BaseServlet implements IDelete, IPost, IGe
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
-
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             TestSuiteDto testSuite = new TestSuiteDto();
             testSuite.setId(Integer.parseInt(req.getParameter("id")));
-            testSuite.setProject_id(projectId);
+            testSuite.setProject_id(getProjectId(req));
             session.controllerFactory.getHandler(testSuite).delete(testSuite);
         }catch (Exception e) {
             handleException(resp, e);

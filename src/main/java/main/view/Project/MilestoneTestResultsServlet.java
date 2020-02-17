@@ -20,10 +20,9 @@ public class MilestoneTestResultsServlet extends BaseServlet implements IGet {
         setEncoding(resp);
 
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             Integer milestoneId = getIntegerQueryParameter(req, "milestoneId");
-            List<TestResultDto> testResults = session.controllerFactory.getHandler(new TestResultDto()).getLatestResultsByMilestone(projectId, milestoneId);
+            List<TestResultDto> testResults = session.controllerFactory.getHandler(new TestResultDto()).getLatestResultsByMilestone(getProjectId(req), milestoneId);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(testResults));
         } catch (Exception e) {

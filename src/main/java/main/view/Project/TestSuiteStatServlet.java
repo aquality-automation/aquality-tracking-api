@@ -19,15 +19,14 @@ public class TestSuiteStatServlet extends BaseServlet implements IGet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         setGetResponseHeaders(resp);
         setEncoding(resp);
-
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             SuiteStatisticDto suiteStatisticDto = new SuiteStatisticDto();
             if(req.getParameter("suiteId") != null){
                 suiteStatisticDto.setId(Integer.parseInt(req.getParameter("suiteId")));
             }
-            suiteStatisticDto.setProjectId(projectId);
+
+            suiteStatisticDto.setProjectId(getProjectId(req));
             List<SuiteStatisticDto> suiteStatistics = session.controllerFactory.getHandler(new TestSuiteDto()).get(suiteStatisticDto);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(suiteStatistics));

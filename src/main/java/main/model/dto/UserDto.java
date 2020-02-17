@@ -94,10 +94,15 @@ public class UserDto extends BaseDto {
         return isManager() || isAuditor() || isAuditAdmin() || isCoordinator() || BooleanUtil.intToBoolean(head);
     }
 
-    public ProjectUserDto getProjectUser(Integer projectId){
+    public ProjectUserDto getProjectUser(Integer projectId) throws AqualityException {
+        if(projectId == null){
+            throw new AqualityException("Project ID is not defined!");
+        }
+
         if(projectUsers != null){
            return projectUsers.stream().filter(x -> x.getProject_id().equals(projectId)).findFirst().orElse(getEmptyProjectUser());
         }
+
         return getEmptyProjectUser();
     }
 
