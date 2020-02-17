@@ -20,10 +20,10 @@ public class ProjectUsersServlet extends BaseServlet implements IGet {
         setEncoding(resp);
 
         try {
-            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             ProjectUserDto projectUserDto = new ProjectUserDto();
             Integer userId = getIntegerQueryParameter(req, "userId");
+            Integer projectId = getProjectId(req, false);
             projectUserDto.setProject_id(projectId);
             projectUserDto.setUser_id(userId);
             List<ProjectUserDto> projectUsers = session.controllerFactory.getHandler(projectUserDto).get(projectUserDto);

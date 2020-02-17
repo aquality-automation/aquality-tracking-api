@@ -20,7 +20,6 @@ public class GetAuditsServlet extends BaseServlet implements IPost {
         setEncoding(resp);
 
         try {
-            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             AuditDto audit = mapper.mapObject(AuditDto.class, requestedJson);

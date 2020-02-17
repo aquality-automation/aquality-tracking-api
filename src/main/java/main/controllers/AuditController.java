@@ -46,7 +46,15 @@ public class AuditController extends BaseController<AuditDto> {
     @Override
     public List<AuditDto> get(AuditDto searchTemplate) throws AqualityException {
         List<AuditDto> audits = auditDao.searchAll(searchTemplate);
-        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(searchTemplate.getProject_id()).isViewer()) {
+        Integer projectId;
+        try {
+            projectId = searchTemplate.getId() == null
+                    ? searchTemplate.getProject_id()
+                    : audits.get(0).getProject_id();
+        } catch (IndexOutOfBoundsException e) {
+            throw new AqualityException("The Audit you trying to access is not present!");
+        }
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
             return completeAudits(audits);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Audits.", baseUser);
