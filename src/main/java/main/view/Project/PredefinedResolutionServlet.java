@@ -20,10 +20,10 @@ public class PredefinedResolutionServlet extends BaseServlet implements IGet, IP
         setGetResponseHeaders(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             PredefinedResolutionDto template = new PredefinedResolutionDto();
             template.getSearchTemplateFromRequestParameters(req);
-
             List<PredefinedResolutionDto> predefinedResolutions = session.controllerFactory.getHandler(template).get(template);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(predefinedResolutions));
@@ -37,6 +37,7 @@ public class PredefinedResolutionServlet extends BaseServlet implements IGet, IP
         setPostResponseHeaders(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             PredefinedResolutionDto template = mapper.mapObject(PredefinedResolutionDto.class, getRequestJson(req));
             template = session.controllerFactory.getHandler(template).create(template);
@@ -52,6 +53,7 @@ public class PredefinedResolutionServlet extends BaseServlet implements IGet, IP
         setDeleteResponseHeaders(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             PredefinedResolutionDto template = new PredefinedResolutionDto();
             template.getSearchTemplateFromRequestParameters(req);

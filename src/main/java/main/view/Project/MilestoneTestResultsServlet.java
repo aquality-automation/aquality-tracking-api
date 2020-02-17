@@ -3,11 +3,8 @@ package main.view.Project;
 
 import main.Session;
 import main.model.dto.TestResultDto;
-import main.model.dto.TestSuiteDto;
 import main.view.BaseServlet;
-import main.view.IDelete;
 import main.view.IGet;
-import main.view.IPost;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -23,9 +20,9 @@ public class MilestoneTestResultsServlet extends BaseServlet implements IGet {
         setEncoding(resp);
 
         try {
+            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             Integer milestoneId = getIntegerQueryParameter(req, "milestoneId");
-            Integer projectId = getIntegerQueryParameter(req, "project_id");
             List<TestResultDto> testResults = session.controllerFactory.getHandler(new TestResultDto()).getLatestResultsByMilestone(projectId, milestoneId);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(testResults));

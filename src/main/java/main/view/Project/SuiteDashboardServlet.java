@@ -21,6 +21,7 @@ public class SuiteDashboardServlet extends BaseServlet implements IDelete, IGet,
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             SuiteDashboardDto template = new SuiteDashboardDto();
             template.getSearchTemplateFromRequestParameters(req);
@@ -38,6 +39,7 @@ public class SuiteDashboardServlet extends BaseServlet implements IDelete, IGet,
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             SuiteDashboardDto template = mapper.mapObject(SuiteDashboardDto.class, requestedJson);
@@ -54,6 +56,7 @@ public class SuiteDashboardServlet extends BaseServlet implements IDelete, IGet,
         setDeleteResponseHeaders(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             SuiteDashboardDto template = new SuiteDashboardDto();
             template.getSearchTemplateFromRequestParameters(req);

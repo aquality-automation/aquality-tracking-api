@@ -16,6 +16,7 @@ public class AuditCommentServlet extends BaseServlet implements IPost {
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp){
         try {
+            validateAndGetProjectId(req);
             setPostResponseHeaders(resp);
             setEncoding(resp);
             Session session = createSession(req);

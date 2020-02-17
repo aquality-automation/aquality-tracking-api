@@ -132,7 +132,7 @@ public class TestController extends BaseController<TestDto> {
             for (TestSuiteDto testSuite : testSuites) {
                 Test2SuiteDto test2Suite = new Test2SuiteDto();
                 test2Suite.setSuite_id(testSuite.getId());
-                test2Suites.addAll(test2SuiteController.get(test2Suite, projectId));
+                test2Suites.addAll(test2SuiteController.get(test2Suite));
             }
 
 
@@ -161,7 +161,7 @@ public class TestController extends BaseController<TestDto> {
     private void updateSuites(TestDto test) throws AqualityException {
         Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
         test2SuiteDto.setTest_id(test.getId());
-        List<Test2SuiteDto> oldSuites = test2SuiteController.get(test2SuiteDto, test.getProject_id());
+        List<Test2SuiteDto> oldSuites = test2SuiteController.get(test2SuiteDto);
         if (test.getSuites() != null && test.getSuites().size() > 0) {
             for (TestSuiteDto newSuite : test.getSuites()) {
                 Test2SuiteDto alreadyExists = oldSuites.stream().filter(x -> Objects.equals(x.getSuite_id(), newSuite.getId())).findAny().orElse(null);

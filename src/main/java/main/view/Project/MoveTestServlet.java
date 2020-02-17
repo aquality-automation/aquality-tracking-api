@@ -18,12 +18,13 @@ public class MoveTestServlet extends BaseServlet implements IGet {
         setGetResponseHeaders(resp);
         try {
             validateGet(req);
+            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             session.controllerFactory.getHandler(new TestDto()).moveTest(
                     Integer.parseInt(req.getParameter("from")),
                     Integer.parseInt(req.getParameter("to")),
                     Boolean.parseBoolean(req.getParameter("remove")),
-                    Integer.parseInt(req.getParameter("projectId")));
+                    projectId);
         }catch (Exception e) {
             handleException(resp, e);
         }
@@ -38,6 +39,5 @@ public class MoveTestServlet extends BaseServlet implements IGet {
         assertRequiredField(req, "from");
         assertRequiredField(req, "to");
         assertRequiredField(req, "remove");
-        assertRequiredField(req, "projectId");
     }
 }

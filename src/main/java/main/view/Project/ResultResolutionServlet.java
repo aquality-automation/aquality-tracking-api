@@ -22,11 +22,8 @@ public class ResultResolutionServlet extends BaseServlet implements IGet, IPost,
 
         try {
             Session session = createSession(req);
-            Integer project_id = (req.getParameterMap().containsKey("projectId") && !req.getParameter("projectId").equals(""))
-                    ? Integer.parseInt(req.getParameter("projectId"))
-                    : null;
             ResultResolutionDto resultResolutionDto = new ResultResolutionDto();
-            resultResolutionDto.setProject_id(project_id);
+            resultResolutionDto.setProject_id(getProjectId(req, false));
             List<ResultResolutionDto> resultResolutions = session.controllerFactory.getHandler(resultResolutionDto).get(resultResolutionDto);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(resultResolutions));
@@ -57,10 +54,7 @@ public class ResultResolutionServlet extends BaseServlet implements IGet, IPost,
 
         try {
             Session session = createSession(req);
-            Integer project_id = (req.getParameterMap().containsKey("projectId") && !req.getParameter("projectId").equals(""))
-                    ? Integer.parseInt(req.getParameter("projectId"))
-                    : null;
-            if(project_id != null) {
+            if(getProjectId(req, false) != null) {
                 ResultResolutionDto resultResolutionTemplate = new ResultResolutionDto();
                 resultResolutionTemplate.setId(Integer.parseInt(req.getParameter("id")));
                 session.controllerFactory.getHandler(resultResolutionTemplate).delete(resultResolutionTemplate);

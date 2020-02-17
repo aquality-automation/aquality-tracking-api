@@ -54,10 +54,11 @@ public class StepServlet extends BaseServlet implements IGet, IPost, IDelete {
         setDeleteResponseHeaders(resp);
 
         try {
+            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             StepDto step = new StepDto();
             step.setId(Integer.parseInt(req.getParameter("id")));
-            step.setProject_id(Integer.parseInt(req.getParameter("project_id")));
+            step.setProject_id(projectId);
             session.controllerFactory.getHandler(step).delete(step);
         }catch (Exception e) {
             handleException(resp, e);

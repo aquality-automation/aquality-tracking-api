@@ -22,6 +22,7 @@ public class StepsOrderServlet extends BaseServlet implements IPost {
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             List<Step2TestDto> step2Tests = mapper.mapObjects(Step2TestDto.class, requestedJson);

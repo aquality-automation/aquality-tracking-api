@@ -21,6 +21,7 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             TestRunDto testRunTemplate = new TestRunDto();
             testRunTemplate.getSearchTemplateFromRequestParameters(req);
@@ -45,10 +46,11 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
         setDeleteResponseHeaders(resp);
 
         try {
+            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             TestRunDto testRun = new TestRunDto();
             testRun.setId(Integer.parseInt(req.getParameter("id")));
-            testRun.setProject_id(Integer.parseInt(req.getParameter("projectId")));
+            testRun.setProject_id(projectId);
             session.controllerFactory.getHandler(testRun).delete(testRun);
         }catch (Exception e) {
             handleException(resp, e);

@@ -9,7 +9,6 @@ import main.view.IGet;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet("/project/users")
@@ -21,10 +20,10 @@ public class ProjectUsersServlet extends BaseServlet implements IGet {
         setEncoding(resp);
 
         try {
+            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             ProjectUserDto projectUserDto = new ProjectUserDto();
             Integer userId = getIntegerQueryParameter(req, "userId");
-            Integer projectId = getIntegerQueryParameter(req, "projectId");
             projectUserDto.setProject_id(projectId);
             projectUserDto.setUser_id(userId);
             List<ProjectUserDto> projectUsers = session.controllerFactory.getHandler(projectUserDto).get(projectUserDto);

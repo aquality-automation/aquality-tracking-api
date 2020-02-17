@@ -21,6 +21,7 @@ public class TestServlet extends BaseServlet implements IDelete {
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.getSearchTemplateFromRequestParameters(req);
@@ -44,6 +45,7 @@ public class TestServlet extends BaseServlet implements IDelete {
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             TestDto test = mapper.mapObject(TestDto.class, requestedJson);
@@ -61,6 +63,7 @@ public class TestServlet extends BaseServlet implements IDelete {
         setEncoding(resp);
 
         try {
+            validateAndGetProjectId(req);
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             List<TestDto> tests = mapper.mapObjects(TestDto.class, requestedJson);
@@ -75,10 +78,11 @@ public class TestServlet extends BaseServlet implements IDelete {
         setDeleteResponseHeaders(resp);
 
         try {
+            Integer projectId = validateAndGetProjectId(req);
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.setId(Integer.parseInt(req.getParameter("id")));
-            test.setProject_id(Integer.parseInt(req.getParameter("projectId")));
+            test.setProject_id(projectId);
             session.controllerFactory.getHandler(test).delete(test);
         }catch (Exception e) {
             handleException(resp, e);

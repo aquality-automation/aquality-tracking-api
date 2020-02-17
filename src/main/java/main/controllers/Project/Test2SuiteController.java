@@ -36,13 +36,9 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> {
         }
     }
 
-    public List<Test2SuiteDto> get(Test2SuiteDto template, Integer projectId) throws AqualityException {
-        return test2SuiteDao.searchAll(template);
-    }
-
     @Override
-    public List<Test2SuiteDto> get(Test2SuiteDto entity) throws AqualityException {
-        return get(entity, null);
+    public List<Test2SuiteDto> get(Test2SuiteDto template) throws AqualityException {
+        return test2SuiteDao.searchAll(template);
     }
 
     @Override
