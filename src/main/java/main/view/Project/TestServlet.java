@@ -24,13 +24,7 @@ public class TestServlet extends BaseServlet implements IDelete {
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.getSearchTemplateFromRequestParameters(req);
-
-            boolean withChildren = false;
-            if(req.getParameterMap().containsKey("withChildren")){
-                withChildren = req.getParameter("withChildren").equals("1");
-            }
-
-            List<TestDto> tests = session.controllerFactory.getHandler(test).get(test, withChildren);
+            List<TestDto> tests = session.controllerFactory.getHandler(test).get(test);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(tests));
         }catch (Exception e) {

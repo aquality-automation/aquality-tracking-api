@@ -13,7 +13,7 @@ import java.util.List;
 public class ResultController extends BaseController<TestResultDto> {
     private TestResultDao testResultDao;
     private TestResultStatDao testResultStatDao;
-    private TestDao testDao;
+    private TestController testController;
     private ProjectUserController projectUserController;
     private ResultResolutionController resultResolutionController;
     private FinalResultController finalResultController;
@@ -26,7 +26,7 @@ public class ResultController extends BaseController<TestResultDto> {
         testResultDao = new TestResultDao();
         testResultStatDao = new TestResultStatDao();
         projectUserController = new ProjectUserController(user);
-        testDao = new TestDao();
+        testController = new TestController(user);
         resultResolutionController = new ResultResolutionController(user);
         finalResultController = new FinalResultController(user);
         projectController = new ProjectController(user);
@@ -118,7 +118,7 @@ public class ResultController extends BaseController<TestResultDto> {
 
             TestDto testTemplate = new TestDto();
             testTemplate.setProject_id(results.get(0).getProject_id());
-            List<TestDto> tests = testDao.searchAll(testTemplate);
+            List<TestDto> tests = testController.get(testTemplate);
 
             ProjectUserDto projectUserDto = new ProjectUserDto();
             projectUserDto.setProject_id(results.get(0).getProject_id());

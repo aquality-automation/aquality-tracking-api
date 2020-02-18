@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.3.6 (unreleased)
+
+Features:
+  - Test Run view: Add stability indicator -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/60)
+
+Bugfixes:
+
 ## 0.3.5 (2020-02-15)
 
 Features:
