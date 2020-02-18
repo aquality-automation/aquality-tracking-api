@@ -351,10 +351,8 @@ public class AuditController extends BaseController<AuditDto> {
                 jsonObject.put("project_name", auditDto.getProject().getName());
                 if (auditDto.getCreated() != null) jsonObject.put("created", formatter.format(auditDto.getCreated()));
                 if (auditDto.getStarted() != null) jsonObject.put("started", formatter.format(auditDto.getStarted()));
-                if (auditDto.getProgress_finished() != null)
-                    jsonObject.put("finished", formatter.format(auditDto.getProgress_finished()));
-                if (auditDto.getSubmitted() != null)
-                    jsonObject.put("submitted", formatter.format(auditDto.getSubmitted()));
+                if (auditDto.getProgress_finished() != null) jsonObject.put("finished", formatter.format(auditDto.getProgress_finished()));
+                if (auditDto.getSubmitted() != null) jsonObject.put("submitted", formatter.format(auditDto.getSubmitted()));
                 jsonObject.put("result", auditDto.getResult());
                 String auditorsString = "";
                 List<AuditorDto> auditors = auditDto.getAuditors();
