@@ -85,6 +85,7 @@ public class SuiteController extends BaseController<TestSuiteDto> {
             List<TestRunDto> testRuns = testRunDao.searchAll(testRunTemplate);
             TestDto testTemplate = new TestDto();
             testTemplate.setTest_suite_id(suiteId);
+            testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
             for (TestRunDto testRun : testRuns) {
                 TestResultDto testResultTemplate = new TestResultDto();
