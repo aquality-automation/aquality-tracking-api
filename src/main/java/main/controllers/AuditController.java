@@ -125,7 +125,6 @@ public class AuditController extends BaseController<AuditDto> {
         AuditStatusDto auditStatusDto = new AuditStatusDto();
         auditStatusDto.setId(4);
         auditDto.setStatus(auditStatusDto);
-
         List<AuditDto> audits = get(auditDto);
         if(!all){
             audits = getLatestAudits(audits);
@@ -134,7 +133,6 @@ public class AuditController extends BaseController<AuditDto> {
         JSONArray resArray = new JSONArray();
         List<Pair<String, String>> fields = processExportArrayCreation(resArray, audits);
         try{
-
             if(xls){
                 return excelUtils.writeXLSFile(resArray,fields, MessageFormat.format("Reporting_Portal_{0}_Submitted_Audits_{1}", all ? "All" : "Last", formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
             }else{
