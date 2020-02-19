@@ -378,7 +378,7 @@ public class AuditController extends BaseController<AuditDto> {
 
             return fields;
         } catch (Exception e){
-            throw new AqualityException("Cannot create Export");
+            throw new AqualityException("Cannot process create Export: " + e.getMessage() + "Stack: " + e.getStackTrace().toString());
         }
     }
 }
