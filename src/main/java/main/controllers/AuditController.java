@@ -139,9 +139,11 @@ public class AuditController extends BaseController<AuditDto> {
                 return excelUtils.writeXLSXFile(resArray,fields, MessageFormat.format("Reporting_Portal_{0}_Submitted_Audits_{1}", all ? "All" : "Last",formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
             }
         } catch (Exception e){
-            String stack = "";
-            Arrays.stream(e.getStackTrace()).forEach(stacktrace -> stack.concat(stacktrace.toString()));
-            throw new AqualityException("Cannot create Export: " + e.getMessage() + ". Stack: " + stack);
+            String full = "";
+            for (StackTraceElement stack:                 e.getStackTrace()) {
+                full = full.concat(stack.toString());
+            }
+            throw new AqualityException("Cannot create Export: " + e.getMessage() + ". Stack: " + full);
         }
     }
 
