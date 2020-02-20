@@ -32,22 +32,22 @@ public class TestRunController extends BaseController<TestRunDto> {
 
     @Override
     public TestRunDto create(TestRunDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             TestRunDto testRun = testRunDao.create(template);
-            if(template.getId() == null){
+            if (template.getId() == null) {
                 createPendingResults(testRun);
             }
             return testRun;
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Test Run", baseUser);
         }
     }
 
     public List<TestRunDto> get(TestRunDto template, boolean withChildren, Integer limit) throws AqualityException {
-        if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProjectIdById()).isViewer()){
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProjectIdById()).isViewer()) {
             template.setLimit(limit);
             return fillTestRuns(testRunDao.searchAll(template), withChildren);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Run", baseUser);
         }
     }
@@ -70,7 +70,7 @@ public class TestRunController extends BaseController<TestRunDto> {
         template.setTest_suite_id(suiteId);
         template.setProject_id(projectId);
         List<TestRunDto> testRuns = get(template, false, 1);
-        if(testRuns.size() > 0){
+        if (testRuns.size() > 0) {
             return testRuns.get(0);
         }
 
@@ -79,9 +79,9 @@ public class TestRunController extends BaseController<TestRunDto> {
 
     @Override
     public boolean delete(TestRunDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             return testRunDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Test Run", baseUser);
         }
     }
@@ -91,7 +91,7 @@ public class TestRunController extends BaseController<TestRunDto> {
         testTemplate.setTest_suite_id(testRunTemplate.getTest_suite_id());
         testTemplate.setProject_id(testRunTemplate.getProject_id());
         List<TestDto> tests = testController.get(testTemplate, false);
-        for (TestDto test: tests) {
+        for (TestDto test : tests) {
             TestResultDto pendingTestResult = new TestResultDto();
             pendingTestResult.setProject_id(test.getProject_id());
             pendingTestResult.setStart_date(testRunTemplate.getStart_time());
@@ -107,10 +107,10 @@ public class TestRunController extends BaseController<TestRunDto> {
 
     private List<TestRunDto> fillTestRuns(List<TestRunDto> testRuns, boolean withChildren) throws AqualityException {
 
-        if(testRuns.size() > 0){
+        if (testRuns.size() > 0) {
             testRuns = fillMilestonesAndSuites(testRuns);
 
-            if(withChildren){
+            if (withChildren) {
                 testRuns = fillTestRunResults(testRuns);
             }
         }

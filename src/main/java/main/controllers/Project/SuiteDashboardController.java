@@ -28,35 +28,35 @@ public class SuiteDashboardController extends BaseController<SuiteDashboardDto> 
 
     @Override
     public SuiteDashboardDto create(SuiteDashboardDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             template.setId(suiteDashboardDao.create(template).getId());
             updateSuites2Dashboard(template);
             return template;
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Suite Dashboards", baseUser);
         }
     }
 
     @Override
     public List<SuiteDashboardDto> get(SuiteDashboardDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             return fillSuiteDashboards(suiteDashboardDao.searchAll(template));
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to view Suite Dashboards", baseUser);
         }
     }
 
     @Override
     public boolean delete(SuiteDashboardDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             return suiteDashboardDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Suite Dashboards", baseUser);
         }
     }
 
     private List<SuiteDashboardDto> fillSuiteDashboards(List<SuiteDashboardDto> dashboards) throws AqualityException {
-        if(dashboards.size() < 1){
+        if (dashboards.size() < 1) {
             return dashboards;
         }
         List<SuiteDashboardDto> filledSuiteDashboards = new ArrayList<>();
@@ -78,8 +78,8 @@ public class SuiteDashboardController extends BaseController<SuiteDashboardDto> 
     }
 
     private void updateSuites2Dashboard(SuiteDashboardDto template) throws AqualityException {
-        if(template.getSuites() != null){
-            for (TestSuiteDto suite: template.getSuites()) {
+        if (template.getSuites() != null) {
+            for (TestSuiteDto suite : template.getSuites()) {
                 Suite2DashboardDto suite2DashboardDto = new Suite2DashboardDto();
                 suite2DashboardDto.setSuite_id(suite.getId());
                 suite2DashboardDto.setDashboard_id(template.getId());

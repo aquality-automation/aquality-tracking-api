@@ -186,7 +186,7 @@ class BaseImporter {
         Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
         test2SuiteDto.setTest_id(test.getId());
         test2SuiteDto.setSuite_id(testSuite.getId());
-        controllerFactory.getHandler(test2SuiteDto).create(test2SuiteDto);
+        controllerFactory.getHandler(test2SuiteDto).create(test2SuiteDto, test.getProject_id());
     }
 
     private void createResult(TestResultDto result, boolean update) throws AqualityException {

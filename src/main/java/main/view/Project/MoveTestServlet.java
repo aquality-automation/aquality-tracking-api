@@ -23,7 +23,7 @@ public class MoveTestServlet extends BaseServlet implements IGet {
                     Integer.parseInt(req.getParameter("from")),
                     Integer.parseInt(req.getParameter("to")),
                     Boolean.parseBoolean(req.getParameter("remove")),
-                    Integer.parseInt(req.getParameter("projectId")));
+                    getProjectId(req));
         }catch (Exception e) {
             handleException(resp, e);
         }
@@ -38,6 +38,5 @@ public class MoveTestServlet extends BaseServlet implements IGet {
         assertRequiredField(req, "from");
         assertRequiredField(req, "to");
         assertRequiredField(req, "remove");
-        assertRequiredField(req, "projectId");
     }
 }

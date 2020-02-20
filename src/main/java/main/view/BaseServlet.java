@@ -5,7 +5,6 @@ import main.exceptions.AqualityException;
 import main.exceptions.AqualityQueryParameterException;
 import main.model.dto.DtoMapperGeneral;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.naming.AuthenticationException;
 import javax.servlet.ServletContext;
@@ -14,16 +13,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLDecoder;
-import java.sql.SQLException;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.*;
 import static javax.ws.rs.core.MediaType.*;
 
-public class BaseServlet extends HttpServlet{
+public class BaseServlet extends HttpServlet {
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
+    protected static final String PROJECT_ID_KEY = "project_id";
 
     protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
         String importToken = getStringQueryParameter(req, "importToken");
@@ -47,7 +46,7 @@ public class BaseServlet extends HttpServlet{
         return data;
     }
 
-    protected String getRequestJson(@NotNull HttpServletRequest req){
+    protected String getRequestJson(@NotNull HttpServletRequest req) {
         try {
             req.setCharacterEncoding(UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
@@ -66,23 +65,27 @@ public class BaseServlet extends HttpServlet{
         return replacer(sb.toString());
     }
 
-    protected String getStringQueryParameter(@NotNull HttpServletRequest req, String name){
+    protected String getStringQueryParameter(@NotNull HttpServletRequest req, String name) {
         return (req.getParameterMap().containsKey(name) && !req.getParameter(name).equals(""))
                 ? req.getParameter(name)
                 : null;
     }
 
-    protected Integer getIntegerQueryParameter(@NotNull HttpServletRequest req, String name){
+    protected Integer getIntegerQueryParameter(@NotNull HttpServletRequest req, String name) {
         return (req.getParameterMap().containsKey(name) && !req.getParameter(name).equals(""))
                 ? Integer.parseInt(req.getParameter(name))
                 : null;
     }
 
-    protected Boolean getBooleanQueryParameter(@NotNull HttpServletRequest req, String name){
+    protected Integer getProjectId(@NotNull HttpServletRequest req) {
+        return getIntegerQueryParameter(req, PROJECT_ID_KEY);
+    }
+
+    protected Boolean getBooleanQueryParameter(@NotNull HttpServletRequest req, String name) {
         return (req.getParameterMap().containsKey(name) && !req.getParameter(name).equals("")) && Boolean.parseBoolean(req.getParameter(name));
     }
 
-    protected void setPostResponseHeaders(@NotNull HttpServletResponse resp){
+    protected void setPostResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "Post");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
@@ -91,15 +94,15 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("Access-Control-Allow-Headers", "ErrorMessage");
     }
 
-    protected void setEncoding(@NotNull HttpServletResponse resp){
+    protected void setEncoding(@NotNull HttpServletResponse resp) {
         resp.setCharacterEncoding(UTF_8.name());
     }
 
-    protected void setJSONContentType(@NotNull HttpServletResponse resp){
+    protected void setJSONContentType(@NotNull HttpServletResponse resp) {
         resp.setContentType(APPLICATION_JSON);
     }
 
-    protected void setDeleteResponseHeaders(@NotNull HttpServletResponse resp){
+    protected void setDeleteResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "Delete");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
@@ -108,7 +111,7 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("Access-Control-Allow-Headers", "ErrorMessage");
     }
 
-    protected void setGetResponseHeaders(@NotNull HttpServletResponse resp){
+    protected void setGetResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "Get");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
@@ -119,7 +122,7 @@ public class BaseServlet extends HttpServlet{
         resp.addHeader("Access-Control-Allow-Headers", "Content-Disposition");
     }
 
-    protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp){
+    protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization, authorization, ErrorMessage, Disposition");
@@ -129,23 +132,23 @@ public class BaseServlet extends HttpServlet{
         resp.setStatus(204);
     }
 
-    private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e){
+    private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) {
         resp.setStatus(401);
         resp.addHeader("ErrorMessage", !Objects.equals(e.getMessage(), "") ? e.getMessage() : "Are you sure you logged in?");
     }
 
-    protected void setAuthorizationProblem(@NotNull HttpServletResponse resp){
+    protected void setAuthorizationProblem(@NotNull HttpServletResponse resp) {
         resp.setStatus(401);
         resp.addHeader("ErrorMessage", "Are you sure you logged in?");
     }
 
-    protected void setErrorHeader(@NotNull HttpServletResponse resp, String errorMessage){
+    protected void setErrorHeader(@NotNull HttpServletResponse resp, String errorMessage) {
         resp.addHeader("ErrorMessage", errorMessage);
     }
 
     private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException, AuthenticationException {
         String header = req.getHeader("Authorization");
-        if(header != null){
+        if (header != null) {
             validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
@@ -154,7 +157,7 @@ public class BaseServlet extends HttpServlet{
     }
 
     private void validateAuthHeader(String header) throws AqualityException {
-        if(!header.toLowerCase().startsWith("basic ".toLowerCase())){
+        if (!header.toLowerCase().startsWith("basic ".toLowerCase())) {
             throw new AqualityException("Use Basic Authorization Header! (Should start with 'Basic ')");
         }
     }
@@ -188,14 +191,14 @@ public class BaseServlet extends HttpServlet{
         }
     }
 
-    protected void handleException(HttpServletResponse resp, @NotNull Exception e){
+    protected void handleException(HttpServletResponse resp, @NotNull Exception e) {
         e.printStackTrace();
-        switch (e.getClass().getSimpleName()){
+        switch (e.getClass().getSimpleName()) {
             case "UnsupportedOperationException":
                 setNotImplementedFunction(resp, e);
                 return;
             case "AuthenticationException":
-                setAuthorizationProblem(resp,e);
+                setAuthorizationProblem(resp, e);
                 return;
             case "AqualityPermissionsException":
             case "AqualityException":

@@ -81,15 +81,9 @@ public class AuditController extends BaseController<AuditDto> {
         }
     }
 
-    public List<AuditAttachmentDto> get(AuditAttachmentDto searchTemplate) throws AqualityException {
+    public List<AuditAttachmentDto> get(AuditAttachmentDto searchTemplate, Integer projectId) throws AqualityException {
         AuditDto audit = new AuditDto();
         audit.setId(searchTemplate.getAudit_id());
-        Integer projectId;
-        try {
-            projectId = auditDao.searchAll(audit).get(0).getProject_id();
-        } catch (IndexOutOfBoundsException e) {
-            throw new AqualityException("The Audit you trying to access is not present!");
-        }
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
             return auditAttachmentsDao.searchAll(searchTemplate);
         } else {
@@ -131,6 +125,7 @@ public class AuditController extends BaseController<AuditDto> {
         AuditStatusDto auditStatusDto = new AuditStatusDto();
         auditStatusDto.setId(4);
         auditDto.setStatus(auditStatusDto);
+
         List<AuditDto> audits = get(auditDto);
         if (!all) {
             audits = getLatestAudits(audits);
@@ -166,10 +161,10 @@ public class AuditController extends BaseController<AuditDto> {
         }
     }
 
-    public boolean delete(AuditAttachmentDto template) throws AqualityException {
+    public boolean delete(AuditAttachmentDto template, Integer projectId) throws AqualityException {
         if (baseUser.isAuditor() || baseUser.isAuditAdmin()) {
             FileUtils fileUtils = new FileUtils();
-            List<AuditAttachmentDto> attachments = get(template);
+            List<AuditAttachmentDto> attachments = get(template, projectId);
             List<String> pathes = new ArrayList<>();
             pathes.add(attachments.get(0).getPath());
             fileUtils.removeFiles(pathes);
@@ -355,10 +350,8 @@ public class AuditController extends BaseController<AuditDto> {
                 jsonObject.put("project_name", auditDto.getProject().getName());
                 if (auditDto.getCreated() != null) jsonObject.put("created", formatter.format(auditDto.getCreated()));
                 if (auditDto.getStarted() != null) jsonObject.put("started", formatter.format(auditDto.getStarted()));
-                if (auditDto.getProgress_finished() != null)
-                    jsonObject.put("finished", formatter.format(auditDto.getProgress_finished()));
-                if (auditDto.getSubmitted() != null)
-                    jsonObject.put("submitted", formatter.format(auditDto.getSubmitted()));
+                if (auditDto.getProgress_finished() != null) jsonObject.put("finished", formatter.format(auditDto.getProgress_finished()));
+                if (auditDto.getSubmitted() != null) jsonObject.put("submitted", formatter.format(auditDto.getSubmitted()));
                 jsonObject.put("result", auditDto.getResult());
                 String auditorsString = "";
                 List<AuditorDto> auditors = auditDto.getAuditors();

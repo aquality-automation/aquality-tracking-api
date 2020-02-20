@@ -19,27 +19,27 @@ public class MilestoneController extends BaseController<MilestoneDto> {
 
     @Override
     public MilestoneDto create(MilestoneDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             return milestoneDao.create(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Milestones", baseUser);
         }
     }
 
     @Override
     public List<MilestoneDto> get(MilestoneDto template) throws AqualityException {
-        if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()){
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()) {
             return milestoneDao.searchAll(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to view Milestones", baseUser);
         }
     }
 
     @Override
     public boolean delete(MilestoneDto template) throws AqualityException {
-        if(baseUser.isManager() || baseUser.getProjectUserByMilestoneId(template.getId()).isEditor()){
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             return milestoneDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Milestones", baseUser);
         }
     }
