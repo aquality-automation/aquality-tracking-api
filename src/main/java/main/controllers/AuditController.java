@@ -134,11 +134,10 @@ public class AuditController extends BaseController<AuditDto> {
         JSONArray resArray = new JSONArray();
         List<Pair<String, String>> fields = processExportArrayCreation(resArray, audits);
         try {
-
             if (xls) {
-                return excelUtils.writeXLSFile(resArray, fields, MessageFormat.format("Reporting_Portal_{0}_Submitted_Audits_{1}", all ? "All" : "Last", formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
+                return excelUtils.writeXLSFile(resArray, fields, MessageFormat.format("Aquality_Tracking_{0}_Submitted_Audits_{1}", all ? "All" : "Last", formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
             } else {
-                return excelUtils.writeXLSXFile(resArray, fields, MessageFormat.format("Reporting_Portal_{0}_Submitted_Audits_{1}", all ? "All" : "Last", formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
+                return excelUtils.writeXLSXFile(resArray, fields, MessageFormat.format("Aquality_Tracking_{0}_Submitted_Audits_{1}", all ? "All" : "Last", formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
             }
         } catch (Exception e) {
             throw new AqualityException("Cannot create Export");
@@ -381,7 +380,7 @@ public class AuditController extends BaseController<AuditDto> {
 
             return fields;
         } catch (Exception e) {
-            throw new AqualityException("Cannot create Export");
+            throw new AqualityException("Cannot process export creation");
         }
     }
 }
