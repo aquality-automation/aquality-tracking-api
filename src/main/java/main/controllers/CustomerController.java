@@ -36,28 +36,28 @@ public class CustomerController extends BaseController<CustomerDto> {
 
     @Override
     public CustomerDto create(CustomerDto template) throws AqualityException {
-        if(baseUser.isCoordinator()){
+        if (baseUser.isCoordinator()) {
             return fillCustomer(customerDao.create(template));
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to create Customers", baseUser);
         }
     }
 
     @Override
     public boolean delete(CustomerDto template) throws AqualityException {
-        if(baseUser.isCoordinator()){
+        if (baseUser.isCoordinator()) {
             return customerDao.delete(template);
-        }else{
+        } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Customers", baseUser);
         }
     }
 
     private List<CustomerDto> fillCustomers(List<CustomerDto> customers) throws AqualityException {
         List<UserDto> users = userDao.getAll();
-        for (CustomerDto customer: customers){
+        for (CustomerDto customer : customers) {
             customer.setCoordinator(users.stream().filter(x -> x.getId().equals(customer.getCoordinator_id())).findFirst().orElse(null));
             customer.getCoordinator().toPublic();
-            if(baseUser.isCoordinator()){
+            if (baseUser.isCoordinator()) {
                 customer.setProjects(getProjects(customer));
             }
         }

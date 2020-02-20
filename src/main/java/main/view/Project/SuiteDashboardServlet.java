@@ -19,7 +19,6 @@ public class SuiteDashboardServlet extends BaseServlet implements IDelete, IGet,
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             SuiteDashboardDto template = new SuiteDashboardDto();
@@ -36,7 +35,6 @@ public class SuiteDashboardServlet extends BaseServlet implements IDelete, IGet,
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -52,7 +50,6 @@ public class SuiteDashboardServlet extends BaseServlet implements IDelete, IGet,
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
-
         try {
             Session session = createSession(req);
             SuiteDashboardDto template = new SuiteDashboardDto();

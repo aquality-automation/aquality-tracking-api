@@ -10,6 +10,7 @@ import java.util.List;
 
 public class StepResultController extends BaseController<StepResultDto> {
     private StepResultDao stepResultDao;
+
     public StepResultController(UserDto user) {
         super(user);
         stepResultDao = new StepResultDao();
