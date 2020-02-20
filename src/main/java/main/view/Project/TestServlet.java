@@ -14,18 +14,16 @@ import java.util.List;
 @WebServlet("/test")
 public class TestServlet extends BaseServlet implements IDelete {
 
-
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
+
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.getSearchTemplateFromRequestParameters(req);
             List<TestDto> tests = session.controllerFactory.getHandler(test).get(test);
-            setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(tests));
         }catch (Exception e) {
             handleException(resp, e);
@@ -36,7 +34,6 @@ public class TestServlet extends BaseServlet implements IDelete {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -53,7 +50,6 @@ public class TestServlet extends BaseServlet implements IDelete {
     public void doPut(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -67,12 +63,11 @@ public class TestServlet extends BaseServlet implements IDelete {
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
-
         try {
             Session session = createSession(req);
             TestDto test = new TestDto();
             test.setId(Integer.parseInt(req.getParameter("id")));
-            test.setProject_id(Integer.parseInt(req.getParameter("projectId")));
+            test.setProject_id(getProjectId(req));
             session.controllerFactory.getHandler(test).delete(test);
         }catch (Exception e) {
             handleException(resp, e);
