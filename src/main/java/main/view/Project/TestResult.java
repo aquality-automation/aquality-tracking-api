@@ -21,6 +21,7 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
     public void doPost(HttpServletRequest req, HttpServletResponse resp){
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -37,6 +38,7 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             TestResultDto testResultTemplate = new TestResultDto();
@@ -53,6 +55,7 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
     public void doPut(HttpServletRequest req, HttpServletResponse resp){
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -66,11 +69,12 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp){
         setDeleteResponseHeaders(resp);
+
         try {
             Session session = createSession(req);
             TestResultDto testResult = new TestResultDto();
             testResult.setId(Integer.parseInt(req.getParameter("id")));
-            testResult.setProject_id(getProjectId(req));
+            testResult.setProject_id(Integer.parseInt(req.getParameter("projectId")));
             session.controllerFactory.getHandler(testResult).delete(testResult);
         }catch (Exception e) {
             handleException(resp, e);

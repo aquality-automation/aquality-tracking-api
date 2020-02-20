@@ -20,6 +20,7 @@ public class TestSuiteServlet extends BaseServlet implements IDelete, IPost, IGe
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             boolean withChildren = false;
@@ -40,6 +41,7 @@ public class TestSuiteServlet extends BaseServlet implements IDelete, IPost, IGe
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -55,11 +57,12 @@ public class TestSuiteServlet extends BaseServlet implements IDelete, IPost, IGe
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
+
         try {
             Session session = createSession(req);
             TestSuiteDto testSuite = new TestSuiteDto();
             testSuite.setId(Integer.parseInt(req.getParameter("id")));
-            testSuite.setProject_id(getProjectId(req));
+            testSuite.setProject_id(Integer.parseInt(req.getParameter("projectId")));
             session.controllerFactory.getHandler(testSuite).delete(testSuite);
         }catch (Exception e) {
             handleException(resp, e);

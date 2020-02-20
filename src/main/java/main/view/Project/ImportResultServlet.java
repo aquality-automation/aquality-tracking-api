@@ -19,11 +19,13 @@ public class ImportResultServlet extends BaseServlet implements IGet{
 
         try {
             Session session = createSession(req);
+            Integer project_id = getIntegerQueryParameter(req, "projectId");
             ImportDto searchTemplate = new ImportDto();
-            searchTemplate.setProject_id(getProjectId(req));
+            searchTemplate.setProject_id(project_id);
             List<ImportDto> imports = session.controllerFactory.getHandler(searchTemplate).get(searchTemplate);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(imports));
+
         }catch (Exception e) {
             handleException(resp, e);
         }

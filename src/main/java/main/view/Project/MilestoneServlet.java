@@ -22,7 +22,6 @@ public class MilestoneServlet extends BaseServlet implements IPost, IGet, IDelet
             Session session = createSession(req);
             MilestoneDto milestoneDto = new MilestoneDto();
             milestoneDto.setId(Integer.parseInt(req.getParameter("id")));
-            milestoneDto.setProject_id(getProjectId(req));
             session.controllerFactory.getHandler(milestoneDto).delete(milestoneDto);
         }catch (Exception e) {
             handleException(resp, e);

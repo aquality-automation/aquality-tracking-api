@@ -20,18 +20,20 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> {
         test2SuiteDao = new Test2SuiteDao();
     }
 
-    public Test2SuiteDto create(Test2SuiteDto template, Integer projectId) throws AqualityException {
-        if (baseUser.isManager() || baseUser.getProjectUser(projectId).isEditor()) {
+    @Override
+    public Test2SuiteDto create(Test2SuiteDto template) throws AqualityException {
+        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getSuite_id()).isEditor()){
             return test2SuiteDao.create(template);
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to create Project User", baseUser);
         }
     }
 
-    public boolean delete(Test2SuiteDto template, Integer projectId) throws AqualityException {
-        if (baseUser.isManager() || baseUser.getProjectUser(projectId).isEditor()) {
+    @Override
+    public boolean delete(Test2SuiteDto template) throws AqualityException {
+        if(baseUser.isManager() || baseUser.getProjectUserBySuiteId(template.getSuite_id()).isEditor()){
             return test2SuiteDao.delete(template);
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to delete Test from Suite", baseUser);
         }
     }
@@ -39,16 +41,6 @@ public class Test2SuiteController extends BaseController<Test2SuiteDto> {
     @Override
     public List<Test2SuiteDto> get(Test2SuiteDto template) throws AqualityException {
         return test2SuiteDao.searchAll(template);
-    }
-
-    @Override
-    public Test2SuiteDto create(Test2SuiteDto entity) throws AqualityException {
-        return create(entity, null);
-    }
-
-    @Override
-    public boolean delete(Test2SuiteDto entity) throws AqualityException {
-        return delete(entity, null);
     }
 
     List<TestSuiteDto> convertToSuites(List<Test2SuiteDto> test2Suites, List<TestSuiteDto> suites) {

@@ -23,6 +23,7 @@ public class PredefinedResolutionServlet extends BaseServlet implements IGet, IP
             Session session = createSession(req);
             PredefinedResolutionDto template = new PredefinedResolutionDto();
             template.getSearchTemplateFromRequestParameters(req);
+
             List<PredefinedResolutionDto> predefinedResolutions = session.controllerFactory.getHandler(template).get(template);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(predefinedResolutions));

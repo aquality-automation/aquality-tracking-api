@@ -19,9 +19,9 @@ public class FinalResultController extends BaseController<FinalResultDto> {
 
     @Override
     public FinalResultDto create(FinalResultDto template) throws AqualityException {
-        if (baseUser.isAdmin()) {
+        if(baseUser.isAdmin()){
             return finalResultDao.create(template);
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to create Final Result", baseUser);
         }
     }
@@ -33,9 +33,9 @@ public class FinalResultController extends BaseController<FinalResultDto> {
 
     @Override
     public boolean delete(FinalResultDto template) throws AqualityException {
-        if (baseUser.isAdmin()) {
+        if(baseUser.isAdmin()){
             return finalResultDao.delete(template);
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to delete Final Result", baseUser);
         }
     }

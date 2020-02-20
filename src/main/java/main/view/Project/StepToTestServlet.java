@@ -20,6 +20,7 @@ public class StepToTestServlet extends BaseServlet implements IPost, IDelete, IG
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
@@ -36,6 +37,7 @@ public class StepToTestServlet extends BaseServlet implements IPost, IDelete, IG
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             Step2TestDto stepToTest = new Step2TestDto();
@@ -51,6 +53,7 @@ public class StepToTestServlet extends BaseServlet implements IPost, IDelete, IG
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             Step2TestDto step2Test = new Step2TestDto();
