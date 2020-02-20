@@ -23,8 +23,8 @@
             #
 
             CREATE FUNCTION `replace_empty` (
-            request_value varchar(10),
-            current_value varchar(10)
+            request_value varchar(5000),
+            current_value varchar(5000)
             )
             RETURNS varchar(5000) CHARSET latin1
             BEGIN
@@ -102,9 +102,12 @@
             IN request_limit INT(10)
             )
             BEGIN
-            select GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors, GROUP_CONCAT(results SEPARATOR ',') as result_colors
+            select
+            GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
+            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
             FROM (
-            select result_resolution.color as resolutions, final_results.color as results
+            select result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
             from test_results left join result_resolution on test_resolution_id = result_resolution.id
             left join final_results on final_result_id = final_results.id
 
