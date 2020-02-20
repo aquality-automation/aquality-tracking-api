@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="create stability_count column" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `projects`
+            ADD COLUMN `stability_count` INT(11) NULL DEFAULT 5 AFTER `compare_result_pattern`;
+        </sql>
+        <rollback>
+            ALTER TABLE `projects`
+            DROP COLUMN `stability_count`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Add replace_empty function" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP function IF EXISTS `replace_empty`;
+
+            #
+
+            CREATE FUNCTION `replace_empty` (
+            request_value varchar(5000),
+            current_value varchar(5000)
+            )
+            RETURNS varchar(5000) CHARSET latin1
+            BEGIN
+            RETURN IF (request_value='', current_value, request_value);
+            END
+        </sql>
+        <rollback>
+            DROP function IF EXISTS `replace_empty`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_PROJECT to use stability_count" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_PROJECT`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(100),
+            IN request_customer_id VARCHAR(11),
+            IN request_steps VARCHAR(1),
+            IN request_compare_result_pattern VARCHAR(500),
+            IN request_stability_count varchar(11)
+            )
+            BEGIN
+            IF(request_id != '' AND request_steps != '')
+            THEN
+            IF NOT EXISTS(SELECT * from projects WHERE id = request_id AND steps = request_steps)
+            THEN
+            IF(request_steps = '1')
+            THEN
+            CALL CREATE_STEP_TABLE(request_id);
+            CALL CREATE_STEP_RESULTS_TABLE(request_id);
+            CALL CREATE_STEP_TO_TEST_TABLE(request_id);
+            ELSE
+            CALL DROP_STEPS(request_id);
+            END IF;
+            END IF;
+            END IF;
+
+            INSERT INTO projects (id, name, customer_id, steps, compare_result_pattern, stability_count)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            IF(request_customer_id='', 0, request_customer_id),
+            IF(request_steps='', 0, request_steps),
+            IF(request_compare_result_pattern='', null, request_compare_result_pattern),
+            IF(request_stability_count='', null, request_stability_count)
+            )
+            ON DUPLICATE KEY UPDATE
+            name = replace_empty(request_name, name),
+            customer_id=replace_empty(request_customer_id, customer_id),
+            steps=replace_empty(request_steps, steps),
+            compare_result_pattern=replace_empty(request_compare_result_pattern, compare_result_pattern),
+            stability_count=replace_empty(request_stability_count, stability_count);
+
+            SELECT * from projects where id = request_id || name = request_name;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create SELECT_LAST_RESULT_COLORS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LAST_RESULT_COLORS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LAST_RESULT_COLORS`(
+            IN request_test_id VARCHAR(10),
+            IN request_limit INT(10)
+            )
+            BEGIN
+            select
+            GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
+            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
+            FROM (
+            select result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            from test_results left join result_resolution on test_resolution_id = result_resolution.id
+            left join final_results on final_result_id = final_results.id
+
+            where test_id = request_test_id
+            order by finish_date DESC
+            limit request_limit) as results;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_LAST_RESULT_COLORS`;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

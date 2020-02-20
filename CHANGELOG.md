@@ -3,7 +3,8 @@
 ## 0.3.6 (unreleased)
 
 Features:
- 
+  - Test Run view: Add stability indicator -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/60)
+
 Bugfixes:
  - Fixed for downloading audits results from Audits Dashboard -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/51)
 

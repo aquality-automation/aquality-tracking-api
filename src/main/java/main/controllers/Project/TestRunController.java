@@ -90,7 +90,7 @@ public class TestRunController extends BaseController<TestRunDto> {
         TestDto testTemplate = new TestDto();
         testTemplate.setTest_suite_id(testRunTemplate.getTest_suite_id());
         testTemplate.setProject_id(testRunTemplate.getProject_id());
-        List<TestDto> tests = testController.get(testTemplate, false);
+        List<TestDto> tests = testController.get(testTemplate);
         for (TestDto test : tests) {
             TestResultDto pendingTestResult = new TestResultDto();
             pendingTestResult.setProject_id(test.getProject_id());

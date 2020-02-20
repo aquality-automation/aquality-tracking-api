@@ -39,4 +39,5 @@ public class TestDto extends BaseDto {
     @DataBaseName(name="request_test_suite_id")
     @DataBaseSearchable
     private Integer test_suite_id;
+    private LastResultColorsDto lastResultColors;
 }

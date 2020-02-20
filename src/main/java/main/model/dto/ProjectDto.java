@@ -34,4 +34,7 @@ public class ProjectDto extends BaseDto{
     @DataBaseName(name = "request_compare_result_pattern")
     @DataBaseInsert
     private String compare_result_pattern;
+    @DataBaseName(name = "request_stability_count")
+    @DataBaseInsert
+    private Integer stability_count;
 }

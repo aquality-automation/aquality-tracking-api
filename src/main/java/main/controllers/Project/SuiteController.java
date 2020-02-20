@@ -129,7 +129,7 @@ public class SuiteController extends BaseController<TestSuiteDto> {
                 TestDto testTemplate = new TestDto();
                 testTemplate.setTest_suite_id(suite.getId());
                 testTemplate.setProject_id(suite.getProject_id());
-                List<TestDto> tests = testController.get(testTemplate, false);
+                List<TestDto> tests = testController.get(testTemplate);
                 suite.setTests(tests);
             }
         }
