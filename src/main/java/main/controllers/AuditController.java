@@ -139,11 +139,7 @@ public class AuditController extends BaseController<AuditDto> {
                 return excelUtils.writeXLSXFile(resArray,fields, MessageFormat.format("Aquality_Tracking_{0}_Submitted_Audits_{1}", all ? "All" : "Last",formatter.format(new Date())), MessageFormat.format("{0} Submitted Audits", all ? "All" : "Last"));
             }
         } catch (Exception e){
-            String full = "";
-            for (StackTraceElement stack:                 e.getStackTrace()) {
-                full = full.concat(stack.toString());
-            }
-            throw new AqualityException("Cannot create Export: " + e.getMessage() + ". Stack: " + full);
+            throw new AqualityException("Cannot create Export");
         }
     }
 
@@ -382,7 +378,7 @@ public class AuditController extends BaseController<AuditDto> {
 
             return fields;
         } catch (Exception e){
-            throw new AqualityException("Cannot process create Export: " + e.getMessage() + "Stack: " + e.getStackTrace().toString());
+            throw new AqualityException("Cannot process export creation");
         }
     }
 }
