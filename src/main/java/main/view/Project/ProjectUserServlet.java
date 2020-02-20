@@ -23,8 +23,8 @@ public class ProjectUserServlet extends BaseServlet implements IGet, IPost, IDel
         try {
             Session session = createSession(req);
             String result;
-            if(req.getParameterMap().containsKey(PROJECT_ID_KEY)&& !req.getParameter(PROJECT_ID_KEY).isEmpty()){
-                result = mapper.serialize(session.getProjectPermissions(getProjectId(req)));
+            if(req.getParameterMap().containsKey("projectId")&& !req.getParameter("projectId").equals("")){
+                result = mapper.serialize(session.getProjectPermissions(Integer.parseInt(req.getParameter("projectId"))));
             }else{
                 result = mapper.serialize(session.getProjectPermissions());
             }
@@ -57,7 +57,7 @@ public class ProjectUserServlet extends BaseServlet implements IGet, IPost, IDel
         try {
             Session session = createSession(req);
             ProjectUserDto projectUserDto = new ProjectUserDto();
-            projectUserDto.setProject_id(getProjectId(req));
+            projectUserDto.setProject_id(Integer.parseInt(req.getParameter("projectId")));
             projectUserDto.setUser_id(Integer.parseInt(req.getParameter("userId")));
             session.controllerFactory.getHandler(projectUserDto).delete(projectUserDto);
             setJSONContentType(resp);

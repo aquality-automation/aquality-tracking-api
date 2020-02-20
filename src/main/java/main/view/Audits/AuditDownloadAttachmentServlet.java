@@ -21,14 +21,14 @@ public class AuditDownloadAttachmentServlet extends BaseServlet implements IGet 
         setGetResponseHeaders(resp);
         try {
             Session session = createSession(req);
-            if (req.getParameterMap().containsKey("id")) {
+            if (req.getParameterMap().containsKey("id") && req.getParameterMap().containsKey("project_id")) {
                 AuditAttachmentDto auditAttachmentDto = new AuditAttachmentDto();
                 auditAttachmentDto.setId(Integer.parseInt(req.getParameter("id")));
-                List<AuditAttachmentDto> auditAttachments = session.getAuditController().get(auditAttachmentDto, getProjectId(req));
+                List<AuditAttachmentDto> auditAttachments = session.getAuditController().get(auditAttachmentDto);
                 processResponse(resp, auditAttachments.get(0).getPath());
             } else {
                 resp.setStatus(400);
-                setErrorHeader(resp, "You have no specify Attachment ID");
+                setErrorHeader(resp, "You have no specify Attachment ID or Project ID");
             }
         }catch (Exception e) {
             handleException(resp, e);

@@ -22,28 +22,27 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
 
     @Override
     public ProjectUserDto create(ProjectUserDto template) throws AqualityException {
-        if (isEditorSession(template)) {
+        if(isEditorSession(template)){
             return projectUserDao.create(template);
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to create Project User", baseUser);
         }
     }
 
     @Override
     public List<ProjectUserDto> get(ProjectUserDto template) throws AqualityException {
-        boolean isViewer = template.getProject_id() != null && baseUser.getProjectUser(template.getProject_id()).isViewer();
-        if (baseUser.isFromGlobalManagement() || isViewer || template.getUser_id() != null) {
+        if(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer() || template.getUser_id() != null){
             return fillProjectUsers(projectUserDao.searchAll(template));
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to view Project Users", baseUser);
         }
     }
 
     @Override
     public boolean delete(ProjectUserDto template) throws AqualityException {
-        if (isEditorSession(template)) {
+        if(isEditorSession(template)){
             return projectUserDao.delete(template);
-        } else {
+        }else{
             throw new AqualityPermissionsException("Account is not allowed to delete Project User", baseUser);
         }
     }
@@ -53,7 +52,7 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
     }
 
     private List<ProjectUserDto> fillProjectUsers(List<ProjectUserDto> projectUsers) throws AqualityException {
-        for (ProjectUserDto projectUser : projectUsers) {
+        for(ProjectUserDto projectUser: projectUsers){
             projectUser.setUser(new UserDto());
             projectUser.getUser().setId(projectUser.getUser_id());
             projectUser.setUser(userController.get(projectUser.getUser()).get(0));
@@ -61,7 +60,7 @@ public class ProjectUserController extends BaseController<ProjectUserDto> {
         return projectUsers;
     }
 
-    private boolean isEditorSession(ProjectUserDto template) throws AqualityException {
+    private boolean isEditorSession(ProjectUserDto template){
         return baseUser.isAdmin() || baseUser.isManager()
                 || baseUser.getProjectUser(template.getProject_id()).isAdmin()
                 || baseUser.getProjectUser(template.getProject_id()).isManager();

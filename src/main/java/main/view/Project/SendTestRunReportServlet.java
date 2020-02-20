@@ -23,7 +23,6 @@ public class SendTestRunReportServlet extends BaseServlet implements IPost {
             Integer test_run_id = req.getParameterMap().containsKey("test_run_id") ?  Integer.parseInt(req.getParameter("test_run_id")) : null;
             TestRunDto testRunDto = new TestRunDto();
             testRunDto.setId(test_run_id);
-            testRunDto.setProject_id(getProjectId(req));
             testRunDto = session.controllerFactory.getHandler(testRunDto).get(testRunDto, true, 1).get(0);
             List<UserDto> users = mapper.mapObjects(UserDto.class, getRequestJson(req));
             session.getTestRunEmails().sendTestRunResultsToTeam(testRunDto, users);

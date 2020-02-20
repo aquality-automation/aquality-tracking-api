@@ -20,6 +20,7 @@ public class StepsOrderServlet extends BaseServlet implements IPost {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);

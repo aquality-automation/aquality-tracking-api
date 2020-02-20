@@ -13,6 +13,7 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,15 +28,15 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
         setGetResponseHeaders(resp);
         try {
             Session session = createSession(req);
-            if (req.getParameterMap().containsKey("audit_id")) {
+            if (req.getParameterMap().containsKey("audit_id") && req.getParameterMap().containsKey("project_id")) {
                 AuditAttachmentDto auditAttachmentDtoTemplate  = new AuditAttachmentDto();
                 auditAttachmentDtoTemplate.setAudit_id(Integer.parseInt(req.getParameter("audit_id")));
-                List<AuditAttachmentDto> attachments = session.getAuditController().get(auditAttachmentDtoTemplate, getProjectId(req));
+                List<AuditAttachmentDto> attachments = session.getAuditController().get(auditAttachmentDtoTemplate);
                 setJSONContentType(resp);
                 resp.getWriter().write(mapper.serialize(attachments));
             } else {
                 resp.setStatus(400);
-                setErrorHeader(resp, "You have no specify Audit ID!");
+                setErrorHeader(resp, "You have no specify Audit ID or Audit Project ID!");
             }
         }catch (Exception e) {
             handleException(resp, e);
@@ -50,7 +51,7 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
             if (req.getParameterMap().containsKey("id")) {
                 AuditAttachmentDto auditAttachmentDtoTemplate = new AuditAttachmentDto();
                 auditAttachmentDtoTemplate.setId(Integer.parseInt(req.getParameter("id")));
-                session.getAuditController().delete(auditAttachmentDtoTemplate, getProjectId(req));
+                session.getAuditController().delete(auditAttachmentDtoTemplate);
             } else {
                 setAuthorizationProblem(resp);
             }

@@ -19,6 +19,7 @@ public class TestRunLabelServlet extends BaseServlet implements IGet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             TestRunLabelDto label = new TestRunLabelDto();

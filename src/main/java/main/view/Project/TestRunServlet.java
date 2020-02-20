@@ -19,6 +19,7 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             TestRunDto testRunTemplate = new TestRunDto();
@@ -42,11 +43,12 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         setDeleteResponseHeaders(resp);
+
         try {
             Session session = createSession(req);
             TestRunDto testRun = new TestRunDto();
             testRun.setId(Integer.parseInt(req.getParameter("id")));
-            testRun.setProject_id(getProjectId(req));
+            testRun.setProject_id(Integer.parseInt(req.getParameter("projectId")));
             session.controllerFactory.getHandler(testRun).delete(testRun);
         }catch (Exception e) {
             handleException(resp, e);
@@ -57,6 +59,7 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
+
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
