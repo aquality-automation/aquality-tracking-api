@@ -123,9 +123,6 @@ paths:
                 project_id:
                   type: integer
                   example: 1
-                test_suite_id:
-                  type: integer
-                  example: 12
                 suites:
                   type: array
                   items:
@@ -140,7 +137,7 @@ paths:
           schema:
             $ref: '#/definitions/Test'
         400:
-          description: 'You have missed one of required parameters you should specify `project_id` AND (`name` AND/OR `id`) AND `test_suite_id` AND `suites`'
+          description: 'You have missed one of required parameters you should specify `project_id` AND (`name` AND/OR `id`) AND `suites`'
           schema:
             $ref: '#/definitions/Error'
         401:

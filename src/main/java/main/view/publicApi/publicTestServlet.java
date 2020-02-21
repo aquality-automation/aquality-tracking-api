@@ -41,10 +41,6 @@ public class publicTestServlet extends BaseServlet implements IPost {
             throw new AqualityParametersException("You should specify 'id' or/and 'name' suite parameters!");
         }
 
-        if(test.getTest_suite_id() == null) {
-            throw new AqualityParametersException("You should specify 'test_suite_id'");
-        }
-
         if(test.getSuites() == null) {
             throw new AqualityParametersException("You should specify 'suites' array with single suite like `[{id: test_suite_id}]`");
         }

@@ -55,7 +55,7 @@ public class TestController extends BaseController<TestDto> {
         if(existingTests.size() > 0) {
             TestDto existingTest = existingTests.get(0);
             if(existingTest.getSuites() != null) {
-                TestSuiteDto testSuite = existingTest.getSuites().stream().filter(suite -> suite.getId().equals(test.getTest_suite_id())).findFirst().orElse(null);
+                TestSuiteDto testSuite = existingTest.getSuites().stream().filter(suite -> suite.getId().equals(test.getSuites().get(0).getId())).findFirst().orElse(null);
                 if(testSuite != null) {
                     existingTest.getSuites().add(test.getSuites().get(0));
                 }
