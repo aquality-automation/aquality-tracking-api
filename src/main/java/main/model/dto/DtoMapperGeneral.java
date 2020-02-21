@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,16 +32,20 @@ public class DtoMapperGeneral{
         return mapper.writeValueAsString(object);
     }
 
-    public <T extends BaseDto> T mapObject(Class<T> clazz, String objectJsonString) throws IOException {
-        return mapper.readValue(objectJsonString, clazz);
+    public <T extends BaseDto> T mapObject(Class<T> clazz, String objectJsonString) throws AqualityParametersException {
+        try {
+            return mapper.readValue(objectJsonString, clazz);
+        } catch (IOException e) {
+            throw new AqualityParametersException("Cannot map Object to " + clazz.getName());
+        }
     }
 
-    public <T> List<T> mapObjects(Class<T> clazz, String arrayJsonString) throws AqualityException {
+    public <T> List<T> mapObjects(Class<T> clazz, String arrayJsonString) throws AqualityParametersException {
         CollectionType listType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
         try {
             return mapper.readValue(arrayJsonString, listType);
         } catch (IOException e) {
-            throw new AqualityException("Cannot map Object to " + clazz.getName());
+            throw new AqualityParametersException("Cannot map Object to " + clazz.getName());
         }
     }
 }

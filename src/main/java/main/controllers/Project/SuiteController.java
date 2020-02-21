@@ -5,6 +5,7 @@ import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
 import main.model.dto.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +35,17 @@ public class SuiteController extends BaseController<TestSuiteDto> {
         } else {
             throw new AqualityPermissionsException("Account is not allowed to create Test Suite", baseUser);
         }
+    }
+
+    public TestSuiteDto createOrUpdate(@NotNull TestSuiteDto testSuite) throws AqualityException {
+        if(testSuite.getId() == null) {
+            List<TestSuiteDto> testSuites = get(testSuite);
+            if(testSuites.size() > 0) {
+                return testSuites.get(0);
+            }
+        }
+
+        return create(testSuite);
     }
 
     public List<TestSuiteDto> get(TestSuiteDto template, boolean withChildren) throws AqualityException {

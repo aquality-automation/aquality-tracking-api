@@ -4,25 +4,25 @@ openapi: 3.0.0
 info:
   description: |
     Documentation for Aquality Tracker API.
-  version: '0.3.1'
+  version: '0.3.6'
   title: 'Aquality Tracker - API documentation'
 
-basePath: '/api'
+servers:
+  - url: http://localhost:8080/api
+  - url: http://localhost:8888/api
 
-schemes:
-  - 'http'
-
-securityDefinitions:
-  ApiKeyAuth:
-    schema:
-      type: apiKey
-    in: header
-    name: 'Authorization'
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
 
 security:
-  - ApiKeyAuth: []
+  - BasicAuth: []
 
 tags:
+  - name: 'public'
+    description: 'Public API to simplify results import'
   - name: 'import'
     description: 'Import operations'
   - name: 'suite'
@@ -53,91 +53,390 @@ tags:
     description: 'Operations with audits'
 
 paths:
+  /public/suite/create-or-update:
+    post:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Create OR Update Suite'
+      description: "Create suite if it does not exist with specified `name` OR update it if `id` is specified"
+      produces:
+        - 'application/json'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                project_id:
+                  type: integer
+                  example: 1
+              required:
+                - project_id
+      responses:
+        200:
+          description: 'Test Suite was created/updated (ID of created/updated Test Suite is in the `id` header).'
+          schema:
+            $ref: '#/definitions/TestSuite'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND (`name` AND/OR `id`)'
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          schema:
+            $ref: '#/definitions/Error'
+  /public/test/create-or-update:
+    post:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Create OR Update Test'
+      description: |
+        Create Test if it does not exist with specified `name` OR `id`. Update test if `id` is specified and it is exists.
+        This test will be automatically added to specified Suite.
+        For `suites` array you need to add one object with id property the same as `test_suite_id`.
+      produces:
+        - 'application/json'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                project_id:
+                  type: integer
+                  example: 1
+                test_suite_id:
+                  type: integer
+                  example: 12
+                suites:
+                  type: array
+                  items:
+                    $ref: '#/definitions/TestSuite'
+              required:
+                - project_id
+                - test_suite_id
+                - suites
+      responses:
+        200:
+          description: 'Test Suite was created/updated. The Test JSON will be returned in body'
+          schema:
+            $ref: '#/definitions/Test'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND (`name` AND/OR `id`) AND `test_suite_id` AND `suites`'
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          schema:
+            $ref: '#/definitions/Error'
+  /public/testrun/start:
+    post:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Start test run'
+      description: |
+        Create Test run for specified `test_suite_id` and `project_id`.
+      produces:
+        - 'application/json'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                build_name:
+                  type: string
+                  example: "build_123"
+                milestone_id:
+                  type: integer
+                test_suite_id:
+                  type: integer
+                  example: 51
+                project_id:
+                  type: integer
+                  example: 8
+                execution_environment:
+                  type: string
+                start_time:
+                  type: string
+                finish_time:
+                  type: string
+                author:
+                  type: string
+                debug:
+                  type: integer
+                ci_build:
+                  type: string
+              required:
+                - build_name
+                - project_id
+                - test_suite_id
+      responses:
+        200:
+          description: 'Test Run was created and Started. The Test JSON will be returned in body'
+          schema:
+            $ref: '#/definitions/Test'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND `build_name` AND `test_suite_id`'
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          schema:
+            $ref: '#/definitions/Error'
+  /public/testrun/finish:
+    get:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Finish test run'
+      description: |
+        Finish Test run for specified `id` and `project_id`.
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: project_id
+          description: 'ID of Project to finish Test Run'
+          type: integer
+          required: true
+        - in: query
+          name: id
+          description: 'ID of Test Run to finish'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Test Suite was finished. The Test JSON will be returned in body'
+          schema:
+            $ref: '#/definitions/Test'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND `id`'
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          schema:
+            $ref: '#/definitions/Error'
+  /public/test/result/start:
+    get:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Start test result'
+      description: |
+        Start Test Result for specified `test_id`, `test_run_id` and `project_id`.
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: test_id
+          description: 'ID of Test Result to Start'
+          type: integer
+          required: true
+        - in: query
+          name: test_run_id
+          description: 'ID of Test Run to Start test result'
+          type: integer
+          required: true
+        - in: query
+          name: project_id
+          description: 'ID of Test Result Project'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Test Result was started. The Test Result JSON will be returned in body'
+          schema:
+            $ref: '#/definitions/TestResult'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND `test_id` AND `test_run_id`'
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          schema:
+            $ref: '#/definitions/Error'
+  /public/test/result/finish:
+    post:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Finish test result'
+      description: |
+        Finish Test result for specified `id` and `project_id`.
+        You should specify 'final_result_id' - Failed: 1, Passed: 2, Not Executed: 3, Pending: 5.
+      produces:
+        - 'application/json'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 123
+                  description: 'ID of Test Result'
+                project_id:
+                  type: integer
+                  description: 'ID of Test Result Project'
+                final_result_id:
+                  type: integer
+                  example: 51
+                  description: 'ID of Final Result - Failed: 1, Passed: 2, Not Executed: 3, Pending: 5'
+                fail_reason:
+                  type: string
+                  example: "Error message"
+                  description: 'Fail reason message'
+              required:
+                - id
+                - project_id
+                - final_result_id
+      responses:
+        200:
+          description: 'Test result was finished. The Test JSON will be returned in body'
+          schema:
+            $ref: '#/definitions/TestResult'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND `id` AND `final_result_id`'
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          schema:
+            $ref: '#/definitions/Error'
+
   /import:
-      post:
-        tags:
-          - 'import'
-        summary: 'Import Test Run'
-        description: |
-          Import Test Run from file. Following formats are supported:
-          - MSTest
-          - Robot
-          - TestNG
-          - Cucumber
-          - PHPCodeception
-          - NUnit_v2
-          - NUnit_v3
-        consumes:
-          - 'multipart/form-data'
-        parameters:
-          - in: query
-            name: projectId
-            description: 'ID of Project to import Test Run'
-            schema:
-              type: integer
-            required: true
-          - in: query
-            name: format
-            description: 'Format of the file for import'
-            schema:
-              type: string
-            required: true
-            enum: ['MSTest', 'Robot', 'TestNG', 'Cucumber', 'PHPCodeception', 'NUnit_v2', 'NUnit_v3']
-          - in: formData
-            name: uploadFile0
-            description: 'File for import'
-            schema:
-              type: file
-            required: true
-          - in: query
-            name: singleTestRun
-            description: 'true/false - Import all files into single Test Run (default = false)'
-            schema:
-              type: strings
-          - in: query
-            name: suite
-            description: 'Test Suite name (required only when format = MSTest and singleTestRun = true)'
-            schema:
-              type: string
-          - in: query
-            name: environment
-            description: 'Environment used for Test Run'
-            schema:
-              type: string
-          - in: query
-            name: pattern
-            description: 'Regular expression pattern to identify if test was created before by matches in body (useful to match tests by TestRail ID, for example)'
-            schema:
-              type: string
-          - in: query
-            name: buildName
-            description: 'Build name (required only when singleTestRun = true)'
-            schema:
-              type: string
-          - in: query
-            name: author
-            description: 'Author name (required only when singleTestRun = true)'
-            schema:
-              type: string
-          - in: query
-            name: cilink
-            description: 'Link to CI Build'
-            schema:
-              type: string
-          - in: query
-            name: testRunId
-            description: 'ID of testrun that should be updated with results from import file'
-            schema:
-              type: string
-          - in: query
-            name: testNameKey
-            description: 'Select the node of test name (required for MSTest and TestNG)'
-            schema:
-              type: string
-            enum: ['className', 'testName', 'descriptionNode']
-        responses:
-          200:
-            description: 'Valid response'
+    post:
+      tags:
+        - 'import'
+      summary: 'Import Test Run'
+      description: |
+        Import Test Run from file. Following formats are supported:
+        - MSTest
+        - Robot
+        - TestNG
+        - Cucumber
+        - PHPCodeception
+        - NUnit_v2
+        - NUnit_v3
+      consumes:
+        - 'multipart/form-data'
+      parameters:
+        - in: query
+          name: projectId
+          description: 'ID of Project to import Test Run'
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: format
+          description: 'Format of the file for import'
+          schema:
+            type: string
+          required: true
+          enum: ['MSTest', 'Robot', 'TestNG', 'Cucumber', 'PHPCodeception', 'NUnit_v2', 'NUnit_v3']
+        - in: formData
+          name: uploadFile0
+          description: 'File for import'
+          schema:
+            type: file
+          required: true
+        - in: query
+          name: singleTestRun
+          description: 'true/false - Import all files into single Test Run (default = false)'
+          schema:
+            type: strings
+        - in: query
+          name: suite
+          description: 'Test Suite name (required only when format = MSTest and singleTestRun = true)'
+          schema:
+            type: string
+        - in: query
+          name: environment
+          description: 'Environment used for Test Run'
+          schema:
+            type: string
+        - in: query
+          name: pattern
+          description: 'Regular expression pattern to identify if test was created before by matches in body (useful to match tests by TestRail ID, for example)'
+          schema:
+            type: string
+        - in: query
+          name: buildName
+          description: 'Build name (required only when singleTestRun = true)'
+          schema:
+            type: string
+        - in: query
+          name: author
+          description: 'Author name (required only when singleTestRun = true)'
+          schema:
+            type: string
+        - in: query
+          name: cilink
+          description: 'Link to CI Build'
+          schema:
+            type: string
+        - in: query
+          name: testRunId
+          description: 'ID of testrun that should be updated with results from import file'
+          schema:
+            type: string
+        - in: query
+          name: testNameKey
+          description: 'Select the node of test name (required for MSTest and TestNG)'
+          schema:
+            type: string
+          enum: ['className', 'testName', 'descriptionNode']
+      responses:
+        200:
+          description: 'Valid response'
   /import/results:
     get:
       tags:
@@ -583,7 +882,7 @@ paths:
   /suite:
     get:
       tags:
-        - 'testsuite'
+        - 'suite'
       summary: 'Get Test Suites'
       description: "Get list of Test Suites by search criteria"
       produces:
@@ -604,6 +903,7 @@ paths:
             type: string
         - in: query
           name: project_id
+          required: true
           schema:
             type: integer
       responses:
@@ -1448,6 +1748,12 @@ paths:
           description: 'User was removed'
 
 definitions:
+  Error:
+    schema:
+      type: object
+    properties:
+      message:
+        type: string
   FinalResult:
     schema:
       type: object
@@ -1462,18 +1768,18 @@ definitions:
         schema:
           type: integer
   Milestone:
-      schema:
-        type: object
-      properties:
-        id:
-          schema:
-            type: integer
-        name:
-          schema:
-            type: string
-        project_id:
-          schema:
-            type: integer
+    schema:
+      type: object
+    properties:
+      id:
+        schema:
+          type: integer
+      name:
+        schema:
+          type: string
+      project_id:
+        schema:
+          type: integer
   Project:
     schema:
       type: object
@@ -1537,6 +1843,9 @@ definitions:
       debug:
         schema:
           type: integer
+      ci_build:
+        schema:
+          type: string
       testResults:
         schema:
           type: array
