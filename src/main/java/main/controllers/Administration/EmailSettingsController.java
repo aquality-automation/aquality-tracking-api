@@ -29,7 +29,8 @@ public class EmailSettingsController extends BaseController<EmailSettingsDto> {
         return emailSettingsDao.create(template);
     }
 
-    @Override @NotImplemented
+    @Override
+    @NotImplemented
     public boolean delete(EmailSettingsDto entity) throws AqualityException {
         throw new UnsupportedOperationException();
     }

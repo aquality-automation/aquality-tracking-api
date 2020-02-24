@@ -94,40 +94,16 @@ public class UserDto extends BaseDto {
         return isManager() || isAuditor() || isAuditAdmin() || isCoordinator() || BooleanUtil.intToBoolean(head);
     }
 
-    public ProjectUserDto getProjectUser(Integer projectId){
+    public ProjectUserDto getProjectUser(Integer projectId) throws AqualityException {
+        if(projectId == null){
+            throw new AqualityException("Project ID is not defined!");
+        }
+
         if(projectUsers != null){
            return projectUsers.stream().filter(x -> x.getProject_id().equals(projectId)).findFirst().orElse(getEmptyProjectUser());
         }
+
         return getEmptyProjectUser();
-    }
-
-    public ProjectUserDto getProjectUserBySuiteId(Integer suite_id) throws AqualityException {
-        TestSuiteDao testSuiteDao = new TestSuiteDao();
-        TestSuiteDto template = new TestSuiteDto();
-        template.setId(suite_id);
-        template = testSuiteDao.searchAll(template).get(0);
-        return getProjectUser(template.getProject_id());
-    }
-
-    public ProjectUserDto getProjectUserByTest(TestDto testDto) throws AqualityException {
-        if(testDto.getProject_id() != null){
-            return getProjectUser(testDto.getProject_id());
-        }
-
-        try {
-            TestDao testDao = new TestDao();
-            return getProjectUser(testDao.searchAll(testDto).get(0).getProject_id());
-        }catch (IndexOutOfBoundsException e){
-            throw new AqualityException("Cannot define project id");
-        }
-    }
-
-    public ProjectUserDto getProjectUserByMilestoneId(Integer milestone_id) throws AqualityException {
-        MilestoneDao milestoneDao = new MilestoneDao();
-        MilestoneDto template = new MilestoneDto();
-        template.setId(milestone_id);
-        template = milestoneDao.searchAll(template).get(0);
-        return getProjectUser(template.getProject_id());
     }
 
     public UserDto toPublic(){
