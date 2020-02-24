@@ -74,7 +74,7 @@
             IF(request_customer_id='', 0, request_customer_id),
             IF(request_steps='', 0, request_steps),
             IF(request_compare_result_pattern='', null, request_compare_result_pattern),
-            IF(request_stability_count='', null, request_stability_count)
+            IF(request_stability_count='', 5, request_stability_count)
             )
             ON DUPLICATE KEY UPDATE
             name = replace_empty(request_name, name),
