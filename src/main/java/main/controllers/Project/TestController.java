@@ -36,10 +36,35 @@ public class TestController extends BaseController<TestDto> {
             if (updateSuites) {
                 test.setSuites(template.getSuites());
                 updateSuites(test);
+                test = get(test).get(0);
             }
             return test;
         } else {
             throw new AqualityPermissionsException("Account is not allowed to create Test", baseUser);
+        }
+    }
+
+    public TestDto createOrUpdate(TestDto test) throws AqualityException {
+        TestDto searchTemplate = new TestDto();
+        searchTemplate.setId(test.getId());
+        searchTemplate.setProject_id(test.getProject_id());
+        searchTemplate.setName(test.getName());
+
+        List<TestDto> existingTests = get(searchTemplate);
+
+        if(existingTests.size() > 0) {
+            TestDto existingTest = existingTests.get(0);
+            if(existingTest.getSuites() != null) {
+                TestSuiteDto testSuite = existingTest.getSuites().stream().filter(suite -> suite.getId().equals(test.getSuites().get(0).getId())).findFirst().orElse(null);
+                if(testSuite != null) {
+                    existingTest.getSuites().add(test.getSuites().get(0));
+                }
+            }else {
+                existingTest.setSuites(test.getSuites());
+            }
+            return create(existingTest, true);
+        } else {
+            return create(test, true);
         }
     }
 

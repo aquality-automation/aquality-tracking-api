@@ -24,7 +24,7 @@ public class TestServlet extends BaseServlet implements IDelete {
             TestDto test = new TestDto();
             test.getSearchTemplateFromRequestParameters(req);
             List<TestDto> tests = session.controllerFactory.getHandler(test).get(test);
-            resp.getWriter().write(mapper.serialize(tests));
+            setResponseBody(resp, tests);
         }catch (Exception e) {
             handleException(resp, e);
         }
