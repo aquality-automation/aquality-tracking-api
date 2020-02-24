@@ -1,14 +1,10 @@
 # CHANGELOG
 
-## 0.3.6 (unreleased)
+## 0.3.6 (2020-02-24)
 
 Features:
   - Test Run view: Add stability indicator -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/60)
   - Provide public API -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/56)
-
-Bugfixes:
- - Fixed for downloading audits results from Audits Dashboard -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/51)
-
 
 ## 0.3.5 (2020-02-15)
 
