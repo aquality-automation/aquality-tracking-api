@@ -5,7 +5,6 @@ import main.exceptions.AqualityParametersException;
 import main.model.dto.TestRunDto;
 import main.view.BaseServlet;
 import main.view.IGet;
-import main.view.IPost;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +23,7 @@ public class PublicTestRunFinishServlet extends BaseServlet implements IGet {
             TestRunDto testrun = new TestRunDto();
             testrun.getSearchTemplateFromRequestParameters(req);
 
-            validatePost(testrun);
+            validateGet(testrun);
 
             testrun.setFinish_time(new Date());
             testrun = session.controllerFactory.getHandler(testrun).create(testrun);
@@ -35,7 +34,7 @@ public class PublicTestRunFinishServlet extends BaseServlet implements IGet {
         }
     }
 
-    private void validatePost(TestRunDto testrun) throws AqualityParametersException {
+    private void validateGet(TestRunDto testrun) throws AqualityParametersException {
         if(testrun.getProject_id() == null) {
             throw new AqualityParametersException("You should specify 'project_id'!");
         }

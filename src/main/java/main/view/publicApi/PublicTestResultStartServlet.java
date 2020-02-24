@@ -2,7 +2,6 @@ package main.view.publicApi;
 
 import main.Session;
 import main.exceptions.AqualityParametersException;
-import main.model.dto.TestDto;
 import main.model.dto.TestResultDto;
 import main.view.BaseServlet;
 import main.view.IGet;
@@ -25,7 +24,7 @@ public class PublicTestResultStartServlet extends BaseServlet implements IGet {
             TestResultDto testResult = new TestResultDto();
             testResult.getSearchTemplateFromRequestParameters(req);
 
-            validatePost(testResult);
+            validateGet(testResult);
 
             List<TestResultDto> oldResults = session.controllerFactory.getHandler(testResult).get(testResult);
 
@@ -47,7 +46,7 @@ public class PublicTestResultStartServlet extends BaseServlet implements IGet {
         }
     }
 
-    private void validatePost(TestResultDto testResult) throws AqualityParametersException {
+    private void validateGet(TestResultDto testResult) throws AqualityParametersException {
         if(testResult.getProject_id() == null) {
             throw new AqualityParametersException("You should specify 'project_id'!");
         }
