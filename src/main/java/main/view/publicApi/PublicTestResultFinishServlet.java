@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 @WebServlet("/public/test/result/finish")
-public class publicTestResultFinishServlet extends BaseServlet implements IPost {
+public class PublicTestResultFinishServlet extends BaseServlet implements IPost {
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {

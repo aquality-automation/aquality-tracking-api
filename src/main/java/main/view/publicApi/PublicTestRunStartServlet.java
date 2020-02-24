@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
 @WebServlet("/public/testrun/start")
-public class publicTestRunStartServlet extends BaseServlet implements IPost {
+public class PublicTestRunStartServlet extends BaseServlet implements IPost {
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);

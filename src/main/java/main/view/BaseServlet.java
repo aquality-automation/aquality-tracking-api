@@ -133,7 +133,7 @@ public class BaseServlet extends HttpServlet {
         resp.setStatus(204);
     }
 
-    private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) {
+    private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
         resp.setStatus(401);
         resp.addHeader("ErrorMessage", !Objects.equals(e.getMessage(), "") ? e.getMessage() : "Are you sure you logged in?");
         setResponseBody(resp, !Objects.equals(e.getMessage(), "") ? e.getMessage() : "Are you sure you logged in?");
@@ -193,47 +193,51 @@ public class BaseServlet extends HttpServlet {
         }
     }
 
-    protected void setResponseBody(HttpServletResponse resp, Object object) {
+    protected void setResponseBody(HttpServletResponse resp, Object object) throws AqualityException {
         try {
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(object));
         } catch (IOException e) {
-            System.out.println("Cannot set response body!");
+            throw new AqualityException("System was not able to write a response! Raise an Issue.");
         }
     }
 
     protected void handleException(HttpServletResponse resp, @NotNull Exception e) {
         e.printStackTrace();
-        switch (e.getClass().getSimpleName()) {
-            case "UnsupportedOperationException":
-                setNotImplementedFunction(resp, e);
-                return;
-            case "AuthenticationException":
-                setAuthorizationProblem(resp, e);
-                return;
-            case "AqualityParametersException":
-            case "AqualityPermissionsException":
-            case "AqualityException":
-            case "InvalidFormatException":
-            case "AqualityQueryParameterException":
-            case "AqualitySQLException":
-                AqualityException exception = (AqualityException) e;
-                resp.setStatus(exception.getResponseCode());
-                resp.addHeader("ErrorMessage", exception.getMessage());
-                setResponseBody(resp, new ErrorDto(exception.getMessage()));
-                return;
-            default:
-                setUnknownIssue(resp);
+        try {
+            switch (e.getClass().getSimpleName()) {
+                case "UnsupportedOperationException":
+                    setNotImplementedFunction(resp, e);
+                    return;
+                case "AuthenticationException":
+                    setAuthorizationProblem(resp, e);
+                    return;
+                case "AqualityParametersException":
+                case "AqualityPermissionsException":
+                case "AqualityException":
+                case "InvalidFormatException":
+                case "AqualityQueryParameterException":
+                case "AqualitySQLException":
+                    AqualityException exception = (AqualityException) e;
+                    resp.setStatus(exception.getResponseCode());
+                    resp.addHeader("ErrorMessage", exception.getMessage());
+                    setResponseBody(resp, new ErrorDto(exception.getMessage()));
+                    return;
+                default:
+                    setUnknownIssue(resp);
+            }
+        } catch (AqualityException ex) {
+            handleException(resp, ex);
         }
     }
 
-    private void setNotImplementedFunction(@NotNull HttpServletResponse resp, @NotNull Exception e) {
+    private void setNotImplementedFunction(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
         resp.setStatus(501);
         resp.addHeader("ErrorMessage", e.getMessage());
         setResponseBody(resp, new ErrorDto(e.getMessage()));
     }
 
-    private void setUnknownIssue(@NotNull HttpServletResponse resp) {
+    private void setUnknownIssue(@NotNull HttpServletResponse resp) throws AqualityException {
         resp.setStatus(500);
         resp.addHeader("ErrorMessage", "Unknown Issue.");
         setResponseBody(resp, new ErrorDto("Unknown Issue."));

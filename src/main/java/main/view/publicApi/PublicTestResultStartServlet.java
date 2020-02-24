@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 @WebServlet("/public/test/result/start")
-public class publicTestResultStartServlet extends BaseServlet implements IGet {
+public class PublicTestResultStartServlet extends BaseServlet implements IGet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {

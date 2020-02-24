@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
 @WebServlet("/public/testrun/finish")
-public class publicTestRunFinishServlet extends BaseServlet implements IGet {
+public class PublicTestRunFinishServlet extends BaseServlet implements IGet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
