@@ -68,7 +68,7 @@
             UPDATE test_results
             JOIN test_runs ON test_results.test_run_id = test_runs.id
             SET test_results.debug = 1
-            Where test_runs.debug = 1;
+            Where test_runs.debug = 1 AND test_results.id > 0;
         </sql>
         <rollback>
         </rollback>
