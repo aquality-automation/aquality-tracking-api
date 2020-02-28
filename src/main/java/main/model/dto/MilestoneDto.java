@@ -3,6 +3,8 @@ package main.model.dto;
 import lombok.Data; import lombok.EqualsAndHashCode;
 import main.annotations.*;
 
+import java.util.List;
+
 
 @Data @EqualsAndHashCode(callSuper = true)
 public class MilestoneDto extends BaseDto{
@@ -18,4 +20,5 @@ public class MilestoneDto extends BaseDto{
     @DataBaseName(name = "request_project_id")
     @DataBaseInsert
     private Integer project_id;
+    private List<TestSuiteDto> suites;
 }
