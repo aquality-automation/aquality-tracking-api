@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+
+    <changeSet id="Create UPDATE_LAST_RESULT_COLORS_FOR_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LAST_RESULT_COLORS`;
+            #
+            DROP procedure IF EXISTS `UPDATE_LAST_RESULT_COLORS_FOR_TEST`;
+
+            #
+
+            CREATE PROCEDURE `UPDATE_LAST_RESULT_COLORS_FOR_TEST`(
+            IN request_test_id INT(10),
+            IN request_limit INT(10)
+            )
+            BEGIN
+            DELETE FROM last_test_results WHERE test_id = request_test_id;
+
+            INSERT INTO last_test_results (test_id, resolution_colors, result_colors, result_ids)
+
+            select
+            request_test_id,
+            GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
+            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
+            FROM (
+            select request_test_id, result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            from test_results left join result_resolution on test_resolution_id = result_resolution.id
+            left join final_results on final_result_id = final_results.id
+
+            where test_id = request_test_id AND test_results.debug = 0
+            order by finish_date DESC
+            limit request_limit) as results;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_LAST_RESULT_COLORS`;
+            #
+            CREATE PROCEDURE `SELECT_LAST_RESULT_COLORS`(
+            IN request_test_id VARCHAR(10),
+            IN request_limit INT(10)
+            )
+            BEGIN
+            select
+            GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
+            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
+            FROM (
+            select result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            from test_results left join result_resolution on test_resolution_id = result_resolution.id
+            left join final_results on final_result_id = final_results.id
+
+            where test_id = request_test_id
+            order by finish_date DESC
+            limit request_limit) as results;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Mark debug test results as debug" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            UPDATE test_results
+            JOIN test_runs ON test_results.test_run_id = test_runs.id
+            SET test_results.debug = 1
+            Where test_runs.debug = 1 AND test_results.id > 0;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE `last_test_results`" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `last_test_results` (
+            `test_id` INT NOT NULL,
+            `result_colors` VARCHAR(100) NULL,
+            `resolution_colors` VARCHAR(100) NULL,
+            `result_ids` VARCHAR(100) NULL,
+            PRIMARY KEY (`test_id`),
+            UNIQUE INDEX `test_id_UNIQUE` (`test_id` ASC),
+            CONSTRAINT `last_results_to_test`
+            FOREIGN KEY (`test_id`)
+            REFERENCES `tests` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create UPDATE_LAST_RESULTS_FOR_PROJECT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `UPDATE_LAST_RESULTS_FOR_PROJECT`;
+
+            #
+
+            CREATE PROCEDURE `UPDATE_LAST_RESULTS_FOR_PROJECT`(
+            IN request_project_id INT(11)
+            )
+            BEGIN
+
+            DECLARE my_id int;
+            DECLARE my_stability_count int;
+            DECLARE done TINYINT DEFAULT FALSE;
+
+            DECLARE test_cursor
+            CURSOR FOR
+            SELECT id
+            FROM tests
+            WHERE project_id = request_project_id;
+
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+            SELECT stability_count INTO @my_stability_count FROM projects WHERE id=request_project_id;
+
+            OPEN test_cursor;
+
+            tests_loop: LOOP
+
+            FETCH NEXT FROM test_cursor INTO my_id;
+            IF done THEN
+            LEAVE tests_loop;
+            ELSE
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST(my_id,@my_stability_count);
+            END IF;
+            END LOOP;
+
+            CLOSE test_cursor;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `UPDATE_LAST_RESULTS_FOR_PROJECT`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create empty_or_equal" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP FUNCTION IF EXISTS `empty_or_equal`;
+
+            #
+
+            CREATE FUNCTION `empty_or_equal`(
+            request_value longtext,
+            current_value longtext
+            ) RETURNS int(1)
+            BEGIN
+            RETURN request_value = '' OR current_value = request_value;
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `empty_or_equal`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_TEST to use last_test_results table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_TEST`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST`(
+            IN request_id VARCHAR(10),
+            IN request_name VARCHAR(500),
+            IN request_body LONGTEXT,
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_developer_id VARCHAR(10)
+            )
+            BEGIN
+            Select * From tests
+            LEFT JOIN last_test_results on tests.id = last_test_results.test_id
+            WHERE
+            empty_or_equal(request_id, id)
+            AND empty_or_equal(request_name, name)
+            AND empty_or_equal(request_body, body)
+            AND (request_test_suite_id = '' OR id IN (select test_id from suite_tests where suite_id = request_test_suite_id))
+            AND empty_or_equal(request_project_id, project_id)
+            AND empty_or_equal(request_developer_id, developer_id);
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `SELECT_TEST`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_INSERT Trigger to use UPDATE_LAST_RESULT_COLORS_FOR_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_results_AFTER_INSERT
+
+            #
+
+            CREATE TRIGGER test_results_AFTER_INSERT AFTER INSERT ON test_results FOR EACH ROW
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND is_finished = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_UPDATE Trigger to use UPDATE_LAST_RESULT_COLORS_FOR_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_results_AFTER_UPDATE
+
+            #
+
+            CREATE TRIGGER test_results_AFTER_UPDATE AFTER UPDATE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND is_finished = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_BEFORE_DELETE Trigger to use UPDATE_LAST_RESULT_COLORS_FOR_TEST" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_results_BEFORE_DELETE
+
+            #
+
+            CREATE TRIGGER `test_results_BEFORE_DELETE` BEFORE DELETE ON `test_results` FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND is_finished = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = OLD.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = OLD.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            OLD.test_id,
+            (SELECT stability_count from projects where id = OLD.project_id)
+            );
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update projects_AFTER_UPDATE Trigger to use UPDATE_LAST_RESULTS_FOR_PROJECT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS projects_AFTER_UPDATE
+
+            #
+
+            CREATE TRIGGER `projects_AFTER_UPDATE` AFTER UPDATE ON `projects` FOR EACH ROW
+            BEGIN
+            IF (OLD.stability_count != NEW.stability_count)
+            THEN
+            CALL UPDATE_LAST_RESULTS_FOR_PROJECT(NEW.id);
+            End IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update projects LAST RESULTS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            UPDATE projects SET stability_count = 6 WHERE id > 0;
+
+            #
+
+            UPDATE projects SET stability_count = 5 WHERE id > 0;
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

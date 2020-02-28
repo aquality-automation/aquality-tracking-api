@@ -62,6 +62,7 @@ class BaseImporter {
                 result.setTest(tests.get(i));
             }
 
+            result.setDebug(testRun.getDebug());
             result.setTest_id(result.getTest().getId());
             result.setTest_run_id(testRun.getId());
             result.setFinal_result_updated(result.getFinish_date());

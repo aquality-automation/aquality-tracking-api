@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 public class TestController extends BaseController<TestDto> {
     private TestDao testDao;
-    private ProjectDao projectDao;
     private TestSuiteDao suiteDao;
     private TestResultDao resultDao;
     private Test2SuiteController test2SuiteController;
@@ -24,7 +23,6 @@ public class TestController extends BaseController<TestDto> {
 
         testDao = new TestDao();
         suiteDao = new TestSuiteDao();
-        projectDao = new ProjectDao();
         resultDao = new TestResultDao();
         test2SuiteController = new Test2SuiteController(user);
         projectUserController = new ProjectUserController(user);
@@ -157,7 +155,6 @@ public class TestController extends BaseController<TestDto> {
             List<Test2SuiteDto> test2Suites = new ArrayList<>();
             ProjectDto projectDto = new ProjectDto();
             projectDto.setId(tests.get(0).getProject_id());
-            projectDto = projectDao.getEntityById(projectDto);
 
             for (TestSuiteDto testSuite : testSuites) {
                 Test2SuiteDto test2Suite = new Test2SuiteDto();
@@ -169,10 +166,6 @@ public class TestController extends BaseController<TestDto> {
             for (TestDto test : tests) {
                 if (test.getDeveloper_id() != null) {
                     test.setDeveloper(projectUsers.stream().filter(x -> x.getUser().getId().equals(test.getDeveloper_id())).findFirst().orElse(null));
-                }
-
-                if(projectDto.getStability_count() != null) {
-                    test.setLastResultColors(testDao.getLastColors(test.getId(), projectDto.getStability_count()));
                 }
 
                 List<Test2SuiteDto> testSuiteLinks = test2Suites.stream().filter(x -> x.getTest_id().equals(test.getId())).collect(Collectors.toList());
