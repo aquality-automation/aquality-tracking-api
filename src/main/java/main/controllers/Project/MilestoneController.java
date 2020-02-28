@@ -93,7 +93,7 @@ public class MilestoneController extends BaseController<MilestoneDto> {
                     Suite2MilestoneDto newSuite2MilestoneDto = new Suite2MilestoneDto();
                     newSuite2MilestoneDto.setSuite_id(newSuite.getId());
                     newSuite2MilestoneDto.setMilestone_id(milestone.getId());
-                    milestoneSuitesDao.create(newSuite2MilestoneDto);
+                    milestoneSuitesDao.addSuite(newSuite2MilestoneDto);
                 }
             }
         }

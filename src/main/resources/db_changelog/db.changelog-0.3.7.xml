@@ -440,37 +440,10 @@
             INSERT INTO milestone_suites (milestone_id, suite_id)
             VALUES (request_milestone_id, request_suite_id);
             END IF;
-
-            SELECT * FROM milestone_suites WHERE milestone_id = request_milestone_id AND suite_id = request_suite_id;
             END
         </sql>
         <rollback>
-        </rollback>
-    </changeSet>
-
-    <changeSet id="Create INSERT_SUITE_TO_MILESTONE" author="v.kostyukevich">
-        <sql endDelimiter="#">
-
             DROP procedure IF EXISTS `INSERT_SUITE_TO_MILESTONE`;
-
-            #
-
-            CREATE PROCEDURE `INSERT_SUITE_TO_MILESTONE` (
-            In request_milestone_id varchar(11),
-            In request_suite_id varchar(11)
-            )
-            BEGIN
-            IF NOT EXISTS (SELECT * FROM milestone_suites
-            where milestone_id = request_milestone_id AND suite_id = request_suite_id)
-            THEN
-            INSERT INTO milestone_suites (milestone_id, suite_id)
-            VALUES (request_milestone_id, request_suite_id);
-            END IF;
-
-            SELECT * FROM milestone_suites WHERE milestone_id = request_milestone_id AND suite_id = request_suite_id;
-            END
-        </sql>
-        <rollback>
         </rollback>
     </changeSet>
 
@@ -491,6 +464,7 @@
             END
         </sql>
         <rollback>
+            DROP procedure IF EXISTS `SELECT_MILESTONE_SUITES`;
         </rollback>
     </changeSet>
 
@@ -515,6 +489,78 @@
             END
         </sql>
         <rollback>
+            DROP procedure IF EXISTS `REMOVE_SUITE_FROM_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_LATEST_RESULTS_BY_MILESTONE to use suites" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LATEST_RESULTS_BY_MILESTONE`(
+            IN request_milestone_id VARCHAR(11)
+            )
+            BEGIN
+            select final.*
+            from test_results AS final
+            inner join (
+
+            Select t_r.* from test_results AS t_r
+            right join (select test_runs.* from test_runs
+
+            right join (select * from milestone_suites where milestone_id = request_milestone_id)
+            as links ON test_runs.test_suite_id = links.suite_id AND test_runs.milestone_id = request_milestone_id where test_runs.debug = 0)
+
+            as runs ON t_r.test_run_id = runs.id
+            group BY t_r.test_id, runs.test_suite_id
+
+            ) AS tests ON final.test_id = tests.test_id AND final.finish_date = tests.finish_date;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create test_runs_AFTER_INSERT Trigger" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_runs_AFTER_INSERT
+
+            #
+
+            CREATE TRIGGER `test_runs_AFTER_INSERT` AFTER INSERT ON `test_runs` FOR EACH ROW
+            BEGIN
+            IF NEW.milestone_id IS NOT NULL THEN
+            CALL INSERT_SUITE_TO_MILESTONE(NEW.milestone_id, NEW.test_suite_id);
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS test_runs_AFTER_INSERT
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create test_runs_AFTER_UPDATE Trigger" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_runs_AFTER_UPDATE
+
+            #
+
+            CREATE TRIGGER `test_runs_AFTER_UPDATE` AFTER UPDATE ON `test_runs` FOR EACH ROW
+            BEGIN
+            IF NEW.milestone_id IS NOT NULL THEN
+            CALL INSERT_SUITE_TO_MILESTONE(NEW.milestone_id, NEW.test_suite_id);
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS test_runs_AFTER_UPDATE
         </rollback>
     </changeSet>
 
