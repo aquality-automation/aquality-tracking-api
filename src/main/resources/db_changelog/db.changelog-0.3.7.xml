@@ -661,4 +661,38 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Update SELECT_LATEST_RESULTS_BY_MILESTONE with Select columns" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LATEST_RESULTS_BY_MILESTONE`(
+            IN request_milestone_id VARCHAR(11)
+            )
+            BEGIN
+            select final.*
+            from test_results AS final
+            inner join (
+
+            Select t_r.test_id, MAX(t_r.finish_date) as finish_date  from test_results AS t_r
+            right join (select test_runs.* from test_runs
+
+            right join (select * from milestone_suites where milestone_id = request_milestone_id)
+            as links ON test_runs.test_suite_id = links.suite_id AND test_runs.milestone_id = request_milestone_id where test_runs.debug = 0)
+
+            as runs ON t_r.test_run_id = runs.id
+            group BY t_r.test_id, runs.test_suite_id
+
+            ) AS tests ON final.test_id = tests.test_id AND final.finish_date = tests.finish_date;
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+
+
 </databaseChangeLog>
