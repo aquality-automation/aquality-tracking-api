@@ -61,9 +61,9 @@ public class MilestoneController extends BaseController<MilestoneDto> {
         return milestones;
     }
 
-    private List<TestSuiteDto> getSuites(Integer milestone_id) throws AqualityException {
+    private List<TestSuiteDto> getSuites(Integer milestoneId) throws AqualityException {
         Suite2MilestoneDto suite2Milestone = new Suite2MilestoneDto();
-        suite2Milestone.setMilestone_id(milestone_id);
+        suite2Milestone.setMilestone_id(milestoneId);
         return milestoneSuitesDao.getSuites(suite2Milestone);
     }
 
@@ -76,7 +76,7 @@ public class MilestoneController extends BaseController<MilestoneDto> {
         removeSuites(oldSuites, template.getId());
 
         List<MilestoneDto> milestones = get(template);
-        if(milestones.size() > 0) {
+        if(!milestones.isEmpty()) {
             return milestones.get(0);
         }
 
@@ -100,7 +100,7 @@ public class MilestoneController extends BaseController<MilestoneDto> {
     }
 
     private void removeSuites(List<TestSuiteDto> oldSuites, Integer milestone_id) throws AqualityException {
-        if (oldSuites.size() > 0) {
+        if (!oldSuites.isEmpty()) {
             for (TestSuiteDto oldSuite : oldSuites) {
                 Suite2MilestoneDto toRemove = new Suite2MilestoneDto();
                 toRemove.setSuite_id(oldSuite.getId());
