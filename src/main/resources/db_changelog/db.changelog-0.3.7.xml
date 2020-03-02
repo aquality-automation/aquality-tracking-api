@@ -150,7 +150,7 @@
             CREATE FUNCTION `empty_or_equal`(
             request_value longtext,
             current_value longtext
-            ) RETURNS int(1)
+            ) RETURNS longtext
             BEGIN
             RETURN request_value = '' OR current_value = request_value;
             END
@@ -368,6 +368,296 @@
 
         </sql>
         <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create milestone_suites table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            CREATE TABLE `milestone_suites` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `milestone_id` INT NOT NULL,
+            `suite_id` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `m_s_to_milestone_idx` (`milestone_id` ASC),
+            INDEX `m_s_to_suites_idx` (`suite_id` ASC),
+            CONSTRAINT `m_s_to_milestone`
+            FOREIGN KEY (`milestone_id`)
+            REFERENCES `milestones` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            CONSTRAINT `m_s_to_suites`
+            FOREIGN KEY (`suite_id`)
+            REFERENCES `test_suites` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_MILESTONE to empty_or_equal function" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_MILESTONE`(
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            SELECT *
+            FROM milestones
+            WHERE empty_or_equal(request_id, id)
+            AND empty_or_equal(request_name, name)
+            AND empty_or_equal(request_project_id, project_id);
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create INSERT_SUITE_TO_MILESTONE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_SUITE_TO_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_SUITE_TO_MILESTONE` (
+            In request_milestone_id varchar(11),
+            In request_suite_id varchar(11)
+            )
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM milestone_suites
+            where milestone_id = request_milestone_id AND suite_id = request_suite_id)
+            THEN
+            INSERT INTO milestone_suites (milestone_id, suite_id)
+            VALUES (request_milestone_id, request_suite_id);
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_SUITE_TO_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create SELECT_MILESTONE_SUITES" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_MILESTONE_SUITES`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_MILESTONE_SUITES` (
+            In request_milestone_id varchar(11)
+            )
+            BEGIN
+            select test_suites.* from test_suites
+            right join milestone_suites on test_suites.id = suite_id
+            where milestone_id = request_milestone_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_MILESTONE_SUITES`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create REMOVE_SUITE_FROM_MILESTONE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_SUITE_FROM_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_SUITE_FROM_MILESTONE`(
+            In request_milestone_id varchar(11),
+            In request_suite_id varchar(11)
+            )
+            BEGIN
+            IF EXISTS (SELECT * FROM milestone_suites
+            where milestone_id = request_milestone_id AND suite_id = request_suite_id)
+            THEN
+            DELETE FROM milestone_suites
+            WHERE milestone_id = request_milestone_id AND suite_id = request_suite_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_SUITE_FROM_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_LATEST_RESULTS_BY_MILESTONE to use suites" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LATEST_RESULTS_BY_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LATEST_RESULTS_BY_MILESTONE`(
+            IN request_milestone_id VARCHAR(11)
+            )
+            BEGIN
+            select final.*
+            from test_results AS final
+            inner join (
+
+            Select t_r.* from test_results AS t_r
+            right join (select test_runs.* from test_runs
+
+            right join (select * from milestone_suites where milestone_id = request_milestone_id)
+            as links ON test_runs.test_suite_id = links.suite_id AND test_runs.milestone_id = request_milestone_id where test_runs.debug = 0)
+
+            as runs ON t_r.test_run_id = runs.id
+            group BY t_r.test_id, runs.test_suite_id
+
+            ) AS tests ON final.test_id = tests.test_id AND final.finish_date = tests.finish_date;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create test_runs_AFTER_INSERT Trigger" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_runs_AFTER_INSERT
+
+            #
+
+            CREATE TRIGGER `test_runs_AFTER_INSERT` AFTER INSERT ON `test_runs` FOR EACH ROW
+            BEGIN
+            IF NEW.milestone_id IS NOT NULL THEN
+            CALL INSERT_SUITE_TO_MILESTONE(NEW.milestone_id, NEW.test_suite_id);
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS test_runs_AFTER_INSERT
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create test_runs_AFTER_UPDATE Trigger" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS test_runs_AFTER_UPDATE
+
+            #
+
+            CREATE TRIGGER `test_runs_AFTER_UPDATE` AFTER UPDATE ON `test_runs` FOR EACH ROW
+            BEGIN
+            IF NEW.milestone_id IS NOT NULL THEN
+            CALL INSERT_SUITE_TO_MILESTONE(NEW.milestone_id, NEW.test_suite_id);
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS test_runs_AFTER_UPDATE
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update Milestones table with active and due_date columns" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `milestones`
+            ADD COLUMN `active` INT(1) NOT NULL DEFAULT 1 AFTER `project_id`,
+            ADD COLUMN `due_date` DATETIME NULL AFTER `active`;
+        </sql>
+        <rollback>
+            ALTER TABLE `milestones`
+            DROP COLUMN `due_date`,
+            DROP COLUMN `active`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create apply_or_remove_date" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP FUNCTION IF EXISTS `apply_or_remove_date`;
+
+            #
+
+            CREATE FUNCTION `apply_or_remove_date`(
+            request_value varchar(5000),
+            current_value varchar(5000)
+            ) RETURNS datetime
+            BEGIN
+            RETURN IF (request_value='', current_value, IF(request_value='$blank', null, FROM_UNIXTIME(request_value)));
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `apply_or_remove_date`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update Insert Milestone with active and due_date columns" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `INSERT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_MILESTONE`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(500),
+            IN request_active VARCHAR(1),
+            IN request_due_date VARCHAR(500)
+            )
+            BEGIN
+            INSERT INTO milestones (id, name, project_id, active, due_date)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            request_project_id,
+            replace_empty(request_active, active),
+            apply_or_remove_date(request_due_date, due_date))
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            project_id = request_project_id,
+            active = replace_empty(request_active, active),
+            due_date = apply_or_remove_date(request_due_date, due_date)
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from milestones where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `INSERT_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_MILESTONE with active column" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_MILESTONE`(
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(11),
+            IN request_active VARCHAR(1)
+            )
+            BEGIN
+            SELECT *
+            FROM milestones
+            WHERE empty_or_equal(request_id, id)
+            AND empty_or_equal(request_name, name)
+            AND empty_or_equal(request_project_id, project_id)
+            AND empty_or_equal(request_active, active);
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `SELECT_MILESTONE`;
         </rollback>
     </changeSet>
 
