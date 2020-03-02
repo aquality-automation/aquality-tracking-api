@@ -589,7 +589,7 @@
             current_value varchar(5000)
             ) RETURNS datetime
             BEGIN
-            RETURN IF (request_value='', current_value, IF(request_value='$blank', '', FROM_UNIXTIME(request_value)));
+            RETURN IF (request_value='', current_value, IF(request_value='$blank', null, FROM_UNIXTIME(request_value)));
             END
         </sql>
         <rollback>
@@ -608,7 +608,7 @@
             IN request_id varchar(10),
             IN request_name VARCHAR(500),
             IN request_project_id VARCHAR(500),
-            IN request_active INT(1),
+            IN request_active VARCHAR(1),
             IN request_due_date VARCHAR(500)
             )
             BEGIN
@@ -617,7 +617,7 @@
             IF(request_id='',null,request_id),
             request_name,
             request_project_id,
-            request_active,
+            replace_empty(request_active, active),
             apply_or_remove_date(request_due_date, due_date))
             ON DUPLICATE KEY UPDATE
             name = request_name,
