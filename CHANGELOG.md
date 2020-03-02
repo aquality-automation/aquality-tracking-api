@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.3.7 (unreleased)
+## 0.3.7 (2020-03-02)
 
 Features:
   - Improve Test Run and Test List page performance -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/71)
@@ -8,8 +8,6 @@ Features:
   - Milestone: Add selected Suites to milestone -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/63)
   - Milestone: Add Due Date to Milestone. -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/61)
   - Milestone: Add possibility to Close Milestone. -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/62)
-
-Bugfixes:
 
 ## 0.3.6 (2020-02-24)
 
