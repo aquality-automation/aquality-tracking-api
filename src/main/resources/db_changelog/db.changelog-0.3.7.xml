@@ -150,7 +150,7 @@
             CREATE FUNCTION `empty_or_equal`(
             request_value longtext,
             current_value longtext
-            ) RETURNS int(1)
+            ) RETURNS longtext
             BEGIN
             RETURN request_value = '' OR current_value = request_value;
             END
@@ -564,5 +564,101 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Update Milestones table with active and due_date columns" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `milestones`
+            ADD COLUMN `active` INT(1) NOT NULL DEFAULT 1 AFTER `project_id`,
+            ADD COLUMN `due_date` DATETIME NULL AFTER `active`;
+        </sql>
+        <rollback>
+            ALTER TABLE `milestones`
+            DROP COLUMN `due_date`,
+            DROP COLUMN `active`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create apply_or_remove_date" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP FUNCTION IF EXISTS `apply_or_remove_date`;
+
+            #
+
+            CREATE FUNCTION `apply_or_remove_date`(
+            request_value varchar(5000),
+            current_value varchar(5000)
+            ) RETURNS datetime
+            BEGIN
+            RETURN IF (request_value='', current_value, IF(request_value='$blank', '', FROM_UNIXTIME(request_value)));
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `apply_or_remove_date`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update Insert Milestone with active and due_date columns" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `INSERT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_MILESTONE`(
+            IN request_id varchar(10),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(500),
+            IN request_active INT(1),
+            IN request_due_date VARCHAR(500)
+            )
+            BEGIN
+            INSERT INTO milestones (id, name, project_id, active, due_date)
+            VALUES (
+            IF(request_id='',null,request_id),
+            request_name,
+            request_project_id,
+            request_active,
+            apply_or_remove_date(request_due_date, due_date))
+            ON DUPLICATE KEY UPDATE
+            name = request_name,
+            project_id = request_project_id,
+            active = replace_empty(request_active, active),
+            due_date = apply_or_remove_date(request_due_date, due_date)
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from milestones where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `INSERT_MILESTONE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_MILESTONE with active column" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_MILESTONE`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_MILESTONE`(
+            IN request_id VARCHAR(11),
+            IN request_name VARCHAR(500),
+            IN request_project_id VARCHAR(11),
+            IN request_active VARCHAR(1)
+            )
+            BEGIN
+            SELECT *
+            FROM milestones
+            WHERE empty_or_equal(request_id, id)
+            AND empty_or_equal(request_name, name)
+            AND empty_or_equal(request_project_id, project_id)
+            AND empty_or_equal(request_active, active);
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION IF EXISTS `SELECT_MILESTONE`;
+        </rollback>
+    </changeSet>
 
 </databaseChangeLog>

@@ -1,8 +1,11 @@
 package main.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data; import lombok.EqualsAndHashCode;
 import main.annotations.*;
+import main.utils.CustomerDateAndTimeDeserialize;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -20,5 +23,13 @@ public class MilestoneDto extends BaseDto{
     @DataBaseName(name = "request_project_id")
     @DataBaseInsert
     private Integer project_id;
+    @DataBaseSearchable
+    @DataBaseName(name = "request_active")
+    @DataBaseInsert
+    private Integer active;
+    @DataBaseName(name = "request_due_date")
+    @DataBaseInsert
+    @JsonDeserialize(using= CustomerDateAndTimeDeserialize.class)
+    private Date due_date;
     private List<TestSuiteDto> suites;
 }
