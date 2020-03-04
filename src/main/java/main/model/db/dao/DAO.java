@@ -113,7 +113,7 @@ public abstract class DAO<T extends BaseDto> {
         try {
             getEntityById(entity.getId());
         } catch (AqualityException e) {
-            throw new AqualityParametersException("Entity with specified id does not exist!");
+            throw new AqualityParametersException("Entity with specified '%s' id does not exist!", entity.getId());
         }
 
         List<Pair<String, String>> parameters = entity.getParameters();

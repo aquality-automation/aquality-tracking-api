@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+
+    <changeSet id="Update SELECT_LDAP_SETTING to use id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LDAP_SETTING`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LDAP_SETTING`(
+            IN request_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM ldap_settings where empty_or_equal(request_id, id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_LDAP_SETTING`;
+            #
+            CREATE PROCEDURE `SELECT_LDAP_SETTING`()
+            BEGIN
+            SELECT * FROM ldap_settings;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_APP_SETTINGS to use id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_APP_SETTINGS`(
+            IN request_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM app_settings where empty_or_equal(request_id, id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_APP_SETTINGS`;
+            #
+            CREATE PROCEDURE `SELECT_APP_SETTINGS`()
+            BEGIN
+            SELECT * FROM app_settings;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_LDAP_SETTING to return result" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_LDAP_SETTING`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_LDAP_SETTING`(
+            In request_ldapAdServer varchar(300),
+            IN request_ldapSearchBaseUsers VARCHAR(300),
+            IN request_security_auntification VARCHAR(45),
+            IN request_userSearchFilter VARCHAR(300),
+            IN request_domain VARCHAR(300),
+            IN request_mailAttribute VARCHAR(45),
+            IN request_firstNameAttribute VARCHAR(45),
+            IN request_lastNameAttribute VARCHAR(45),
+            IN request_userNameAttribute VARCHAR(45),
+            IN request_adminUserName VARCHAR(150),
+            IN request_adminSecret VARCHAR(300),
+            IN request_id VARCHAR(11))
+            BEGIN
+
+            INSERT INTO ldap_settings (ldapAdServer,ldapSearchBaseUsers,security_auntification,userSearchFilter,domain,mailAttribute,firstNameAttribute,lastNameAttribute,userNameAttribute,id,adminUserName,adminSecret)
+            VALUES (
+            request_ldapAdServer,
+            request_ldapSearchBaseUsers,
+            request_security_auntification,
+            request_userSearchFilter,
+            request_domain,
+            request_mailAttribute,
+            request_firstNameAttribute,
+            request_lastNameAttribute,
+            request_userNameAttribute,
+            request_id,
+            request_adminUserName,
+            request_adminSecret
+            )
+            ON DUPLICATE KEY UPDATE
+            ldapAdServer= IF(request_ldapAdServer = '', ldapAdServer, request_ldapAdServer),
+            ldapSearchBaseUsers = IF(request_ldapSearchBaseUsers = '', ldapSearchBaseUsers, request_ldapSearchBaseUsers),
+            security_auntification = IF(request_security_auntification = '', security_auntification, request_security_auntification),
+            userSearchFilter = IF(request_userSearchFilter = '', userSearchFilter, request_userSearchFilter),
+            domain = IF(request_domain = '', domain, request_domain),
+            mailAttribute = IF(request_mailAttribute = '', mailAttribute, request_mailAttribute),
+            firstNameAttribute = IF(request_firstNameAttribute='', firstNameAttribute, request_firstNameAttribute),
+            lastNameAttribute = IF(request_lastNameAttribute='', lastNameAttribute, request_lastNameAttribute),
+            userNameAttribute = IF(request_userNameAttribute='', userNameAttribute, request_userNameAttribute),
+            adminUserName = IF(request_adminUserName='', adminUserName, request_adminUserName),
+            adminSecret = IF(request_adminSecret='', adminSecret, request_adminSecret)
+            ;
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from ldap_settings where id = @result_id;
+
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_LDAP_SETTING`;
+            #
+            CREATE PROCEDURE `INSERT_LDAP_SETTING`(
+            In request_ldapAdServer varchar(300),
+            IN request_ldapSearchBaseUsers VARCHAR(300),
+            IN request_security_auntification VARCHAR(45),
+            IN request_userSearchFilter VARCHAR(300),
+            IN request_domain VARCHAR(300),
+            IN request_mailAttribute VARCHAR(45),
+            IN request_firstNameAttribute VARCHAR(45),
+            IN request_lastNameAttribute VARCHAR(45),
+            IN request_userNameAttribute VARCHAR(45),
+            IN request_adminUserName VARCHAR(150),
+            IN request_adminSecret VARCHAR(300),
+            IN request_id VARCHAR(11))
+            BEGIN
+
+            INSERT INTO ldap_settings (ldapAdServer,ldapSearchBaseUsers,security_auntification,userSearchFilter,domain,mailAttribute,firstNameAttribute,lastNameAttribute,userNameAttribute,id,adminUserName,adminSecret)
+            VALUES (
+            request_ldapAdServer,
+            request_ldapSearchBaseUsers,
+            request_security_auntification,
+            request_userSearchFilter,
+            request_domain,
+            request_mailAttribute,
+            request_firstNameAttribute,
+            request_lastNameAttribute,
+            request_userNameAttribute,
+            request_id,
+            request_adminUserName,
+            request_adminSecret
+            )
+            ON DUPLICATE KEY UPDATE
+            ldapAdServer= IF(request_ldapAdServer = '', ldapAdServer, request_ldapAdServer),
+            ldapSearchBaseUsers = IF(request_ldapSearchBaseUsers = '', ldapSearchBaseUsers, request_ldapSearchBaseUsers),
+            security_auntification = IF(request_security_auntification = '', security_auntification, request_security_auntification),
+            userSearchFilter = IF(request_userSearchFilter = '', userSearchFilter, request_userSearchFilter),
+            domain = IF(request_domain = '', domain, request_domain),
+            mailAttribute = IF(request_mailAttribute = '', mailAttribute, request_mailAttribute),
+            firstNameAttribute = IF(request_firstNameAttribute='', firstNameAttribute, request_firstNameAttribute),
+            lastNameAttribute = IF(request_lastNameAttribute='', lastNameAttribute, request_lastNameAttribute),
+            userNameAttribute = IF(request_userNameAttribute='', userNameAttribute, request_userNameAttribute),
+            adminUserName = IF(request_adminUserName='', adminUserName, request_adminUserName),
+            adminSecret = IF(request_adminSecret='', adminSecret, request_adminSecret)
+            ;
+            END
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
