@@ -13,7 +13,7 @@ abstract class Emails {
 
     Emails() throws AqualityException {
         EmailSettingsDao emailSettingsDao = new EmailSettingsDao();
-        EmailSettingsDto settings = emailSettingsDao.getEntityById(new EmailSettingsDto());
+        EmailSettingsDto settings = emailSettingsDao.getEntityById(1);
         baseURL = settings.getBase_url();
     }
 

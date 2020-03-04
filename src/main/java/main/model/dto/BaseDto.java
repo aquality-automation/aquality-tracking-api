@@ -57,7 +57,7 @@ public abstract class BaseDto {
         return list;
     }
 
-    public List<Pair<String, String>> getIDParameters() throws AqualityException {
+    public List<Pair<String, String>> getDataBaseIDParameters() throws AqualityException {
         List<Pair<String, String>> list = new ArrayList<>();
         List<Field> classFields = this.getClassFields();
         boolean hasIdAnnotation = hasIdAnnotation(DataBaseID.class);
@@ -78,6 +78,51 @@ public abstract class BaseDto {
         }
 
         return list;
+    }
+
+    public List<Pair<String, String>> getIdSearchParameters(Integer id) throws AqualityException {
+        List<Pair<String, String>> list = new ArrayList<>();
+        List<Field> classFields = this.getClassFields();
+        for (Field field: classFields) {
+            DataBaseName nameAnnotation = field.getAnnotation(DataBaseName.class);
+            DataBaseSearchable searchAnnotation = field.getAnnotation(DataBaseSearchable.class);
+            if(nameAnnotation != null && searchAnnotation != null){
+                field.setAccessible(true);
+                String value = "";
+                if(Objects.equals(field.getName(), "id")) {
+                    value = id.toString();
+                }
+                if(nameAnnotation.name().equals("request_limit") && (value.equals("0") || value.equals(""))){
+                    value = "100000";
+                }
+                Pair<String, String> pair = new Pair<>(nameAnnotation.name(), value);
+                list.add(pair);
+            }
+        }
+
+        if(list.isEmpty()){
+            throw new AqualityException("Entity has no id parameter");
+        }
+
+        return list;
+    }
+
+    public Integer getId() throws AqualityException {
+        List<Field> classFields = this.getClassFields();
+        for (Field field: classFields) {
+                field.setAccessible(true);
+                if(Objects.equals(field.getName(), "id")) {
+                    Object value;
+                    try {
+                        value = field.get(this);
+                    } catch (IllegalAccessException e) {
+                        throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
+                    }
+                    return Integer.valueOf(getStringValue(value));
+                }
+        }
+
+        throw new AqualityException("Entity has no id parameter");
     }
 
     public void getSearchTemplateFromRequestParameters(@NotNull HttpServletRequest req) throws AqualityException {
