@@ -8,6 +8,6 @@ public class AppSettingsDao extends DAO<AppSettingsDto> {
     public AppSettingsDao(){
         super(AppSettingsDto.class);
         insert = "{call INSERT_APP_SETTINGS(?,?,?,?)}";
-        select = "{call SELECT_APP_SETTINGS()}";
+        select = "{call SELECT_APP_SETTINGS(?)}";
     }
 }

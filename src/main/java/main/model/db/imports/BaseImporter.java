@@ -229,7 +229,7 @@ class BaseImporter {
         try{
             ProjectDto project = new ProjectDto();
             project.setId(result.getProject_id());
-            project = projectDao.getEntityById(project);
+            project = projectDao.getEntityById(project.getId());
 
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.setProject_id(result.getProject_id());

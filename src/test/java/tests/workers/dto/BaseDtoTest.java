@@ -58,7 +58,7 @@ public class BaseDtoTest {
     @Test
     public void getIdParametersTest(){
         try {
-            List<Pair<String, String>> actual = testDto.getIDParameters();
+            List<Pair<String, String>> actual = testDto.getDataBaseIDParameters();
             List<Pair<String, String>> expected = new ArrayList<>();
             expected.add(new Pair<>("request_id", "10"));
 

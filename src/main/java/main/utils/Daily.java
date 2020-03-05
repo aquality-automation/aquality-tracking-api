@@ -16,7 +16,7 @@ public class Daily implements Job {
     public void execute(final JobExecutionContext ctx) {
         EmailSettingsDao emailSettingsDao = new EmailSettingsDao();
         try {
-            EmailSettingsDto settings = emailSettingsDao.getEntityById(new EmailSettingsDto());
+            EmailSettingsDto settings = emailSettingsDao.getEntityById(1);
             settings.setPassword(emailSettingsDao.getAdminSecret(settings.getPassword()));
             AuditEmails emailWorker = new AuditEmails();
             EmailUtil emailUtil = new EmailUtil(settings);

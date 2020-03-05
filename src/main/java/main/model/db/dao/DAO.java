@@ -1,6 +1,7 @@
 package main.model.db.dao;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualitySQLException;
 import main.exceptions.AqualityException;
 import main.model.db.RS_Converter;
@@ -82,19 +83,34 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Get single entity by id
-     * @param entity entity id
+     * @param id entity id
+     * @return entity
+     */
+    public T getEntityById(Integer id) throws AqualityException {
+        T entity;
+        try {
+            entity = type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new AqualityException("Cannot Create new Instance of entity");
+        }
+
+        List<Pair<String, String>> parameters = entity.getIdSearchParameters(id);
+        List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
+
+        return getSingleResult(all, id);
+    }
+
+    /**
+     * Get single entity by id and project_id
+     * @param entity entity with id and project_id
      * @return entity
      */
     public T getEntityById(T entity) throws AqualityException {
-        List<T> all = searchAll(entity);
-        if(all.size() > 0) {
-            return all.get(0);
-        }
-        else{
-            throw new AqualityException("No Entities was found by %s", entity.getIDParameters());
-        }
-    }
+        List<Pair<String, String>> parameters = entity.getIdAndProjectIdSearchParameters();
+        List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
 
+        return getSingleResult(all, entity.getIdOrOverrideId());
+    }
 
     /**
      * Update entity
@@ -102,10 +118,23 @@ public abstract class DAO<T extends BaseDto> {
      * @return Updated entity
      */
     public T update(T entity) throws AqualityException {
-        if(entity.getIDParameters().size() > 0){
-            return create(entity);
+        try {
+            if(entity.hasProjectId()){
+                getEntityById(entity);
+            } else {
+                getEntityById(entity.getIdOrOverrideId());
+            }
+        } catch (AqualityException e) {
+            throw new AqualityParametersException("Entity with specified '%s' id does not exist!", entity.getIdOrOverrideId());
         }
-        throw new AqualityException("Cannot update entity without id!");
+
+        List<Pair<String, String>> parameters = entity.getParameters();
+        List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
+        if (!results.isEmpty()) {
+            return results.get(0);
+        }
+
+        throw new AqualityException("Was not able to update entity!");
     }
 
     /**
@@ -114,7 +143,7 @@ public abstract class DAO<T extends BaseDto> {
      * @return true if was able to remove entity
      */
     public boolean delete(T entity) throws AqualityException {
-        List<Pair<String, String>> parameters = entity.getIDParameters();
+        List<Pair<String, String>> parameters = entity.getDataBaseIDParameters();
 
         CallStoredProcedure(remove, parameters);
         return true;
@@ -126,10 +155,22 @@ public abstract class DAO<T extends BaseDto> {
      * @return created entity
      */
     public T create(T entity) throws AqualityException {
-        List<Pair<String, String>> parameters = entity.getParameters();
-        List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
-        if(results.size() > 0){
-            return results.get(0);
+        Integer id = null;
+        try {
+            id = entity.getIdOrOverrideId();
+        } catch (AqualityException e) {
+            // entity has no id
+        }
+
+        if(id == null){
+            List<Pair<String, String>> parameters = entity.getParameters();
+            List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
+            if(!results.isEmpty()){
+                return results.get(0);
+            }
+        }
+        else {
+            return update(entity);
         }
 
         throw new AqualitySQLException(new SQLException("Possible duplicate error.", "23505"));
@@ -174,6 +215,15 @@ public abstract class DAO<T extends BaseDto> {
             closeCallableStatement(callableStatement);
         }
         return json;
+    }
+
+    private T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
+        if(!allResults.isEmpty()) {
+            return allResults.get(0);
+        }
+        else{
+            throw new AqualityException("No Entities was found by '%s' id", id);
+        }
     }
 
     private void getConnection() throws AqualityException {
@@ -260,5 +310,15 @@ public abstract class DAO<T extends BaseDto> {
             return match.replaceAll("_", " ");
         }
         return "";
+    }
+
+    private boolean areParametersEmpty(List<Pair<String, String>> parameters) {
+        for (Pair<String, String> pair : parameters) {
+            if(!pair.right.equals("")){
+                return false;
+            }
+        }
+
+        return true;
     }
 }

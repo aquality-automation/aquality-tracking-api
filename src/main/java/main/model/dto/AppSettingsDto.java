@@ -8,6 +8,7 @@ import main.annotations.*;
 public class AppSettingsDto extends BaseDto{
     @DataBaseName(name = "request_id")
     @DataBaseInsert
+    @DataBaseSearchable
     private Integer id;
     @DataBaseName(name = "request_ldap_auth")
     @DataBaseInsert
