@@ -96,12 +96,8 @@ public abstract class DAO<T extends BaseDto> {
 
         List<Pair<String, String>> parameters = entity.getIdSearchParameters(id);
         List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
-        if(!all.isEmpty()) {
-            return all.get(0);
-        }
-        else{
-            throw new AqualityException("No Entities was found by id");
-        }
+
+        return getSingleResult(all, id);
     }
 
     /**
@@ -112,12 +108,8 @@ public abstract class DAO<T extends BaseDto> {
     public T getEntityById(T entity) throws AqualityException {
         List<Pair<String, String>> parameters = entity.getIdAndProjectIdSearchParameters();
         List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
-        if(!all.isEmpty()) {
-            return all.get(0);
-        }
-        else{
-            throw new AqualityException("No Entities was found by id");
-        }
+
+        return getSingleResult(all, entity.getIdOrOverrideId());
     }
 
     /**
@@ -223,6 +215,15 @@ public abstract class DAO<T extends BaseDto> {
             closeCallableStatement(callableStatement);
         }
         return json;
+    }
+
+    private T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
+        if(!allResults.isEmpty()) {
+            return allResults.get(0);
+        }
+        else{
+            throw new AqualityException("No Entities was found by '%s' id", id);
+        }
     }
 
     private void getConnection() throws AqualityException {
