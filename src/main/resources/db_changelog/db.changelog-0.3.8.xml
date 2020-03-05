@@ -160,4 +160,28 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Update SELECT_AUDITOR to use id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_AUDITOR`;
+
+            #
+            CREATE PROCEDURE `SELECT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11),
+            In request_auditor_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM auditor_assignments
+            LEFT JOIN users ON auditor_assignments.user_id=users.id
+            WHERE empty_or_equal(request_audit_id, auditor_assignments.audit_id)
+            AND empty_or_equal(request_user_id, auditor_assignments.user_id)
+            AND empty_or_equal(request_auditor_id, auditor_assignments.auditor_id)
+            ;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

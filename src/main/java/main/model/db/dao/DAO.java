@@ -105,15 +105,35 @@ public abstract class DAO<T extends BaseDto> {
     }
 
     /**
+     * Get single entity by id and project_id
+     * @param entity entity with id and project_id
+     * @return entity
+     */
+    public T getEntityById(T entity) throws AqualityException {
+        List<Pair<String, String>> parameters = entity.getIdAndProjectIdSearchParameters();
+        List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
+        if(!all.isEmpty()) {
+            return all.get(0);
+        }
+        else{
+            throw new AqualityException("No Entities was found by id");
+        }
+    }
+
+    /**
      * Update entity
      * @param entity with fields that should be updated (id is required)
      * @return Updated entity
      */
     public T update(T entity) throws AqualityException {
         try {
-            getEntityById(entity.getId());
+            if(entity.hasProjectId()){
+                getEntityById(entity);
+            } else {
+                getEntityById(entity.getIdOrOverrideId());
+            }
         } catch (AqualityException e) {
-            throw new AqualityParametersException("Entity with specified '%s' id does not exist!", entity.getId());
+            throw new AqualityParametersException("Entity with specified '%s' id does not exist!", entity.getIdOrOverrideId());
         }
 
         List<Pair<String, String>> parameters = entity.getParameters();
@@ -145,7 +165,7 @@ public abstract class DAO<T extends BaseDto> {
     public T create(T entity) throws AqualityException {
         Integer id = null;
         try {
-            id = entity.getId();
+            id = entity.getIdOrOverrideId();
         } catch (AqualityException e) {
             // entity has no id
         }

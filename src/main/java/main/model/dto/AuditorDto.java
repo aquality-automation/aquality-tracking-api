@@ -15,6 +15,8 @@ public class AuditorDto extends UserDto {
     @DataBaseInsert
     @DataBaseSearchable
     private Integer id;
+    @DataBaseSearchable
+    @OverrideIDName
     @DataBaseName(name="request_auditor_id")
     @DataBaseID
     private Integer auditor_id;

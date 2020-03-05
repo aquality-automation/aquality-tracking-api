@@ -11,7 +11,7 @@ import java.util.List;
 public class AuditorsDao extends DAO<AuditorDto> {
     public AuditorsDao() {
         super(AuditorDto.class);
-        select = "{call SELECT_AUDITOR(?,?)}";
+        select = "{call SELECT_AUDITOR(?,?,?)}";
         insert = "{call INSERT_AUDITOR(?,?)}";
         remove = "{call REMOVE_AUDITOR(?)}";
     }
