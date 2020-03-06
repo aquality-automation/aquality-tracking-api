@@ -62,7 +62,16 @@ public class TestRunController extends BaseController<TestRunDto> {
     }
 
     public List<TestRunStatisticDto> get(TestRunStatisticDto template) throws AqualityException {
-        return testRunStatisticDao.searchAll(template);
+        TestRunDto testRunDto = new TestRunDto();
+        testRunDto.setId(template.getId());
+        Integer projectId = template.getId() != null
+            ? testRunDto.getProjectIdById()
+            : template.getProject_id();
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
+            return testRunStatisticDao.searchAll(template);
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to view Test Run Statistic", baseUser);
+        }
     }
 
     public TestRunDto getLastSuiteTestRun(Integer suiteId, Integer projectId) throws AqualityException {

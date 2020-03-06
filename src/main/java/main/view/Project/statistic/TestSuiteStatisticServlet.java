@@ -1,4 +1,4 @@
-package main.view.Project;
+package main.view.Project.statistic;
 
 import main.Session;
 import main.model.dto.SuiteStatisticDto;
@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@WebServlet("/suite/stat")
-public class TestSuiteStatServlet extends BaseServlet implements IGet {
+@WebServlet("/stats/suite")
+public class TestSuiteStatisticServlet extends BaseServlet implements IGet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
