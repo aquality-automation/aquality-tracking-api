@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.3.8 (Unreleased)
+
+Features:
+  - [Doc] Update Swagger -> View Issue
+
 ## 0.3.7 (2020-03-02)
 
 Features:
