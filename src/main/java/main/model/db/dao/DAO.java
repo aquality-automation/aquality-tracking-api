@@ -270,13 +270,22 @@ public abstract class DAO<T extends BaseDto> {
             }
         }
 
-        try {
-            callableStatement.execute();
-        } catch (SQLException e) {
-            throw new AqualitySQLException(e);
-        }
+        return tryExecute(callableStatement);
+    }
 
-        return callableStatement;
+    private CallableStatement tryExecute(CallableStatement callableStatement) throws AqualitySQLException {
+        int counter = 0;
+        SQLException lastException = null;
+        while(counter < 5) {
+            try {
+                callableStatement.execute();
+                return callableStatement;
+            } catch (SQLException e) {
+                counter++;
+                lastException = e;
+            }
+        }
+        throw new AqualitySQLException(lastException);
     }
 
     private CallableStatement getCallableStatement(String sql) throws AqualityException {
