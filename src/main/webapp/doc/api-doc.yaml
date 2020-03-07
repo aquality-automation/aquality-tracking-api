@@ -4,7 +4,10 @@ openapi: 3.0.0
 info:
   description: |
     Documentation for Aquality Tracker API.
-  version: '0.3.6'
+    To Authorize you can use API token that you can create in Aquality Tracking Administration
+    - As user name you should use `project:{your project id}`
+    - As password you should use API token
+  version: '0.3.8'
   title: 'Aquality Tracker - API documentation'
 
 servers:
@@ -23,6 +26,8 @@ security:
 tags:
   - name: 'public'
     description: 'Public API to simplify results import'
+  - name: 'stats'
+    description: 'Overal statistic info'
   - name: 'import'
     description: 'Import operations'
   - name: 'suite'
@@ -41,8 +46,6 @@ tags:
     description: 'Operations with Tests'
   - name: 'project'
     description: 'Operations with Projects'
-  - name: 'stats'
-    description: 'Operations with Statistics'
   - name: 'users'
     description: 'Operations with Users'
   - name: 'settings'
@@ -82,20 +85,28 @@ paths:
       responses:
         200:
           description: 'Test Suite was created/updated (ID of created/updated Test Suite is in the `id` header).'
-          schema:
-            $ref: '#/definitions/TestSuite'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/TestSuite'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND (`name` AND/OR `id`)'
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         401:
           description: "You've missed your authorization header!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         403:
           description: "You have no permissions for selected project!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /public/test/create-or-update:
     post:
       security:
@@ -134,20 +145,28 @@ paths:
       responses:
         200:
           description: 'Test Suite was created/updated. The Test JSON will be returned in body'
-          schema:
-            $ref: '#/definitions/Test'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Test'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND (`name` AND/OR `id`) AND `suites`'
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         401:
           description: "You've missed your authorization header!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         403:
           description: "You have no permissions for selected project!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /public/testrun/start:
     post:
       security:
@@ -196,20 +215,28 @@ paths:
       responses:
         200:
           description: 'Test Run was created and Started. The Test JSON will be returned in body'
-          schema:
-            $ref: '#/definitions/Test'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Test'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND `build_name` AND `test_suite_id`'
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         401:
           description: "You've missed your authorization header!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         403:
           description: "You have no permissions for selected project!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /public/testrun/finish:
     get:
       security:
@@ -235,20 +262,28 @@ paths:
       responses:
         200:
           description: 'Test Suite was finished. The Test JSON will be returned in body'
-          schema:
-            $ref: '#/definitions/Test'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Test'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND `id`'
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         401:
           description: "You've missed your authorization header!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         403:
           description: "You have no permissions for selected project!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /public/test/result/start:
     get:
       security:
@@ -279,20 +314,28 @@ paths:
       responses:
         200:
           description: 'Test Result was started. The Test Result JSON will be returned in body'
-          schema:
-            $ref: '#/definitions/TestResult'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/TestResult'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND `test_id` AND `test_run_id`'
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         401:
           description: "You've missed your authorization header!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         403:
           description: "You have no permissions for selected project!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /public/test/result/finish:
     post:
       security:
@@ -334,20 +377,185 @@ paths:
       responses:
         200:
           description: 'Test result was finished. The Test JSON will be returned in body'
-          schema:
-            $ref: '#/definitions/TestResult'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/TestResult'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND `id` AND `final_result_id`'
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         401:
           description: "You've missed your authorization header!"
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
         403:
           description: "You have no permissions for selected project!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+
+  /stats/testrun:
+    get:
+      tags:
+        - 'stats'
+      summary: 'Get Test Runs statistic'
+      description: 'Test Runs statistic information'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: id
           schema:
-            $ref: '#/definitions/Error'
+            type: integer
+          description: 'Test Run ID - will return stats for one specific test run'
+        - in: query
+          name: test_suite_id
+          schema:
+            type: integer
+          description: 'Suite ID - will return stats for one specific suite'
+        - in: query
+          name: project_id
+          required: true
+          schema:
+            type: integer
+          description: 'Project ID'
+        - in: query
+          name: debug
+          schema:
+            type: integer
+          description: '1 - Only debug test runs, 0 - Only non debug test runs'
+      responses:
+        200:
+          description: 'Test Runs statistic'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/TestRunStatistic'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id`'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+  /stats/testresult:
+    get:
+      tags:
+        - 'stats'
+      summary: 'Get Test Results statistic'
+      description: 'Test Results statistic information'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: project_id
+          required: true
+          schema:
+            type: integer
+          description: 'Project ID'
+        - in: query
+          name: testRunStartedFrom
+          schema:
+            type: string
+          description: 'Date string. e.g. 2020-03-06T21:00:00.000Z'
+        - in: query
+          name: testRunStartedTo
+          schema:
+            type: string
+          description: 'Date string. e.g. 2020-03-06T21:00:00.000Z'
+      responses:
+        200:
+          description: 'Test Results statistic'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/TestResultStatistic'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id`'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+  /stats/suite:
+    get:
+      tags:
+        - 'stats'
+      summary: 'Get Test Suite statistic'
+      description: 'Test Suites statistic information'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: query
+          name: project_id
+          required: true
+          schema:
+            type: integer
+          description: 'Project ID'
+        - in: query
+          name: suiteId
+          schema:
+            type: integer
+          description: 'Suite ID'
+      responses:
+        200:
+          description: 'Test Suites statistic'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/TestSuiteStatistic'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id`'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
 
   /import:
     post:
@@ -775,107 +983,6 @@ paths:
       responses:
         200:
           description: 'Result Resolution was removed'
-  /stats/testrun:
-    get:
-      tags:
-        - 'stats'
-      summary: 'Get statistics for Test Runs'
-      description: 'Test Runs stats'
-      produces:
-        - 'application/json'
-      parameters:
-        - in: query
-          name: id
-          schema:
-            type: integer
-          description: 'Test Run ID'
-        - in: query
-          name: test_suite_id
-          schema:
-            type: integer
-          description: 'Suite ID'
-        - in: query
-          name: project_id
-          schema:
-            type: integer
-          description: 'Project ID'
-      responses:
-        200:
-          description: 'Test Suite stats'
-          schema:
-            schema:
-              type: object
-            properties:
-              id:
-                schema:
-                  type: integer
-                description: 'Test Run ID'
-              build_name:
-                schema:
-                  type: string
-              milestone_id:
-                schema:
-                  type: integer
-              test_suite_id:
-                schema:
-                  type: integer
-              project_id:
-                schema:
-                  type: integer
-              execution_environment:
-                schema:
-                  type: string
-              debug:
-                schema:
-                  type: integer
-              start_time:
-                schema:
-                  type: string
-                description: 'Test Run start time'
-              finish_time:
-                schema:
-                  type: string
-                description: 'Test Run finish time'
-              passed:
-                schema:
-                  type: integer
-                description: 'Number of passed tests (`final_results` table)'
-              failed:
-                schema:
-                  type: integer
-                description: 'Number of failed tests (`final_results` table)'
-              not_executed:
-                schema:
-                  type: integer
-                description: 'Number of not executed tests (`final_results` table)'
-              in_progress:
-                schema:
-                  type: integer
-                description: 'Number of tests in progress (`final_results` table)'
-              pending:
-                schema:
-                  type: integer
-                description: 'Number of pending tests (`final_results` table)'
-              total:
-                schema:
-                  type: integer
-                description: 'Total number of tests in Test Run'
-              app_issue:
-                schema:
-                  type: integer
-                description: 'Number of tests having "Application Issue" resolution (`result_resolution` table)'
-              warning:
-                schema:
-                  type: integer
-                description: 'Number of tests having "Environment Issue", "Test Issue" or "Test Design Issue" resolution (`result_resolution` table)'
-              not_assigned:
-                schema:
-                  type: integer
-                description: 'Number of failed tests not assigned to anyone'
-              other:
-                schema:
-                  type: integer
-                description: 'Number of results with not warning or error of not assigned Resolutions'
   /suite:
     get:
       tags:
@@ -1746,302 +1853,348 @@ paths:
 
 definitions:
   Error:
-    schema:
-      type: object
+    type: object
     properties:
       message:
         type: string
   FinalResult:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       name:
-        schema:
-          type: string
+        type: string
       color:
-        schema:
-          type: integer
+        type: integer
   Milestone:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       name:
-        schema:
-          type: string
+        type: string
       project_id:
-        schema:
-          type: integer
+        type: integer
   Project:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       name:
-        schema:
-          type: string
+        type: string
   TestSuite:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       name:
-        schema:
-          type: string
+        type: string
       project_id:
-        schema:
-          type: integer
+        type: integer
       tests:
-        schema:
-          type: array
+        type: array
         description: 'List of Tests in Suite. Optional.'
         items:
           $ref: '#definitions/Test'
   TestRun:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       build_name:
-        schema:
-          type: string
+        type: string
       milestone_id:
-        schema:
-          type: integer
+        type: integer
       test_suite_id:
-        schema:
-          type: integer
+        type: integer
       project_id:
-        schema:
-          type: integer
+        type: integer
       execution_environment:
-        schema:
-          type: string
+        type: string
       start_time:
-        schema:
-          type: string
+        type: string
       finish_time:
-        schema:
-          type: string
+        type: string
       author:
-        schema:
-          type: string
+        type: string
       debug:
-        schema:
-          type: integer
+        type: integer
       ci_build:
-        schema:
-          type: string
+        type: string
       testResults:
-        schema:
-          type: array
+        type: array
         description: 'List of Test Results in Suite. Optional.'
         items:
           $ref: '#definitions/TestResult'
   User:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       first_name:
-        schema:
-          type: string
+        type: string
       second_name:
-        schema:
-          type: string
+        type: string
       user_name:
-        schema:
-          type: string
+        type: string
       pass:
-        schema:
-          type: string
+        type: string
         description: 'MD5 hash of user password'
       updated:
-        schema:
-          type: integer
+        type: integer
         description: 'Last update date'
       session_code:
-        schema:
-          type: string
+        type: string
         description: 'Code of the user session'
       session_created:
-        schema:
-          type: string
+        type: string
         description: 'Date of the user session start'
       admin:
-        schema:
-          type: string
+        type: string
         description: 'Indication that user has Admin role'
       manager:
-        schema:
-          type: string
+        type: string
         description: 'Indication that user has Manager role'
   ProjectUser:
-    schema:
-      type: object
+    type: object
     properties:
       user:
-        schema:
-          type: object
+        type: object
         $ref: '#definitions/User'
       project_id:
-        schema:
-          type: integer
+        type: integer
       admin:
-        schema:
-          type: integer
+        type: integer
       manager:
-        schema:
-          type: integer
+        type: integer
       engineer:
-        schema:
-          type: integer
+        type: integer
       viewer:
-        schema:
-          type: integer
+        type: integer
   ResultResolution:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       name:
-        schema:
-          type: string
+        type: string
       color:
-        schema:
-          type: integer
+        type: integer
       project_id:
-        schema:
-          type: integer
+        type: integer
   Test:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       name:
-        schema:
-          type: string
+        type: string
       body:
-        schema:
-          type: string
+        type: string
       test_suite_id:
-        schema:
-          type: integer
+        type: integer
       project_id:
-        schema:
-          type: integer
+        type: integer
       manual_duration:
-        schema:
-          type: string
+        type: string
       developer:
-        schema:
-          type: integer
+        type: integer
       results:
-        schema:
-          type: array
+        type: array
         description: 'List of Test Results for Test. Optional.'
         items:
           $ref: '#definitions/TestResult'
   ImportDto:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       project_id:
-        schema:
-          type: integer
+        type: integer
         description: 'ID of related Project'
       testrun_id:
-        schema:
-          type: integer
+        type: integer
         description: 'ID of related Test Run'
       is_finished:
-        schema:
-          type: integer
+        type: integer
         description: '1 if finished and 0 if not'
       started:
-        schema:
-          type: string
+        type: string
         description: 'Started (format: yyyy-MM-dd HH:mm:ss)'
       finished:
-        schema:
-          type: string
+        type: string
         description: 'Finished (format: yyyy-MM-dd HH:mm:ss)'
       log:
-        schema:
-          type: string
+        type: string
         description: 'Logs'
   TestResult:
-    schema:
-      type: object
+    type: object
     properties:
       id:
-        schema:
-          type: integer
+        type: integer
       project_id:
-        schema:
-          type: integer
+        type: integer
         description: 'ID of related Project'
       test:
         $ref: '#definitions/Test'
       final_result:
         $ref: '#definitions/FinalResult'
       comment:
-        schema:
-          type: string
+        type: string
         description: 'Comment regarding Test Result'
       test_run_id:
-        schema:
-          type: integer
+        type: integer
         description: 'ID of related Test Run'
       test_resolution:
         $ref: '#definitions/ResultResolution'
       debug:
-        schema:
-          type: integer
+        type: integer
         description: 'Debug flag'
       updated:
-        schema:
-          type: string
+        type: string
         description: 'Test Result last update date (format: yyyy-MM-dd HH:mm:ss)'
       log:
-        schema:
-          type: string
+        type: string
         description: 'Log of the Test'
       start_date:
-        schema:
-          type: string
+        type: string
         description: 'Test start date (format: yyyy-MM-dd HH:mm:ss)'
       finish_date:
-        schema:
-          type: string
+        type: string
         description: 'Test finish date (format: yyyy-MM-dd HH:mm:ss)'
       final_result_updated:
-        schema:
-          type: string
+        type: string
         description: 'Test Final Result last update date (format: yyyy-MM-dd HH:mm:ss)'
       fail_reason:
-        schema:
-          type: string
+        type: string
         description: 'Description of the fail reason'
       assigned_user:
         $ref: '#definitions/ProjectUser'
+  TestRunStatistic:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+        description: 'Test Run ID'
+      build_name:
+        type: string
+        example: 'build_1'
+      milestone_id:
+        type: integer
+        example: 1
+      test_suite_id:
+        type: integer
+        example: 1
+      project_id:
+        type: integer
+        example: 1
+      execution_environment:
+        type: string
+        example: 'Chrome win 10'
+      debug:
+        type: integer
+        example: 1
+      start_time:
+        type: integer
+        description: 'Test Run start time'
+        example: 1583491768000
+      finish_time:
+        type: integer
+        description: 'Test Run finish time'
+        example: 1583491768000
+      passed:
+        type: integer
+        description: 'Number of passed tests (`final_results` table)'
+        example: 1
+      failed:
+        type: integer
+        description: 'Number of failed tests (`final_results` table)'
+        example: 1
+      not_executed:
+        type: integer
+        description: 'Number of not executed tests (`final_results` table)'
+        example: 1
+      in_progress:
+        type: integer
+        description: 'Number of tests in progress (`final_results` table)'
+        example: 1
+      pending:
+        type: integer
+        description: 'Number of pending tests (`final_results` table)'
+        example: 1
+      total:
+        type: integer
+        description: 'Total number of tests in Test Run'
+        example: 1
+      app_issue:
+        type: integer
+        description: 'Number of tests having "Red" resolution color'
+        example: 1
+      warning:
+        type: integer
+        description: 'Number of tests having "Orange" resolution color'
+        example: 1
+      not_assigned:
+        type: integer
+        description: 'Number of failed tests "Blue" resolution color'
+        example: 1
+      other:
+        type: integer
+        description: 'Number of results with not "Red", "Orange", "Blue" colors'
+        example: 1
+  TestResultStatistic:
+    type: object
+    properties:
+      test_run_id:
+        type: integer
+        example: 1
+        description: 'Test Run ID'
+      test_run_started:
+        type: integer
+        description: 'Test Run start time'
+        example: 1583491768000
+      name:
+        type: string
+        example: 'Test Feature with all results: All passed'
+      status:
+        type: string
+        example: 'Passed'
+      resolution:
+        type: string
+        example: 'Not Assigned'
+  TestSuiteStatistic:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+        description: 'Test ID'
+      name:
+        type: string
+        description: 'Test name'
+        example: 'Test Feature with all results: All passed'
+      total_runs:
+        type: integer
+        description: 'Total executions number'
+        example: 10
+      passed:
+        type: integer
+        example: 3
+        description: 'Total passed number'
+      failed:
+        type: integer
+        example: 7
+        description: 'Total failed number'
+      app_issue:
+        type: integer
+        example: 3
+        description: 'Total app issues number'
+      autotest_issue:
+        type: integer
+        example: 3
+        description: 'Total autotest issues number'
+      resolution_na:
+        type: integer
+        example: 1
+        description: 'Total results number with not assigned resolutions'
