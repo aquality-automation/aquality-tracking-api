@@ -1,6 +1,8 @@
 package main.model.db.imports.SAXHandlers;
 
 
+import main.exceptions.AqualityException;
+import main.model.db.imports.Handler;
 import main.model.db.imports.ResultStatus;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
@@ -16,9 +18,7 @@ import java.util.TimeZone;
 
 import static main.model.db.imports.ResultStatus.*;
 
-public class RobotHandler extends DefaultHandler {
-
-    private TestRunDto testRun = new TestRunDto();
+public class RobotHandler extends Handler {
     private TestSuiteDto testSuite = new TestSuiteDto();
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result = new TestResultDto();
@@ -31,7 +31,8 @@ public class RobotHandler extends DefaultHandler {
     private String currentElement = "";
     private boolean errorMessage = false;
 
-    public RobotHandler(){
+    public RobotHandler() throws AqualityException {
+        super();
         result.setFail_reason("$blank");
     }
 

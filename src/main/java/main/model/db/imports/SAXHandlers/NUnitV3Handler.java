@@ -18,7 +18,6 @@ import static main.model.db.imports.TestNameNodeType.*;
 
 public class NUnitV3Handler extends Handler {
     private TestSuiteDto testSuite = new TestSuiteDto();
-    private TestRunDto testRun = new TestRunDto();
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result = new TestResultDto();
     private List<TestDto> tests = new ArrayList<>();
