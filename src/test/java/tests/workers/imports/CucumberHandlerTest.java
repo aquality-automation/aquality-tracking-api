@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -27,6 +28,7 @@ public class CucumberHandlerTest {
         try {
             String string = "January 2, 2010";
             DateFormat format = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+            format.setTimeZone(TimeZone.getTimeZone("UTC"));
             cucumber = new Cucumber(FileUtils.getResourceFile("reports/cucumber/cucumber.json"), format.parse(string));
         } catch (Exception e){
             assertNull(e, String.format("Failed on Handler Creating: %s", e.getMessage()));
