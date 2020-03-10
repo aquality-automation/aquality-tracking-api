@@ -184,4 +184,318 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Update Import table with finish status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `imports`
+            CHANGE COLUMN `is_finished` `finish_status` INT(1) NOT NULL DEFAULT '0' COMMENT '0 - in progress\n1 - ok\n2 - error' ;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_IMPORT to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_IMPORT`;
+
+            #
+            CREATE PROCEDURE `INSERT_IMPORT`(
+            IN request_id VARCHAR(11),
+            IN request_testrun_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_finish_status VARCHAR(1),
+            IN request_started VARCHAR(500),
+            IN request_finished VARCHAR(500),
+            IN request_log LONGTEXT
+            )
+            BEGIN
+
+            SET time_zone = '+00:00';
+            INSERT INTO imports (id, testrun_id, project_id, finish_status, started, finished, log)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            IF(request_testrun_id = '', null,request_testrun_id),
+            IF(request_project_id = '', null,request_project_id),
+            IF(request_finish_status = '', null,request_finish_status),
+            IF(request_started = '', null,FROM_UNIXTIME(request_started)),
+            IF(request_finished = '', null,FROM_UNIXTIME(request_finished)),
+            IF(request_log = '', null,request_log)
+            ) ON DUPLICATE KEY UPDATE
+            testrun_id = IF(request_testrun_id = '', testrun_id, request_testrun_id),
+            project_id = IF(request_project_id = '', project_id, request_project_id),
+            finish_status = IF(request_finish_status = '', finish_status, request_finish_status),
+            started = IF(request_started = '', started, FROM_UNIXTIME(request_started)),
+            finished= IF(request_finished = '', finished, FROM_UNIXTIME(request_finished)),
+            log = IF(request_log = '', log, request_log);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from imports where id = @result_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update imports_AFTER_INSERT to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `imports_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER imports_AFTER_INSERT AFTER INSERT ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.finish_status = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.testrun_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update imports_AFTER_UPDATE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `imports_AFTER_UPDATE`;
+
+            #
+            CREATE TRIGGER imports_AFTER_UPDATE AFTER UPDATE ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.finish_status = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.testrun_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_INSERT to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_INSERT AFTER INSERT ON test_results FOR EACH ROW
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_UPDATE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_UPDATE`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_UPDATE AFTER UPDATE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_BEFORE_DELETE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_BEFORE_DELETE`;
+
+            #
+            CREATE TRIGGER `test_results_BEFORE_DELETE` BEFORE DELETE ON `test_results` FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = OLD.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = OLD.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            OLD.test_id,
+            (SELECT stability_count from projects where id = OLD.project_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_DELETE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_DELETE`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_DELETE AFTER DELETE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = OLD.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = OLD.test_run_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

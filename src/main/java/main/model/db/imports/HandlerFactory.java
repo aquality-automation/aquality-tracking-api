@@ -4,9 +4,10 @@ import main.exceptions.AqualityException;
 import main.model.db.imports.ImportHandlers.*;
 
 import java.io.File;
+import java.util.Date;
 
 class HandlerFactory {
-    Handler getHandler(File file, String type, TestNameNodeType testNameNodeType) throws AqualityException {
+    Handler getHandler(File file, String type, TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
         switch (ImportTypes.valueOf(type)){
             case MSTest:
                 if(testNameNodeType == null){
@@ -23,7 +24,7 @@ class HandlerFactory {
                 return new JavaTestNG(file, testNameNodeType);
             case Cucumber:
             case TestNGCucumber:
-                return new Cucumber(file);
+                return new Cucumber(file, finishTime);
             case PHPCodeception:
                 return new PHPCodeception(file);
             case NUnit_v2:

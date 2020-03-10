@@ -3,10 +3,13 @@
 ## 0.3.8 (Unreleased)
 
 Features:
-  - [Doc] Update Swagger with Statistic endpoints -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/76)
+  - Update Swagger with Statistic endpoints -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/76)
+  - Mark import as failed when import is failed -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/79)
 
-Features:
-  - [BUG] Import was finished with Error! You are trying to edit entity which is locked -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/44)
+Bugfixes:
+  - Import was finished with Error! You are trying to edit entity which is locked -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/44)
+  - Incorrect "Duration" count if import several *.json's -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/37)
+
 ## 0.3.7 (2020-03-02)
 
 Features:

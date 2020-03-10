@@ -2015,9 +2015,9 @@ definitions:
       testrun_id:
         type: integer
         description: 'ID of related Test Run'
-      is_finished:
+      finish_status:
         type: integer
-        description: '1 if finished and 0 if not'
+        description: '2 if failed, 1 if success, 0 if in progress'
       started:
         type: string
         description: 'Started (format: yyyy-MM-dd HH:mm:ss)'

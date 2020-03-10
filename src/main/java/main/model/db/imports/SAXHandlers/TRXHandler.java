@@ -1,5 +1,7 @@
 package main.model.db.imports.SAXHandlers;
 
+import main.exceptions.AqualityException;
+import main.model.db.imports.Handler;
 import main.model.db.imports.ResultStatus;
 import org.xml.sax.helpers.DefaultHandler;
 import main.model.db.imports.TestNameNodeType;
@@ -13,8 +15,7 @@ import java.util.*;
 
 import static main.model.db.imports.ResultStatus.*;
 
-public class TRXHandler extends DefaultHandler {
-    private TestRunDto testRun = new TestRunDto();
+public class TRXHandler extends Handler {
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result = new TestResultDto();
     private List<TestDto> tests = new ArrayList<>();
@@ -24,7 +25,8 @@ public class TRXHandler extends DefaultHandler {
     private boolean ddtResultWasOpened = false;
     private TestNameNodeType testNameNodeType;
 
-    public TRXHandler(TestNameNodeType testNameNodeType){
+    public TRXHandler(TestNameNodeType testNameNodeType) throws AqualityException {
+        super();
         this.testNameNodeType = testNameNodeType;
         result.setFail_reason("$blank");
     }
