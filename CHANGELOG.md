@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.3.9 (Unreleased)
+
+Features:
+  - Added unit tests for checking DAO's -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/80)
+
 ## 0.3.8 (Unreleased)
 
 Features:
