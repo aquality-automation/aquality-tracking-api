@@ -57,8 +57,8 @@ public class Importer extends BaseImporter {
         for (String pathToFile : this.files) {
             try{
                 File file = new File(pathToFile);
-                readData(file);
                 createImport("Import was started for file: " + file.getName());
+                readData(file);
                 executeResultsCreation();
                 imports.add(finishImport());
             } catch (Exception e){
@@ -146,7 +146,7 @@ public class Importer extends BaseImporter {
 
     private ImportDto finishImport() throws AqualityException {
         importDto.setFinished(new Date());
-        importDto.setIs_finished(1);
+        importDto.setFinish_status(1);
         importDto.addToLog("Import was finished!");
         return importDao.create(importDto);
     }
@@ -158,7 +158,7 @@ public class Importer extends BaseImporter {
 
         importDto.setProject_id(this.projectId);
         importDto.setFinished(new Date());
-        importDto.setIs_finished(1);
+        importDto.setFinish_status(2);
         importDto.addToLog("Import was finished with Error! " + log);
         importDao.create(importDto);
     }
@@ -167,7 +167,7 @@ public class Importer extends BaseImporter {
         importDto = new ImportDto();
         importDto.setStarted(new Date());
         importDto.setProject_id(projectId);
-        importDto.setIs_finished(0);
+        importDto.setFinish_status(0);
         importDto.setLog(log);
         importDto = importDao.create(importDto);
     }
