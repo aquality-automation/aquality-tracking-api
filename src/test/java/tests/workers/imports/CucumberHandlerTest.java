@@ -2,8 +2,6 @@ package tests.workers.imports;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import main.model.db.imports.ImportHandlers.Cucumber;
-import main.model.db.imports.ImportHandlers.NUnitV3;
-import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -11,13 +9,12 @@ import utils.FileUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 public class CucumberHandlerTest {
     private Cucumber cucumber;
@@ -31,7 +28,7 @@ public class CucumberHandlerTest {
             format.setTimeZone(TimeZone.getTimeZone("UTC"));
             cucumber = new Cucumber(FileUtils.getResourceFile("reports/cucumber/cucumber.json"), format.parse(string));
         } catch (Exception e){
-            assertNull(e, String.format("Failed on Handler Creating: %s", e.getMessage()));
+            fail(String.format("Failed on Handler Creating: %s", e.getMessage()));
         }
     }
 

@@ -4,7 +4,7 @@
 
 Features:
   - Update Swagger with Statistic endpoints -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/76)
-  - Mark import af failed when import is failed -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/79)
+  - Mark import as failed when import is failed -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/79)
 
 Bugfixes:
   - Import was finished with Error! You are trying to edit entity which is locked -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/44)
