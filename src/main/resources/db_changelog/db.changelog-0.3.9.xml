@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+
+    <changeSet id="Create issue_status table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `issue_status` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `color` INT(1) NOT NULL,
+            `name` VARCHAR(50) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            UNIQUE INDEX `name_UNIQUE` (`name` ASC));
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create issue_labels table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `issue_labels` (
+            `id` INT(11) NOT NULL,
+            `project_id` INT(11) NULL,
+            `color` VARCHAR(45) NOT NULL DEFAULT '#f8f9fa',
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+            INDEX `label_to_project_idx` (`project_id` ASC),
+            CONSTRAINT `label_to_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE);
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create issues table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `issues` (
+            `id` INT(11) NOT NULL,
+            `resolution_id` INT(11) NOT NULL DEFAULT '1',
+            `title` VARCHAR(500) NOT NULL,
+            `description` LONGTEXT NULL,
+            `external_url` VARCHAR(500) NULL,
+            `assignee_id` INT(11) NULL,
+            `expression` VARCHAR(500) NULL,
+            `status_id` INT(11) NOT NULL DEFAULT 1,
+            `label_id` INT(11) NULL,
+            `project_id` INT(11) NOT NULL,
+            `creator_id` INT(11) NOT NULL,
+            `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            INDEX `issue_to_resolution_idx` (`resolution_id` ASC),
+            INDEX `issue_to_status_idx` (`status_id` ASC),
+            INDEX `issue_to_label_idx` (`label_id` ASC),
+            INDEX `issue_to_project_idx` (`project_id` ASC),
+            INDEX `issue_to_user_idx` (`assignee_id` ASC),
+            INDEX `issue_to_creator_idx` (`creator_id` ASC),
+            CONSTRAINT `issue_to_resolution`
+            FOREIGN KEY (`resolution_id`)
+            REFERENCES `result_resolution` (`id`)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION,
+            CONSTRAINT `issue_to_status`
+            FOREIGN KEY (`status_id`)
+            REFERENCES `issue_status` (`id`)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION,
+            CONSTRAINT `issue_to_label`
+            FOREIGN KEY (`label_id`)
+            REFERENCES `issue_labels` (`id`)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION,
+            CONSTRAINT `issue_to_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION,
+            CONSTRAINT `issue_to_assignee`
+            FOREIGN KEY (`assignee_id`)
+            REFERENCES `users` (`id`)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION,
+            CONSTRAINT `issue_to_creator`
+            FOREIGN KEY (`creator_id`)
+            REFERENCES `users` (`id`)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION);
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+
+
+</databaseChangeLog>
