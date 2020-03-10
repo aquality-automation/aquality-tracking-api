@@ -136,6 +136,7 @@ public class Importer extends BaseImporter {
     private void fillTestRunWithInputData(String fileName){
         testRunTemplate.setBuild_name(getBuildName(testRunTemplate, fileName));
         fillTestRunWithInputData();
+        testRunTemplate.setBuild_name(null);
     }
 
     private String getBuildName(TestRunDto testRun, String fileName) {
