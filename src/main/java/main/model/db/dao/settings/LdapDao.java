@@ -6,7 +6,7 @@ import main.model.dto.LdapDto;
 public class LdapDao extends DAO<LdapDto>{
     public LdapDao() {
         super(LdapDto.class);
-        select = "{call SELECT_LDAP_SETTING()}";
+        select = "{call SELECT_LDAP_SETTING(?)}";
         insert = "{call INSERT_LDAP_SETTING(?,?,?,?,?,?,?,?,?,?,?,?)}";
     }
 }

@@ -16,23 +16,23 @@ import static main.model.db.imports.ResultStatus.*;
 
 public class Cucumber extends Handler{
         private List<FeatureDto> features;
-        private TestRunDto testRun;
         private List<TestDto> tests = new ArrayList<>();
         private List<TestResultDto> results = new ArrayList<>();
         private DateUtils dateUtils = new DateUtils();
         private FeatureDto currentFeature;
         private TestResultDto currentResult;
         private Integer testTime = 0;
-        private Date dateCounter = new Date();
+        private Date dateCounter;
         private boolean previousWasBackground = false;
         private TestDto currentTest;
 
-        public Cucumber(@NotNull File file) throws AqualityException {
+        public Cucumber(@NotNull File file, Date finishTime) throws AqualityException {
             super();
             FileUtils fileUtils = new FileUtils();
             String json = fileUtils.readFile(file.getPath());
             CucumberUtils cucumberUtils = new CucumberUtils(json);
             this.features = cucumberUtils.getFeatures();
+            dateCounter = finishTime;
             parse();
         }
 
@@ -42,9 +42,9 @@ public class Cucumber extends Handler{
 
         private void handleTestRun() {
             testRun = new TestRunDto();
-            testRun.setStart_time(dateCounter);
-            features.forEach(this::handleFeature);
             testRun.setFinish_time(dateCounter);
+            features.forEach(this::handleFeature);
+            testRun.setStart_time(dateCounter);
         }
 
         private void handleFeature(@NotNull FeatureDto feature) {
@@ -72,14 +72,14 @@ public class Cucumber extends Handler{
                 String[] strings = scenario.getId().split(";;");
                 currentTest.setName(String.format("%s: %s%s", currentFeature.getName(), scenario.getName(), strings.length > 1 ? String.format(": %s", strings[1]) : ""));
 
-                currentResult.setStart_date(dateCounter);
+                currentResult.setFinish_date(dateCounter);
                 if(currentResult.getFail_reason() == null) currentResult.setFail_reason("");
                 if(scenario.getBefore() != null) scenario.getBefore().forEach(this::handleStep);
                 scenario.getSteps().forEach(this::handleStep);
                 if(scenario.getAfter() != null) scenario.getAfter().forEach(this::handleStep);
-                dateCounter = dateUtils.addMS(dateCounter, testTime);
+                dateCounter = dateUtils.removeMS(dateCounter, testTime);
+                currentResult.setStart_date(dateCounter);
                 testTime = 0;
-                currentResult.setFinish_date(dateCounter);
                 tests.add(currentTest);
                 results.add(currentResult);
             } else {

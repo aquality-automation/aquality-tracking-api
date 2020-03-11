@@ -292,7 +292,7 @@ public class AuditController extends BaseController<AuditDto> {
 
     private UserDto getUser(UserDto template) throws AqualityUserException {
         try {
-            return userDao.getEntityById(template);
+            return userDao.getEntityById(template.getId());
         } catch (AqualityException e) {
             throw new AqualityUserException("Cannot get Author for the audit comment.");
         }

@@ -57,7 +57,7 @@ public abstract class BaseDto {
         return list;
     }
 
-    public List<Pair<String, String>> getIDParameters() throws AqualityException {
+    public List<Pair<String, String>> getDataBaseIDParameters() throws AqualityException {
         List<Pair<String, String>> list = new ArrayList<>();
         List<Field> classFields = this.getClassFields();
         boolean hasIdAnnotation = hasIdAnnotation(DataBaseID.class);
@@ -78,6 +78,104 @@ public abstract class BaseDto {
         }
 
         return list;
+    }
+
+    public List<Pair<String, String>> getIdAndProjectIdSearchParameters() throws AqualityException {
+        List<Pair<String, String>> list = new ArrayList<>();
+        List<Field> classFields = this.getClassFields();
+        for (Field field : classFields) {
+            DataBaseName nameAnnotation = field.getAnnotation(DataBaseName.class);
+            DataBaseSearchable searchAnnotation = field.getAnnotation(DataBaseSearchable.class);
+            if (nameAnnotation != null && searchAnnotation != null) {
+                try {
+                    field.setAccessible(true);
+                    String value = "";
+                    if (Objects.equals(field.getName(), "id") || Objects.equals(field.getName(), "project_id")) {
+                        value = getStringValue(field.get(this));
+                    }
+                    if (nameAnnotation.name().equals("request_limit") && (value.equals("0") || value.equals(""))) {
+                        value = "100000";
+                    }
+                    Pair<String, String> pair = new Pair<>(nameAnnotation.name(), value);
+                    list.add(pair);
+
+                } catch (IllegalAccessException e) {
+                    throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
+                }
+            }
+        }
+
+        if (list.isEmpty()) {
+            throw new AqualityException("Entity has no id parameter");
+        }
+
+        return list;
+    }
+
+    public List<Pair<String, String>> getIdSearchParameters(Integer id) throws AqualityException {
+        List<Pair<String, String>> list = new ArrayList<>();
+        List<Field> classFields = this.getClassFields();
+        boolean hasOverrideIdAnnotation = hasOverrideIdAnnotation(OverrideIDName.class);
+        for (Field field: classFields) {
+            DataBaseName nameAnnotation = field.getAnnotation(DataBaseName.class);
+            DataBaseSearchable searchAnnotation = field.getAnnotation(DataBaseSearchable.class);
+            OverrideIDName override = field.getAnnotation(OverrideIDName.class);
+            if(nameAnnotation != null && searchAnnotation != null){
+                field.setAccessible(true);
+                String value = "";
+                if((Objects.equals(field.getName(), "id") && !hasOverrideIdAnnotation) || override != null) {
+                    value = id.toString();
+                }
+                if(nameAnnotation.name().equals("request_limit") && (value.equals("0") || value.equals(""))){
+                    value = "100000";
+                }
+                Pair<String, String> pair = new Pair<>(nameAnnotation.name(), value);
+                list.add(pair);
+            }
+        }
+
+        if(list.isEmpty()){
+            throw new AqualityException("Entity has no id parameter");
+        }
+
+        return list;
+    }
+
+    public Integer getIdOrOverrideId() throws AqualityException {
+        List<Field> classFields = this.getClassFields();
+        boolean hasOverrideIdAnnotation = hasOverrideIdAnnotation(OverrideIDName.class);
+        for (Field field: classFields) {
+                field.setAccessible(true);
+                OverrideIDName override = field.getAnnotation(OverrideIDName.class);
+                if((Objects.equals(field.getName(), "id") && !hasOverrideIdAnnotation) || override != null) {
+                    String value;
+                    try {
+                        value = getStringValue(field.get(this));
+                    } catch (IllegalAccessException e) {
+                        throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
+                    }
+                    return value.isEmpty() ? null : Integer.valueOf(value);
+                }
+        }
+
+        throw new AqualityException("Entity has no id parameter");
+    }
+
+    public boolean hasProjectId() throws AqualityException {
+        List<Field> classFields = this.getClassFields();
+        for (Field field: classFields) {
+            field.setAccessible(true);
+            if(Objects.equals(field.getName(), "project_id")) {
+                Object value;
+                try {
+                    value = field.get(this);
+                } catch (IllegalAccessException e) {
+                    throw new AqualityException(String.format("Cannot read Field: %s", field.getName()));
+                }
+                return !getStringValue(value).isEmpty();
+            }
+        }
+        return false;
     }
 
     public void getSearchTemplateFromRequestParameters(@NotNull HttpServletRequest req) throws AqualityException {
@@ -106,6 +204,16 @@ public abstract class BaseDto {
     }
 
     private boolean hasIdAnnotation(Class<DataBaseID> dataBaseIDClass){
+        List<Field> classFields = this.getClassFields();
+        for (Field field: classFields) {
+            if(field.getAnnotation(dataBaseIDClass) != null){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasOverrideIdAnnotation(Class<OverrideIDName> dataBaseIDClass){
         List<Field> classFields = this.getClassFields();
         for (Field field: classFields) {
             if(field.getAnnotation(dataBaseIDClass) != null){

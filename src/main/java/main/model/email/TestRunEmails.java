@@ -105,7 +105,7 @@ public class TestRunEmails extends Emails{
         ProjectDao projectDao = new ProjectDao();
         ProjectDto projectDto = new ProjectDto();
         projectDto.setId(id);
-        return projectDao.getEntityById(projectDto);
+        return projectDao.getEntityById(projectDto.getId());
     }
 
     private List<String> getProjectMemberRecipients(List<UserDto> users) {

@@ -1,4 +1,4 @@
-package main.view.Project;
+package main.view.Project.statistic;
 
 import main.Session;
 import main.model.dto.TestResultDto;

@@ -40,6 +40,7 @@ public class LdapDto extends BaseDto {
     @DataBaseInsert
     private String adminSecret;
     @DataBaseName(name="request_id")
+    @DataBaseSearchable
     @DataBaseInsert
     private Integer id;
 }

@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+
+    <changeSet id="Update SELECT_LDAP_SETTING to use id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_LDAP_SETTING`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_LDAP_SETTING`(
+            IN request_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM ldap_settings where empty_or_equal(request_id, id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_LDAP_SETTING`;
+            #
+            CREATE PROCEDURE `SELECT_LDAP_SETTING`()
+            BEGIN
+            SELECT * FROM ldap_settings;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_APP_SETTINGS to use id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_APP_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_APP_SETTINGS`(
+            IN request_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM app_settings where empty_or_equal(request_id, id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_APP_SETTINGS`;
+            #
+            CREATE PROCEDURE `SELECT_APP_SETTINGS`()
+            BEGIN
+            SELECT * FROM app_settings;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_LDAP_SETTING to return result" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_LDAP_SETTING`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_LDAP_SETTING`(
+            In request_ldapAdServer varchar(300),
+            IN request_ldapSearchBaseUsers VARCHAR(300),
+            IN request_security_auntification VARCHAR(45),
+            IN request_userSearchFilter VARCHAR(300),
+            IN request_domain VARCHAR(300),
+            IN request_mailAttribute VARCHAR(45),
+            IN request_firstNameAttribute VARCHAR(45),
+            IN request_lastNameAttribute VARCHAR(45),
+            IN request_userNameAttribute VARCHAR(45),
+            IN request_adminUserName VARCHAR(150),
+            IN request_adminSecret VARCHAR(300),
+            IN request_id VARCHAR(11))
+            BEGIN
+
+            INSERT INTO ldap_settings (ldapAdServer,ldapSearchBaseUsers,security_auntification,userSearchFilter,domain,mailAttribute,firstNameAttribute,lastNameAttribute,userNameAttribute,id,adminUserName,adminSecret)
+            VALUES (
+            request_ldapAdServer,
+            request_ldapSearchBaseUsers,
+            request_security_auntification,
+            request_userSearchFilter,
+            request_domain,
+            request_mailAttribute,
+            request_firstNameAttribute,
+            request_lastNameAttribute,
+            request_userNameAttribute,
+            request_id,
+            request_adminUserName,
+            request_adminSecret
+            )
+            ON DUPLICATE KEY UPDATE
+            ldapAdServer= IF(request_ldapAdServer = '', ldapAdServer, request_ldapAdServer),
+            ldapSearchBaseUsers = IF(request_ldapSearchBaseUsers = '', ldapSearchBaseUsers, request_ldapSearchBaseUsers),
+            security_auntification = IF(request_security_auntification = '', security_auntification, request_security_auntification),
+            userSearchFilter = IF(request_userSearchFilter = '', userSearchFilter, request_userSearchFilter),
+            domain = IF(request_domain = '', domain, request_domain),
+            mailAttribute = IF(request_mailAttribute = '', mailAttribute, request_mailAttribute),
+            firstNameAttribute = IF(request_firstNameAttribute='', firstNameAttribute, request_firstNameAttribute),
+            lastNameAttribute = IF(request_lastNameAttribute='', lastNameAttribute, request_lastNameAttribute),
+            userNameAttribute = IF(request_userNameAttribute='', userNameAttribute, request_userNameAttribute),
+            adminUserName = IF(request_adminUserName='', adminUserName, request_adminUserName),
+            adminSecret = IF(request_adminSecret='', adminSecret, request_adminSecret)
+            ;
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from ldap_settings where id = @result_id;
+
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_LDAP_SETTING`;
+            #
+            CREATE PROCEDURE `INSERT_LDAP_SETTING`(
+            In request_ldapAdServer varchar(300),
+            IN request_ldapSearchBaseUsers VARCHAR(300),
+            IN request_security_auntification VARCHAR(45),
+            IN request_userSearchFilter VARCHAR(300),
+            IN request_domain VARCHAR(300),
+            IN request_mailAttribute VARCHAR(45),
+            IN request_firstNameAttribute VARCHAR(45),
+            IN request_lastNameAttribute VARCHAR(45),
+            IN request_userNameAttribute VARCHAR(45),
+            IN request_adminUserName VARCHAR(150),
+            IN request_adminSecret VARCHAR(300),
+            IN request_id VARCHAR(11))
+            BEGIN
+
+            INSERT INTO ldap_settings (ldapAdServer,ldapSearchBaseUsers,security_auntification,userSearchFilter,domain,mailAttribute,firstNameAttribute,lastNameAttribute,userNameAttribute,id,adminUserName,adminSecret)
+            VALUES (
+            request_ldapAdServer,
+            request_ldapSearchBaseUsers,
+            request_security_auntification,
+            request_userSearchFilter,
+            request_domain,
+            request_mailAttribute,
+            request_firstNameAttribute,
+            request_lastNameAttribute,
+            request_userNameAttribute,
+            request_id,
+            request_adminUserName,
+            request_adminSecret
+            )
+            ON DUPLICATE KEY UPDATE
+            ldapAdServer= IF(request_ldapAdServer = '', ldapAdServer, request_ldapAdServer),
+            ldapSearchBaseUsers = IF(request_ldapSearchBaseUsers = '', ldapSearchBaseUsers, request_ldapSearchBaseUsers),
+            security_auntification = IF(request_security_auntification = '', security_auntification, request_security_auntification),
+            userSearchFilter = IF(request_userSearchFilter = '', userSearchFilter, request_userSearchFilter),
+            domain = IF(request_domain = '', domain, request_domain),
+            mailAttribute = IF(request_mailAttribute = '', mailAttribute, request_mailAttribute),
+            firstNameAttribute = IF(request_firstNameAttribute='', firstNameAttribute, request_firstNameAttribute),
+            lastNameAttribute = IF(request_lastNameAttribute='', lastNameAttribute, request_lastNameAttribute),
+            userNameAttribute = IF(request_userNameAttribute='', userNameAttribute, request_userNameAttribute),
+            adminUserName = IF(request_adminUserName='', adminUserName, request_adminUserName),
+            adminSecret = IF(request_adminSecret='', adminSecret, request_adminSecret)
+            ;
+            END
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update SELECT_AUDITOR to use id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_AUDITOR`;
+
+            #
+            CREATE PROCEDURE `SELECT_AUDITOR`(
+            In request_audit_id varchar(11),
+            In request_user_id varchar(11),
+            In request_auditor_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM auditor_assignments
+            LEFT JOIN users ON auditor_assignments.user_id=users.id
+            WHERE empty_or_equal(request_audit_id, auditor_assignments.audit_id)
+            AND empty_or_equal(request_user_id, auditor_assignments.user_id)
+            AND empty_or_equal(request_auditor_id, auditor_assignments.auditor_id)
+            ;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update Import table with finish status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `imports`
+            CHANGE COLUMN `is_finished` `finish_status` INT(1) NOT NULL DEFAULT '0' COMMENT '0 - in progress\n1 - ok\n2 - error' ;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_IMPORT to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_IMPORT`;
+
+            #
+            CREATE PROCEDURE `INSERT_IMPORT`(
+            IN request_id VARCHAR(11),
+            IN request_testrun_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_finish_status VARCHAR(1),
+            IN request_started VARCHAR(500),
+            IN request_finished VARCHAR(500),
+            IN request_log LONGTEXT
+            )
+            BEGIN
+
+            SET time_zone = '+00:00';
+            INSERT INTO imports (id, testrun_id, project_id, finish_status, started, finished, log)
+            VALUES (
+            IF(request_id = '', null,request_id),
+            IF(request_testrun_id = '', null,request_testrun_id),
+            IF(request_project_id = '', null,request_project_id),
+            IF(request_finish_status = '', null,request_finish_status),
+            IF(request_started = '', null,FROM_UNIXTIME(request_started)),
+            IF(request_finished = '', null,FROM_UNIXTIME(request_finished)),
+            IF(request_log = '', null,request_log)
+            ) ON DUPLICATE KEY UPDATE
+            testrun_id = IF(request_testrun_id = '', testrun_id, request_testrun_id),
+            project_id = IF(request_project_id = '', project_id, request_project_id),
+            finish_status = IF(request_finish_status = '', finish_status, request_finish_status),
+            started = IF(request_started = '', started, FROM_UNIXTIME(request_started)),
+            finished= IF(request_finished = '', finished, FROM_UNIXTIME(request_finished)),
+            log = IF(request_log = '', log, request_log);
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from imports where id = @result_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update imports_AFTER_INSERT to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `imports_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER imports_AFTER_INSERT AFTER INSERT ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.finish_status = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.testrun_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update imports_AFTER_UPDATE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `imports_AFTER_UPDATE`;
+
+            #
+            CREATE TRIGGER imports_AFTER_UPDATE AFTER UPDATE ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.finish_status = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.testrun_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_INSERT to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_INSERT AFTER INSERT ON test_results FOR EACH ROW
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_UPDATE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_UPDATE`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_UPDATE AFTER UPDATE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = NEW.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = NEW.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_BEFORE_DELETE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_BEFORE_DELETE`;
+
+            #
+            CREATE TRIGGER `test_results_BEFORE_DELETE` BEFORE DELETE ON `test_results` FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = OLD.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = OLD.test_run_id;
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            OLD.test_id,
+            (SELECT stability_count from projects where id = OLD.project_id)
+            );
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results_AFTER_DELETE to use finish_status" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_DELETE`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_DELETE AFTER DELETE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND finish_status = 0)
+            THEN
+
+            DELETE FROM testrun_statistic WHERE testrun_id = OLD.test_run_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum(rr.color = 3 AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join union_reporting.test_results as trs on trn.id=test_run_id
+            left join union_reporting.final_results as frs on trs.final_result_id = frs.id
+            left join union_reporting.result_resolution as rr on trs.test_resolution_id = rr.id
+
+            Where trn.id = OLD.test_run_id;
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

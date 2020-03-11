@@ -45,4 +45,8 @@ public class TRX extends Handler {
     public List<TestResultDto> getTestResults() {
         return handler.getTestResults();
     }
+
+    public void setTestRun(TestRunDto testRun){
+        handler.setTestRun(testRun);
+    }
 }
