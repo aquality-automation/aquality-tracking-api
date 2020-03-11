@@ -1,5 +1,7 @@
 package main.model.db.imports.SAXHandlers;
 
+import main.exceptions.AqualityException;
+import main.model.db.imports.Handler;
 import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import org.xml.sax.Attributes;
@@ -12,10 +14,8 @@ import java.util.List;
 
 import static main.model.db.imports.ResultStatus.*;
 
-public class JavaTestNGHandler extends DefaultHandler {
-
+public class JavaTestNGHandler extends Handler {
     private TestSuiteDto testSuite = new TestSuiteDto();
-    private TestRunDto testRun = new TestRunDto();
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result = new TestResultDto();
     private List<TestDto> tests = new ArrayList<>();
@@ -25,7 +25,8 @@ public class JavaTestNGHandler extends DefaultHandler {
     private Date currentTimeSlot;
     private TestNameNodeType testNameNodeType;
 
-    public JavaTestNGHandler(TestNameNodeType testNameNodeType){
+    public JavaTestNGHandler(TestNameNodeType testNameNodeType) throws AqualityException {
+        super();
         this.testNameNodeType = testNameNodeType;
         result.setFail_reason("$blank");
         testRun.setFinish_time(new Date());

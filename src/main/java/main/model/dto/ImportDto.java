@@ -23,9 +23,9 @@ public class ImportDto extends BaseDto {
     @DataBaseSearchable
     @DataBaseInsert
     private Integer project_id;
-    @DataBaseName(name="request_is_finished")
+    @DataBaseName(name="request_finish_status")
     @DataBaseInsert
-    private Integer is_finished;
+    private Integer finish_status;
     @DataBaseName(name="request_started")
     @DataBaseInsert
     @JsonDeserialize(using=CustomerDateAndTimeDeserialize.class)

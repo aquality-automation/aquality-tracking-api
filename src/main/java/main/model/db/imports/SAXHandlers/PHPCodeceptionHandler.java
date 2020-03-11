@@ -13,8 +13,6 @@ import java.util.List;
 import static main.model.db.imports.ResultStatus.*;
 
 public class PHPCodeceptionHandler extends Handler {
-
-    private TestRunDto testRun = new TestRunDto();
     private TestSuiteDto testSuite = new TestSuiteDto();
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result = new TestResultDto();

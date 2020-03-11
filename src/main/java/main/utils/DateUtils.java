@@ -13,6 +13,11 @@ public class DateUtils {
         return add(Calendar.MILLISECOND, date, ms);
     }
 
+    public Date removeMS(Date date, Integer ms)
+    {
+        return add(Calendar.MILLISECOND, date, -ms);
+    }
+
     public Date addDays(Date date, int days)
     {
         return add(Calendar.DATE, date, days);
@@ -23,10 +28,10 @@ public class DateUtils {
         return add(Calendar.MONTH, date, month);
     }
 
-    public Date add(int field, Date date, int month) {
+    public Date add(int field, Date date, int diff) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
-        cal.add(field, month);
+        cal.add(field, diff);
         return cal.getTime();
     }
 

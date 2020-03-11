@@ -16,6 +16,7 @@ import java.util.List;
 
 public abstract class Handler extends DefaultHandler {
     protected SAXParser parser;
+    protected TestRunDto testRun = new TestRunDto();
     public Handler() throws AqualityException {
         try {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
@@ -33,4 +34,7 @@ public abstract class Handler extends DefaultHandler {
     public abstract TestRunDto getTestRun();
     public abstract List<TestDto> getTests();
     public abstract List<TestResultDto> getTestResults();
+    public void setTestRun(TestRunDto testRun){
+        this.testRun = testRun;
+    }
 }

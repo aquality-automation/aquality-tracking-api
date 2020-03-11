@@ -15,10 +15,7 @@ import java.util.*;
 import static main.model.db.imports.ResultStatus.*;
 
 public class NUnitV2Handler extends Handler {
-
-
     private TestSuiteDto testSuite = new TestSuiteDto();
-    private TestRunDto testRun = new TestRunDto();
     private List<TestResultDto> results = new ArrayList<TestResultDto>();
     private TestResultDto result = new TestResultDto();
     private List<TestDto> tests = new ArrayList<TestDto>();

@@ -88,6 +88,7 @@ class BaseImporter {
     }
 
     void logToImport(String log) throws AqualityException {
+        importDto.setProject_id(this.projectId);
         importDto.addToLog(log);
         importDto = importDao.create(importDto);
     }
@@ -105,20 +106,13 @@ class BaseImporter {
             }
         }
         else{
-            createTestRun((testRun.getBuild_name() != null && !testRun.getBuild_name().equals(""))
-                    ? testRun.getBuild_name()
-                    : file.getName().substring(0, file.getName().lastIndexOf(".")));
+            setTestRunStartDate();
+            setTestRunFinishDate();
+            testRun.setTest_suite_id(testSuite.getId());
+            testRun.setId(controllerFactory.getHandler(testRun).create(testRun).getId());
         }
         updateImportTestRun();
         logToImport("Test Run is updated.");
-    }
-
-    private void createTestRun(String buildName) throws AqualityException {
-        testRun.setBuild_name(buildName);
-        setTestRunStartDate();
-        setTestRunFinishDate();
-        testRun.setTest_suite_id(testSuite.getId());
-        testRun.setId(controllerFactory.getHandler(testRun).create(testRun).getId());
     }
 
     private void setTestRunStartDate(){
