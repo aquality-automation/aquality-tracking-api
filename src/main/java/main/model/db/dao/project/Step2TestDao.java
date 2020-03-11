@@ -24,6 +24,7 @@ public class Step2TestDao extends DAO<Step2TestDto> {
      */
     public Step2TestDto create(Step2TestDto entity) throws AqualityException {
         List<ConnectionUrlParser.Pair<String, String>> parameters = entity.getParameters();
+        checkInsertProcedure();
         CallStoredProcedure(insert, parameters);
         return entity;
     }
@@ -35,6 +36,7 @@ public class Step2TestDao extends DAO<Step2TestDto> {
      */
     public List<StepDto> getTestSteps(Step2TestDto entity) throws AqualityException {
         List<ConnectionUrlParser.Pair<String, String>> parameters = entity.getSearchParameters();
+        checkSelectProcedure();
         List<StepDto> results = new DtoMapper<>(StepDto.class).mapObjects(CallStoredProcedure(select, parameters).toString());
         return results;
     }
