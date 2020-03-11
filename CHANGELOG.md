@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.3.8 (Unreleased)
+## 0.3.8 (2020-03-11)
 
 Features:
   - Update Swagger with Statistic endpoints -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/76)
