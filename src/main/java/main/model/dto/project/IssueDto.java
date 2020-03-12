@@ -6,6 +6,7 @@ import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.model.dto.BaseDto;
+import main.model.dto.settings.UserDto;
 import main.utils.CustomerDateAndTimeDeserialize;
 
 import java.util.Date;
@@ -20,6 +21,7 @@ public class IssueDto extends BaseDto {
     @DataBaseInsert
     @DataBaseSearchable
     private Integer resolution_id;
+    private ResultResolutionDto resolution;
     @DataBaseName(name="request_title")
     @DataBaseInsert
     private String title;
@@ -33,6 +35,7 @@ public class IssueDto extends BaseDto {
     @DataBaseInsert
     @DataBaseSearchable
     private Integer assignee_id;
+    private UserDto assignee;
     @DataBaseName(name="request_expression")
     @DataBaseInsert
     private String expression;
@@ -40,6 +43,7 @@ public class IssueDto extends BaseDto {
     @DataBaseInsert
     @DataBaseSearchable
     private Integer status_id;
+    private IssueStatusDto status;
     @DataBaseName(name="request_label_id")
     @DataBaseInsert
     @DataBaseSearchable
@@ -51,6 +55,7 @@ public class IssueDto extends BaseDto {
     @DataBaseName(name="request_creator_id")
     @DataBaseInsert
     private Integer creator_id;
+    private UserDto creator;
     @JsonDeserialize(using= CustomerDateAndTimeDeserialize.class)
     private Date created;
     @DataBaseName(name="request_limit")
