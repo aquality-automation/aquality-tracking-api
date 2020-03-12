@@ -1,7 +1,7 @@
 package main.view.ApplicationSettings;
 
 import main.Session;
-import main.model.dto.EmailSettingsDto;
+import main.model.dto.settings.EmailSettingsDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 

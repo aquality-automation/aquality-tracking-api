@@ -1,7 +1,7 @@
 package main.view.Audits;
 
 import main.Session;
-import main.model.dto.AuditAttachmentDto;
+import main.model.dto.audit.AuditAttachmentDto;
 import main.utils.FileUtils;
 import main.utils.PathUtils;
 import main.view.BaseServlet;

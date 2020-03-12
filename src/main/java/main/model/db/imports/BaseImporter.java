@@ -6,7 +6,8 @@ import main.model.db.dao.project.ImportDao;
 import main.model.db.dao.project.ProjectDao;
 import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestResultDao;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 import main.utils.RegexpUtil;
 
 import java.io.File;

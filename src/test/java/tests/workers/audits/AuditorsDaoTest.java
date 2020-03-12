@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.audit.AuditorsDao;
-import main.model.dto.AuditorDto;
+import main.model.dto.audit.AuditorDto;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.testng.annotations.BeforeMethod;

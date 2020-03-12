@@ -1,7 +1,7 @@
 package main.model.db.dao.customer;
 
 import main.model.db.dao.DAO;
-import main.model.dto.CustomerDto;
+import main.model.dto.customer.CustomerDto;
 
 public class CustomerDao extends DAO<CustomerDto>{
 

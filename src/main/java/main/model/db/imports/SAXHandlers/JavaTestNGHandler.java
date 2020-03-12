@@ -3,9 +3,11 @@ package main.model.db.imports.SAXHandlers;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.TestNameNodeType;
-import main.model.dto.*;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.xml.sax.Attributes;
-import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.ArrayList;
 import java.util.Calendar;

@@ -5,6 +5,10 @@ import main.model.db.dao.audit.AuditDao;
 import main.model.db.dao.audit.AuditStatisticDao;
 import main.model.db.dao.project.UserDao;
 import main.model.dto.*;
+import main.model.dto.audit.AuditDto;
+import main.model.dto.audit.AuditStatisticDto;
+import main.model.dto.audit.AuditorDto;
+import main.model.dto.settings.UserDto;
 import main.utils.AppProperties;
 
 import java.util.ArrayList;

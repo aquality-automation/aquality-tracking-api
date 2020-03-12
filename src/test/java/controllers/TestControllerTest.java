@@ -3,9 +3,9 @@ package controllers;
 import main.controllers.Project.TestController;
 import main.exceptions.AqualityException;
 import main.model.dto.DtoMapper;
-import main.model.dto.TestDto;
-import main.model.dto.TestResultDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.settings.UserDto;
 import org.testng.annotations.Test;
 
 import java.util.List;

@@ -2,8 +2,8 @@ package main.utils.LDAP;
 
 import main.controllers.Administration.AppSettingsController;
 import main.exceptions.AqualityException;
-import main.model.dto.LdapDto;
-import main.model.dto.UserDto;
+import main.model.dto.settings.LdapDto;
+import main.model.dto.settings.UserDto;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;

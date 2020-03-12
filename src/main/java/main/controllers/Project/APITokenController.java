@@ -4,8 +4,8 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.APITokenDao;
-import main.model.dto.APITokenDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.APITokenDto;
+import main.model.dto.settings.UserDto;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.poi.util.NotImplemented;
 

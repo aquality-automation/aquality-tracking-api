@@ -1,7 +1,7 @@
 package main.controllers.Administration;
 
 import main.exceptions.AqualityException;
-import main.model.dto.UserDto;
+import main.model.dto.settings.UserDto;
 
 public class AdministrationController {
     private UserController userController;

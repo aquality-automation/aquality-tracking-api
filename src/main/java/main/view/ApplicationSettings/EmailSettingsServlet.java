@@ -1,7 +1,7 @@
 package main.view.ApplicationSettings;
 
 import main.Session;
-import main.model.dto.EmailSettingsDto;
+import main.model.dto.settings.EmailSettingsDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 import main.view.IPost;
@@ -9,7 +9,6 @@ import main.view.IPost;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 @WebServlet("/settings/email")
 public class EmailSettingsServlet extends BaseServlet implements IGet, IPost {

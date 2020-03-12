@@ -1,7 +1,7 @@
 package main.view.Customers;
 
 import main.Session;
-import main.model.dto.CustomerDto;
+import main.model.dto.customer.CustomerDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;

@@ -1,7 +1,7 @@
 package main.view.Audits;
 
 import main.Session;
-import main.model.dto.AuditorDto;
+import main.model.dto.audit.AuditorDto;
 import main.view.BaseServlet;
 import main.view.IPost;
 

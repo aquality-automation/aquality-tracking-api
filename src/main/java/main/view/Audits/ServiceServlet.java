@@ -1,7 +1,7 @@
 package main.view.Audits;
 
 import main.Session;
-import main.model.dto.ServiceDto;
+import main.model.dto.audit.ServiceDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 

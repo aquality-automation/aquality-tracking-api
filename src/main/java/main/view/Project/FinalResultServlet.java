@@ -3,7 +3,7 @@ package main.view.Project;
 import main.Session;
 import main.view.BaseServlet;
 import main.view.IGet;
-import main.model.dto.FinalResultDto;
+import main.model.dto.project.FinalResultDto;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;

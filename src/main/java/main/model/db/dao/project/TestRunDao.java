@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.TestRunDto;
+import main.model.dto.project.TestRunDto;
 
 public class TestRunDao extends DAO<TestRunDto> {
     public TestRunDao() {

@@ -2,7 +2,7 @@ package main.view.Project;
 
 
 import main.Session;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.TestSuiteDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;

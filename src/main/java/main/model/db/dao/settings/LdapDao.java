@@ -1,7 +1,7 @@
 package main.model.db.dao.settings;
 
 import main.model.db.dao.DAO;
-import main.model.dto.LdapDto;
+import main.model.dto.settings.LdapDto;
 
 public class LdapDao extends DAO<LdapDto>{
     public LdapDao() {

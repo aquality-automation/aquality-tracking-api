@@ -4,8 +4,8 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.FinalResultDao;
-import main.model.dto.FinalResultDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.FinalResultDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 

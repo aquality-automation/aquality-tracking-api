@@ -1,7 +1,7 @@
 package main.view.Administration;
 
 import main.Session;
-import main.model.dto.StepTypeDto;
+import main.model.dto.project.StepTypeDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 

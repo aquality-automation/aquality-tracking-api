@@ -3,8 +3,8 @@ package main.controllers.Project;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.StepResultDao;
-import main.model.dto.StepResultDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.StepResultDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 

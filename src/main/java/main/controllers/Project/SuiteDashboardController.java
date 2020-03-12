@@ -5,10 +5,10 @@ import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Suite2DashboardDao;
 import main.model.db.dao.project.SuiteDashboardDao;
-import main.model.dto.Suite2DashboardDto;
-import main.model.dto.SuiteDashboardDto;
-import main.model.dto.TestSuiteDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.Suite2DashboardDto;
+import main.model.dto.project.SuiteDashboardDto;
+import main.model.dto.project.TestSuiteDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;

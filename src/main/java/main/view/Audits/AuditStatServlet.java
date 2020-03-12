@@ -1,7 +1,7 @@
 package main.view.Audits;
 
 import main.Session;
-import main.model.dto.AuditStatisticDto;
+import main.model.dto.audit.AuditStatisticDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 

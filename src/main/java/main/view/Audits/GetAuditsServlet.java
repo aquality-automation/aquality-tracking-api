@@ -2,7 +2,7 @@ package main.view.Audits;
 
 
 import main.Session;
-import main.model.dto.AuditDto;
+import main.model.dto.audit.AuditDto;
 import main.view.BaseServlet;
 import main.view.IPost;
 

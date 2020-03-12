@@ -4,10 +4,10 @@ import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.SAXHandlers.NUnitV3Handler;
 import main.model.db.imports.TestNameNodeType;
-import main.model.dto.TestDto;
-import main.model.dto.TestResultDto;
-import main.model.dto.TestRunDto;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.xml.sax.SAXException;
 
 import java.io.File;

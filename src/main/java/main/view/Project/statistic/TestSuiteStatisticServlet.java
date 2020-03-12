@@ -1,15 +1,14 @@
 package main.view.Project.statistic;
 
 import main.Session;
-import main.model.dto.SuiteStatisticDto;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.SuiteStatisticDto;
+import main.model.dto.project.TestSuiteDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet("/stats/suite")

@@ -4,8 +4,8 @@ import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
 import main.model.dto.DtoMapper;
-import main.model.dto.Step2TestDto;
-import main.model.dto.StepDto;
+import main.model.dto.project.Step2TestDto;
+import main.model.dto.project.StepDto;
 
 import java.util.List;
 

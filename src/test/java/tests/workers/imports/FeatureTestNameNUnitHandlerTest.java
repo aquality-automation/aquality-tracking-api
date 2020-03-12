@@ -4,6 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import main.model.db.imports.ImportHandlers.NUnitV3;
 import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

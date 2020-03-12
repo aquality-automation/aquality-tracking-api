@@ -3,10 +3,10 @@ package main.controllers.Project;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
-import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.db.dao.project.TestResultStatDao;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 

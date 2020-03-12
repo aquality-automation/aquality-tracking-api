@@ -5,7 +5,9 @@ import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.customer.CustomerDao;
 import main.model.db.dao.project.ProjectDao;
 import main.model.db.dao.project.UserDao;
-import main.model.dto.*;
+import main.model.dto.customer.CustomerDto;
+import main.model.dto.project.ProjectDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;

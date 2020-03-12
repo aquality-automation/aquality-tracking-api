@@ -513,6 +513,24 @@
         <rollback>
         </rollback>
     </changeSet>
+    <changeSet id="create SELECT_ISSUE_STATUS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_ISSUE_STATUS`;
+
+            #
+            CREATE PROCEDURE `SELECT_ISSUE_STATUS` (
+            In request_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM issue_status WHERE empty_or_equal(request_id,id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 
 
 </databaseChangeLog>

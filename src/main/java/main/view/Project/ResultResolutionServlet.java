@@ -1,7 +1,7 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.ResultResolutionDto;
+import main.model.dto.project.ResultResolutionDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;

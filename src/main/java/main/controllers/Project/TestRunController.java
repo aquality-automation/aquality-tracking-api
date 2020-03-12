@@ -6,7 +6,8 @@ import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestRunDao;
 import main.model.db.dao.project.TestRunLabelDao;
 import main.model.db.dao.project.TestRunStatisticDao;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 

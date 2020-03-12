@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data; import lombok.EqualsAndHashCode;
 import main.annotations.*;
 
+import main.model.dto.settings.UserDto;
 import main.utils.CustomerDateAndTimeDeserialize;
 
 import java.util.Date;

@@ -2,17 +2,16 @@ package main.model.email;
 
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.ProjectDao;
-import main.model.db.dao.settings.EmailSettingsDao;
 import main.model.dto.*;
+import main.model.dto.project.ProjectDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.settings.UserDto;
 import main.utils.AppProperties;
-import main.utils.EmailUtil;
-import org.json.JSONException;
 
 import javax.mail.MessagingException;
-import javax.naming.NamingException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.stream.Collectors;
