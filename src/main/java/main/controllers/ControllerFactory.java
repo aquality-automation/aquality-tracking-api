@@ -73,4 +73,7 @@ public class ControllerFactory {
     public PredefinedResolutionController getHandler(PredefinedResolutionDto entity) {
         return new PredefinedResolutionController(user);
     }
+    public IssueController getHandler(IssueDto entity) {
+        return new IssueController(user);
+    }
 }

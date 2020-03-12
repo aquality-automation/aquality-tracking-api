@@ -15,6 +15,17 @@
             PRIMARY KEY (`id`),
             UNIQUE INDEX `id_UNIQUE` (`id` ASC),
             UNIQUE INDEX `name_UNIQUE` (`name` ASC));
+            #
+            INSERT INTO `issue_status` (`id`, `color`, `name`) VALUES ('1', '3', 'Open');
+            #
+            INSERT INTO `issue_status` (`id`, `color`, `name`) VALUES ('2', '4', 'Can Not Reproduce');
+            #
+            INSERT INTO `issue_status` (`id`, `color`, `name`) VALUES ('4', '5', 'Done');
+            #
+            INSERT INTO `issue_status` (`id`, `color`, `name`) VALUES ('5', '5', 'Closed');
+            #
+            INSERT INTO `issue_status` (`id`, `color`, `name`) VALUES ('3', '2', 'In Progress');
+
         </sql>
         <rollback>
         </rollback>
@@ -23,7 +34,7 @@
     <changeSet id="Create issue_labels table" author="v.kostyukevich">
         <sql endDelimiter="#">
             CREATE TABLE `issue_labels` (
-            `id` INT(11) NOT NULL,
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
             `project_id` INT(11) NULL,
             `color` VARCHAR(45) NOT NULL DEFAULT '#f8f9fa',
             `name` VARCHAR(45) NOT NULL,
@@ -43,7 +54,7 @@
     <changeSet id="Create issues table" author="v.kostyukevich">
         <sql endDelimiter="#">
             CREATE TABLE `issues` (
-            `id` INT(11) NOT NULL,
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
             `resolution_id` INT(11) NOT NULL DEFAULT '1',
             `title` VARCHAR(500) NOT NULL,
             `description` LONGTEXT NULL,
@@ -65,39 +76,399 @@
             CONSTRAINT `issue_to_resolution`
             FOREIGN KEY (`resolution_id`)
             REFERENCES `result_resolution` (`id`)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION,
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
             CONSTRAINT `issue_to_status`
             FOREIGN KEY (`status_id`)
             REFERENCES `issue_status` (`id`)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION,
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
             CONSTRAINT `issue_to_label`
             FOREIGN KEY (`label_id`)
             REFERENCES `issue_labels` (`id`)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION,
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
             CONSTRAINT `issue_to_project`
             FOREIGN KEY (`project_id`)
             REFERENCES `projects` (`id`)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION,
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
             CONSTRAINT `issue_to_assignee`
             FOREIGN KEY (`assignee_id`)
             REFERENCES `users` (`id`)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION,
+            ON DELETE SET NULL
+            ON UPDATE CASCADE,
             CONSTRAINT `issue_to_creator`
             FOREIGN KEY (`creator_id`)
             REFERENCES `users` (`id`)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION);
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE);
 
         </sql>
         <rollback>
         </rollback>
     </changeSet>
 
+    <changeSet id="Create INSERT_ISSUE" author="v.kostyukevich">
+        <sql endDelimiter="#">
 
+            DROP procedure IF EXISTS `INSERT_ISSUE`;
+
+            #
+            CREATE PROCEDURE `INSERT_ISSUE`(
+            IN request_id VARCHAR(11),
+            IN request_resolution_id VARCHAR(11),
+            IN request_title VARCHAR(500),
+            IN request_description LONGTEXT,
+            IN request_external_url VARCHAR(500),
+            IN request_assignee_id VARCHAR(11),
+            IN request_expression VARCHAR(500),
+            IN request_status_id VARCHAR(11),
+            IN request_label_id VARCHAR(11),
+            IN request_project_id VARCHAR(11),
+            IN request_creator_id VARCHAR(11)
+            )
+            BEGIN
+            INSERT INTO issues (id, resolution_id, title, description, external_url, assignee_id, expression, status_id, label_id, project_id, creator_id)
+            VALUES (
+            replace_empty(request_id, null),
+            replace_empty(request_resolution_id, '1'),
+            request_title,
+            replace_empty(request_description, null),
+            replace_empty(request_external_url, null),
+            replace_empty(request_assignee_id, null),
+            replace_empty(request_expression, null),
+            replace_empty(request_status_id, '1'),
+            replace_empty(request_label_id, null),
+            request_project_id,
+            request_creator_id
+            ) ON DUPLICATE KEY UPDATE
+            resolution_id = replace_empty(request_resolution_id, resolution_id),
+            title = replace_empty(request_title, title),
+            description = apply_or_remove_value(request_description, description),
+            external_url = apply_or_remove_value(request_external_url, external_url),
+            assignee_id = apply_or_remove_id(request_assignee_id, assignee_id),
+            expression = apply_or_remove_value(request_expression, expression),
+            status_id = replace_empty(request_status_id, status_id),
+            label_id = apply_or_remove_id(request_label_id, label_id)
+            ;
+
+            SET @result_id = IF(request_id = '', LAST_INSERT_ID(), request_id);
+            SELECT * from issues where id = @result_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update test_results table with issues" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            ALTER TABLE `test_results`
+            ADD COLUMN `issue_id` INT(11) NULL AFTER `pending`,
+            ADD INDEX `test_result_to_issue_idx` (`issue_id` ASC);
+            #
+            ALTER TABLE `test_results`
+            ADD CONSTRAINT `test_result_to_issue`
+            FOREIGN KEY (`issue_id`)
+            REFERENCES `issues` (`id`)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Update INSERT_TEST_RESULT with issues" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_RESULT`;
+
+            #
+            CREATE PROCEDURE `INSERT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(500),
+            IN request_final_result_id VARCHAR(500),
+            IN request_comment text,
+            IN request_test_run_id VARCHAR(500),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_log longtext,
+            IN request_debug VARCHAR(1),
+            IN request_finish_date VARCHAR(500),
+            IN request_start_date VARCHAR(500),
+            IN request_final_result_updated VARCHAR(500),
+            IN request_fail_reason mediumtext,
+            IN request_assignee VARCHAR(10),
+            IN request_issue_id VARCHAR(11)
+            )
+            BEGIN
+            INSERT INTO test_results (project_id, id, test_id, final_result_id, comment, test_run_id, test_resolution_id, log, debug, start_date, finish_date, final_result_updated, fail_reason, assignee, issue_id)
+            VALUES (
+            request_project_id,
+            IF(request_id='', null, request_id),
+            request_test_id,
+            IF(request_final_result_id='',1,request_final_result_id),
+            IF(request_comment = '', null, request_comment),
+            IF(request_test_run_id = '', null, request_test_run_id),
+            IF(request_test_resolution_id = '', 1, request_test_resolution_id),
+            IF(request_log = '', null, request_log),
+            IF(request_debug = '', 0, request_debug),
+            If(request_start_date = '', null, FROM_UNIXTIME(request_start_date)),
+            If(request_finish_date = '', null, FROM_UNIXTIME(request_finish_date)),
+            NOW(),
+            IF(request_fail_reason = '', null, request_fail_reason),
+            IF(request_assignee = '', null, request_assignee),
+            replace_empty(request_issue_id, null))
+            ON DUPLICATE KEY UPDATE
+            test_id=IF(request_test_id = '',test_id,request_test_id),
+            final_result_id = IF(request_final_result_id = '', final_result_id, request_final_result_id),
+            comment = IF(request_comment = '', IF(comment = null OR '', null, comment), IF(request_comment='$blank', null, request_comment)),
+            test_resolution_id = IF(final_result_id = 2, 1, IF(request_test_resolution_id='', test_resolution_id, request_test_resolution_id)),
+            log = IF(request_log = '', log, IF(request_log = '$blank', '', request_log)),
+            debug = IF(request_debug = '', debug, request_debug),
+            start_date = If(request_start_date = '', start_date, FROM_UNIXTIME(request_start_date)),
+            finish_date = If(request_finish_date = '', finish_date, FROM_UNIXTIME(request_finish_date)),
+            final_result_updated = IF(request_final_result_id = final_result_id AND request_final_result_updated = '', NOW(), IF(request_final_result_updated = '',final_result_updated, FROM_UNIXTIME(request_final_result_updated))),
+            fail_reason = IF(request_fail_reason = '', fail_reason, IF(request_fail_reason = '$blank', '', request_fail_reason)),
+            assignee = IF(request_assignee = '', null, request_assignee),
+            issue_id = apply_or_remove_id(request_issue_id, issue_id)
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from test_results where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create migrate_results_to_issues" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `migrate_results_to_issues`;
+
+            #
+            CREATE PROCEDURE `migrate_results_to_issues`()
+            BEGIN
+
+            DECLARE my_id int;
+            DECLARE my_test_id int;
+            DECLARE my_final_result_id int;
+            DECLARE my_test_resolution_id int;
+            DECLARE my_assignee int;
+            DECLARE my_project_id int;
+            DECLARE my_comment mediumtext;
+            DECLARE my_current_issue int;
+            DECLARE done TINYINT DEFAULT FALSE;
+
+            DECLARE result_cursor
+            CURSOR FOR
+            SELECT id, test_id, final_result_id, test_resolution_id, assignee, project_id, comment
+            FROM test_results WHERE final_result_id != 2 AND (test_resolution_id != 1 OR comment is not null);
+
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+            OPEN result_cursor;
+
+            results_loop: LOOP
+
+            FETCH NEXT FROM result_cursor INTO my_id, my_test_id, my_final_result_id, my_test_resolution_id, my_assignee, my_project_id, my_comment;
+            IF done THEN
+            LEAVE results_loop;
+            ELSE
+
+            IF(my_comment IS NOT null) THEN
+            IF EXISTS (SELECT * FROM issues WHERE project_id=my_project_id AND title=IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment)) THEN
+            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id AND title=IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment);
+
+            call INSERT_ISSUE(@my_current_issue, my_test_resolution_id,
+            IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment),
+            IF(CHAR_LENGTH(my_comment) > 500, my_comment, null), '', my_assignee, '', '', '', my_project_id, '1');
+
+            call INSERT_TEST_RESULT(my_project_id, my_id, my_test_id,'','','','','','','','','','','', @my_current_issue);
+            ELSE
+            call INSERT_ISSUE('', my_test_resolution_id,
+            IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment),
+            IF(CHAR_LENGTH(my_comment) > 500, my_comment, null), '', my_assignee, '', '', '', my_project_id, '1');
+
+            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id
+            AND title=IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment);
+            call INSERT_TEST_RESULT(my_project_id, my_id, my_test_id,'','','','','','','','','','','', @my_current_issue);
+            END IF;
+
+            ELSE
+            IF EXISTS (SELECT * FROM issues WHERE project_id=my_project_id AND title=CAST(my_test_resolution_id as CHAR(50))) THEN
+            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id AND title=CAST(my_test_resolution_id as CHAR(50));
+
+            call INSERT_ISSUE(@my_current_issue, my_test_resolution_id, my_test_resolution_id, '', '', my_assignee, '', '', '', my_project_id, '1');
+
+            call INSERT_TEST_RESULT(my_project_id, my_id, my_test_id,'','','','','','','','','','','', @my_current_issue);
+            ELSE
+            call INSERT_ISSUE('', my_test_resolution_id, my_test_resolution_id, '', '', my_assignee, '', '', '', my_project_id, '1');
+
+            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id AND title=my_test_resolution_id;
+            call INSERT_TEST_RESULT(my_project_id, my_id, my_test_id,'','','','','','','','','','','', @my_current_issue);
+            END IF;
+            END IF;
+
+            END IF;
+            END LOOP;
+
+            CLOSE result_cursor;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update replace_empty with longtext and utf8" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP FUNCTION IF EXISTS `replace_empty`;
+
+            #
+            CREATE FUNCTION `replace_empty`(
+            request_value longtext,
+            current_value longtext
+            ) RETURNS longtext CHARSET utf8
+            BEGIN
+            RETURN IF (request_value='', current_value, request_value);
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Execute results migration" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            call migrate_results_to_issues();
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create migrate_predefined_resolutions_to_issues" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `migrate_predefined_resolutions_to_issues`;
+
+            #
+            CREATE PROCEDURE `migrate_predefined_resolutions_to_issues`()
+            BEGIN
+
+            DECLARE my_id int;
+            DECLARE my_project_id int;
+            DECLARE my_resolution_id int;
+            DECLARE my_comment mediumtext;
+            DECLARE my_assignee int;
+            DECLARE my_expression VARCHAR(500);
+            DECLARE my_current_issue int;
+            DECLARE done TINYINT DEFAULT FALSE;
+
+            DECLARE predefined_resolutions_cursor
+            CURSOR FOR
+            SELECT id, project_id, resolution_id, comment, assignee, expression
+            FROM predefined_resolutions where comment is not null;
+
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+            OPEN predefined_resolutions_cursor;
+
+            predefined_resolutions_loop: LOOP
+
+            FETCH NEXT FROM predefined_resolutions_cursor INTO my_id, my_project_id, my_resolution_id, my_comment, my_assignee, my_expression;
+            IF done THEN
+            LEAVE predefined_resolutions_loop;
+            ELSE
+
+            IF EXISTS (SELECT * FROM issues WHERE project_id=my_project_id AND title=IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment)) THEN
+            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id AND title=IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment);
+
+            call INSERT_ISSUE(@my_current_issue, my_resolution_id,
+            IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment),
+            IF(CHAR_LENGTH(my_comment) > 500, my_comment, null), '', my_assignee, my_expression, '', '', my_project_id, '1');
+
+            ELSE
+            call INSERT_ISSUE('', my_resolution_id,
+            IF(CHAR_LENGTH(my_comment) > 500, CONCAT(LEFT(my_comment, 497),"..."), my_comment),
+            IF(CHAR_LENGTH(my_comment) > 500, my_comment, null), '', my_assignee, my_expression, '', '', my_project_id, '1');
+            END IF;
+            END IF;
+            END LOOP;
+
+            CLOSE predefined_resolutions_cursor;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Execute predefined_resolutions migration" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            call migrate_predefined_resolutions_to_issues();
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Remove temp procedures" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `migrate_predefined_resolutions_to_issues`;
+            #
+            DROP procedure IF EXISTS `migrate_results_to_issues`;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create get_valid_limit" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP FUNCTION IF EXISTS `get_valid_limit`;
+
+            #
+            CREATE FUNCTION `get_valid_limit`(
+            request_value VARCHAR(11)
+            ) RETURNS int(11)
+            BEGIN
+            RETURN IF(request_value='', 10000, request_value);
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create SELECT_ISSUES" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_ISSUES`;
+
+            #
+            CREATE PROCEDURE `SELECT_ISSUES`(
+            IN request_project_id VARCHAR(11),
+            IN request_id VARCHAR(11),
+            IN request_assignee_id VARCHAR(11),
+            IN request_status_id VARCHAR(11),
+            IN request_label_id VARCHAR(11),
+            IN request_resolution_id VARCHAR(11),
+            In request_limit VARCHAR(11)
+            )
+            BEGIN
+            declare valid_limit int;
+            SET valid_limit = get_valid_limit(request_limit);
+            SELECT * FROM issues
+            WHERE project_id = request_project_id
+            AND empty_or_equal(request_id, id)
+            AND empty_or_equal(request_assignee_id, assignee_id)
+            AND empty_or_equal(request_status_id, status_id)
+            AND empty_or_equal(request_label_id, label_id)
+            AND empty_or_equal(request_resolution_id, resolution_id)
+            ORDER BY created DESC
+            LIMIT valid_limit
+            ;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
 
 </databaseChangeLog>
