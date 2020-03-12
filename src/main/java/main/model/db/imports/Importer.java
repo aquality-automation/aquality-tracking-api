@@ -124,18 +124,17 @@ public class Importer extends BaseImporter {
     }
 
     private void fillTestRunWithInputData(){
+        fillTestRunWithInputData(null);
+    }
+
+    private void fillTestRunWithInputData(String fileName){
         testRun.setProject_id(this.projectId);
         testRun.setCi_build(testRunTemplate.getCi_build());
         this.testRun.setAuthor(testRunTemplate.getAuthor());
         this.testRun.setExecution_environment(testRunTemplate.getExecution_environment());
-        this.testRun.setBuild_name(testRunTemplate.getBuild_name());
+        this.testRun.setBuild_name(fileName == null ? testRunTemplate.getBuild_name() : getBuildName(testRunTemplate, fileName));
         this.testRun.setId(testRunTemplate.getId());
         this.testRun.setDebug(testRunTemplate.getDebug());
-    }
-
-    private void fillTestRunWithInputData(String fileName){
-        testRunTemplate.setBuild_name(getBuildName(testRunTemplate, fileName));
-        fillTestRunWithInputData();
     }
 
     private String getBuildName(TestRunDto testRun, String fileName) {

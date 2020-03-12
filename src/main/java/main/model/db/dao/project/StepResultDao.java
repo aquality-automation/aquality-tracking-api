@@ -8,6 +8,5 @@ public class StepResultDao extends DAO<StepResultDto> {
         super(StepResultDto.class);
         select = "{call SELECT_STEP_RESULT(?,?,?)}";
         insert = "{call INSERT_STEP_RESULT(?,?,?,?,?,?,?,?,?,?,?,?)}";
-        remove = "{call REMOVE_STEP_RESULT(?)}";
     }
 }

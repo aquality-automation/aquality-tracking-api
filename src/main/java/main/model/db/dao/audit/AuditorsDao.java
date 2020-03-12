@@ -19,6 +19,7 @@ public class AuditorsDao extends DAO<AuditorDto> {
     @Override
     public List<AuditorDto> searchAll(AuditorDto entity) throws AqualityException {
         List<Pair<String, String>> parameters = entity.getSearchParameters();
+        checkSelectProcedure();
         List<AuditorDto> auditors = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
         auditors.forEach(UserDto::toPublic);
         return auditors;

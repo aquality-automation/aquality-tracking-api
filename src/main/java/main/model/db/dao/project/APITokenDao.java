@@ -24,7 +24,7 @@ public class APITokenDao extends DAO<APITokenDto> {
         String token = generateToken();
         entity.setApi_token(DigestUtils.md5Hex(token + "advbc1671-nlksdui-ff"));
         List<Pair<String, String>> parameters = entity.getParameters();
-
+        checkInsertProcedure();
         CallStoredProcedure(insert, parameters);
         entity.setApi_token(token);
         return entity;
