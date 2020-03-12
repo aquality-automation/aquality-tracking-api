@@ -80,4 +80,8 @@ public class TestResultDto extends BaseDto {
     @DataBaseSearchable
     private String fail_reason_regex;
     private List<StepResultDto> steps;
+    @DataBaseName(name="request_issue_id")
+    @DataBaseSearchable
+    @DataBaseInsert
+    private Integer issue_id;
 }

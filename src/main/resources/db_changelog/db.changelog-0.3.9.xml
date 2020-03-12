@@ -471,4 +471,48 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="update SELECT_TEST_RESULT with issue_id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_TEST_RESULT`;
+
+            #
+            CREATE PROCEDURE `SELECT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(10),
+            IN request_final_result_id VARCHAR(10),
+            IN request_test_run_id VARCHAR(10),
+            IN request_test_resolution_id VARCHAR(10),
+            IN request_debug VARCHAR(1),
+            IN request_fail_reason VARCHAR(150),
+            IN request_fail_reason_regex VARCHAR(500),
+            IN request_issue_id VARCHAR(11),
+            In request_limit INT(10)
+            )
+            BEGIN
+            IF(request_fail_reason_regex = '') THEN SET request_fail_reason_regex = '.*';
+            END IF;
+
+            SELECT * FROM test_results as res
+            WHERE empty_or_equal(request_id, id)
+            AND empty_or_equal(request_project_id, project_id)
+            AND empty_or_equal(request_test_id, test_id)
+            AND empty_or_equal(request_final_result_id, final_result_id)
+            AND empty_or_equal(request_test_run_id, test_run_id)
+            AND empty_or_equal(request_test_resolution_id, test_resolution_id)
+            AND empty_or_equal(request_debug, debug)
+            AND (request_fail_reason = '' OR INSTR(fail_reason, request_fail_reason) > 0)
+            AND IFNULL(fail_reason, '') REGEXP request_fail_reason_regex
+            AND empty_or_equal(request_issue_id, issue_id)
+            ORDER BY start_date DESC
+            LIMIT request_limit
+            ;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+
 </databaseChangeLog>
