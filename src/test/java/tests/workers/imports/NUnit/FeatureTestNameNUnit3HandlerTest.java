@@ -1,4 +1,4 @@
-package tests.workers.imports;
+package tests.workers.imports.NUnit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import main.model.db.imports.ImportHandlers.NUnitV3;
@@ -6,21 +6,21 @@ import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import utils.FileUtils;
 
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-
-public class ClassNameNUnit3HandlerTest {
+public class FeatureTestNameNUnit3HandlerTest {
     private NUnitV3 nUnitV3;
     private  DtoMapperGeneral mapper = new DtoMapperGeneral();
 
     @BeforeMethod
     public void tryParse(){
         try {
-            nUnitV3 = new NUnitV3(FileUtils.getResourceFile("reports/Nunit3/Nunit3.xml"), TestNameNodeType.className);
+            nUnitV3 = new NUnitV3(FileUtils.getResourceFile("reports/Nunit3/Nunit3.xml"), TestNameNodeType.featureNameTestName);
         } catch (Exception e){
             assertNull(e, String.format("Failed on Handler Creating: %s", e.getMessage()));
         }
@@ -29,7 +29,7 @@ public class ClassNameNUnit3HandlerTest {
     @Test
     public void validateTests() throws JsonProcessingException {
         List<TestDto> actualTests = nUnitV3.getTests();
-        assertEquals(mapper.serialize(actualTests), FileUtils.getResourceFileAsString("reports/Nunit3/testWithClassName.json"));
+        assertEquals(mapper.serialize(actualTests), FileUtils.getResourceFileAsString("reports/Nunit3/tests.json"));
     }
 
     @Test

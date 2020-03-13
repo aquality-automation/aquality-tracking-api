@@ -2,7 +2,7 @@ package main.model.db.imports.ImportHandlers;
 
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
-import main.model.db.imports.SAXHandlers.JavaTestNGHandler;
+import main.model.db.imports.SAXHandlers.JavaJUnitTestNGHandler;
 import main.model.db.imports.TestNameNodeType;
 import main.model.dto.TestDto;
 import main.model.dto.TestResultDto;
@@ -14,11 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class JavaTestNG extends Handler{
-    private JavaTestNGHandler handler;
+public class JavaJUnitTestNG extends Handler{
+    private JavaJUnitTestNGHandler handler;
 
-    public JavaTestNG(File file, TestNameNodeType testNameNodeType) throws AqualityException {
-        handler = new JavaTestNGHandler(testNameNodeType);
+    public JavaJUnitTestNG(File file, TestNameNodeType testNameNodeType) throws AqualityException {
+        handler = new JavaJUnitTestNGHandler(testNameNodeType);
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
