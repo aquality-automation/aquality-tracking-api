@@ -488,31 +488,35 @@
             IN request_fail_reason VARCHAR(150),
             IN request_fail_reason_regex VARCHAR(500),
             IN request_issue_id VARCHAR(11),
-            In request_limit INT(10)
+            In request_limit VARCHAR(11)
             )
             BEGIN
+            declare valid_limit int;
+            SET valid_limit = get_valid_limit(request_limit);
+
             IF(request_fail_reason_regex = '') THEN SET request_fail_reason_regex = '.*';
             END IF;
 
             SELECT * FROM test_results as res
-            WHERE empty_or_equal(request_id, id)
-            AND empty_or_equal(request_project_id, project_id)
-            AND empty_or_equal(request_test_id, test_id)
-            AND empty_or_equal(request_final_result_id, final_result_id)
-            AND empty_or_equal(request_test_run_id, test_run_id)
-            AND empty_or_equal(request_test_resolution_id, test_resolution_id)
-            AND empty_or_equal(request_debug, debug)
-            AND (request_fail_reason = '' OR INSTR(fail_reason, request_fail_reason) > 0)
+            WHERE (request_id='' OR request_id=id)
+            AND (request_project_id='' OR request_project_id=project_id)
+            AND (request_test_id='' OR request_test_id=test_id)
+            AND (request_final_result_id='' OR request_final_result_id=final_result_id)
+            AND (request_test_run_id='' OR request_test_run_id=test_run_id)
+            AND (request_test_resolution_id='' OR request_test_resolution_id=test_resolution_id)
+            AND (request_debug='' OR request_debug=debug)
+            AND (request_fail_reason='' OR INSTR(fail_reason, request_fail_reason) > 0)
             AND IFNULL(fail_reason, '') REGEXP request_fail_reason_regex
-            AND empty_or_equal(request_issue_id, issue_id)
+            AND (request_issue_id='' OR request_issue_id=issue_id)
             ORDER BY start_date DESC
-            LIMIT request_limit
+            LIMIT valid_limit
             ;
             END
         </sql>
         <rollback>
         </rollback>
     </changeSet>
+
     <changeSet id="create SELECT_ISSUE_STATUS" author="v.kostyukevich">
         <sql endDelimiter="#">
 
@@ -524,6 +528,102 @@
             )
             BEGIN
             SELECT * FROM issue_status WHERE empty_or_equal(request_id,id);
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create issues_BEFORE_INSERT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `issues_BEFORE_INSERT`;
+
+            #
+            CREATE TRIGGER `issues_BEFORE_INSERT` BEFORE INSERT ON `issues` FOR EACH ROW
+            BEGIN
+            IF EXISTS (SELECT * FROM issues WHERE title = NEW.title AND project_id = NEW.project_id)
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Issue with this title already exists in this Project!';
+            END IF;
+
+            IF EXISTS (SELECT * FROM issues WHERE expression = NEW.expression AND project_id = NEW.project_id)
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Issue with this expression already exists in this Project!';
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create issues_BEFORE_UPDATE" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `issues_BEFORE_UPDATE`;
+
+            #
+            CREATE TRIGGER `issues_BEFORE_UPDATE` BEFORE UPDATE ON `issues` FOR EACH ROW
+            BEGIN
+            IF EXISTS (SELECT * FROM issues WHERE title = NEW.title AND project_id = NEW.project_id AND id != NEW.id)
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Issue with this title already exists in this Project!';
+            END IF;
+
+            IF EXISTS (SELECT * FROM issues WHERE expression = NEW.expression AND project_id = NEW.project_id AND id != NEW.id)
+            THEN SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Issue with this expression already exists in this Project!';
+            END IF;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update SELECT_TEST_RUN with limit function" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_TEST_RUN`;
+
+            #
+            CREATE PROCEDURE `SELECT_TEST_RUN`(
+            IN request_id VARCHAR(10),
+            IN request_build_name VARCHAR(500),
+            IN request_milestone_id VARCHAR(10),
+            IN request_test_suite_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_execution_environment VARCHAR(500),
+            IN request_debug VARCHAR(1),
+            IN request_label_id VARCHAR(11),
+            IN request_limit VARCHAR(11)
+            )
+            BEGIN
+            declare valid_limit int;
+            SET valid_limit = get_valid_limit(request_limit);
+
+            SELECT
+            runs.*,
+            mil.name as milestone_name,
+            suite.name as testsuite_name
+
+            FROM union_reporting.test_runs as runs
+            LEFT JOIN union_reporting.milestones as mil ON runs.milestone_id = mil.id
+            LEFT JOIN union_reporting.test_suites as suite ON runs.test_suite_id = suite.id
+
+            WHERE (request_id= '' OR runs.id=request_id)
+            AND (request_build_name = '' OR build_name=request_build_name)
+            AND (request_milestone_id = '' OR milestone_id=request_milestone_id OR IF(request_milestone_id=0, milestone_id IS NULL, request_milestone_id = ''))
+            AND (request_test_suite_id = '' OR test_suite_id=request_test_suite_id)
+            AND (request_project_id = '' OR runs.project_id=request_project_id)
+            AND (request_execution_environment = '' OR execution_environment=request_execution_environment)
+            AND (request_debug = '' OR runs.debug=request_debug)
+            AND (request_label_id = '' OR runs.label_id=request_label_id)
+            ORDER BY finish_time DESC
+            LIMIT valid_limit
+            ;
             END
 
         </sql>

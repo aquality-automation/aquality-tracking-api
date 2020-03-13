@@ -85,4 +85,5 @@ public class TestResultDto extends BaseDto {
     @DataBaseSearchable
     @DataBaseInsert
     private Integer issue_id;
+    private IssueDto issue;
 }

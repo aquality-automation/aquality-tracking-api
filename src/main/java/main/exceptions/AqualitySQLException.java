@@ -12,8 +12,9 @@ public class AqualitySQLException extends AqualityException {
 
     private static String getErrorMessage(SQLException exception){
         switch (exception.getSQLState()){
-            case "23516":
             case "45000":
+                return exception.getMessage();
+            case "23516":
             case "23505":
                 return "You are trying to create duplicate entity.";
             case "42000":

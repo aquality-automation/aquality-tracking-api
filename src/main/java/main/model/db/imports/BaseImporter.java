@@ -19,15 +19,15 @@ class BaseImporter {
     private ControllerFactory controllerFactory;
     private String pattern;
     protected File file;
-    private List<PredefinedResolutionDto> predefinedResolutions;
+    private List<IssueDto> issues;
 
     BaseImporter(int projectId, String pattern, UserDto user) throws AqualityException {
         this.projectId = projectId;
         this.pattern = pattern;
         controllerFactory = new ControllerFactory(user);
-        PredefinedResolutionDto predefinedResolutionTemplate = new PredefinedResolutionDto();
-        predefinedResolutionTemplate.setProject_id(this.projectId);
-        predefinedResolutions = controllerFactory.getHandler(predefinedResolutionTemplate).get(predefinedResolutionTemplate);
+        IssueDto issueTemplate = new IssueDto();
+        issueTemplate.setProject_id(this.projectId);
+        issues = controllerFactory.getHandler(issueTemplate).get(issueTemplate);
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
@@ -215,7 +215,7 @@ class BaseImporter {
     }
 
     private void predictResultResolution(TestResultDto result) throws AqualityException {
-        if(!tryFillByPredefinedResolution(result, predefinedResolutions)) {
+        if(!tryFillByIssue(result, issues)) {
             updateResultWithSimilarError(result);
         }
     }
@@ -261,13 +261,11 @@ class BaseImporter {
         return null;
     }
 
-    private boolean tryFillByPredefinedResolution(TestResultDto result, List<PredefinedResolutionDto> predefinedResolutions) {
+    private boolean tryFillByIssue(TestResultDto result, List<IssueDto> issues) {
         if (result.getFail_reason() != null) {
-            for (PredefinedResolutionDto predefinedResolution : predefinedResolutions) {
-                if (RegexpUtil.match(result.getFail_reason(), predefinedResolution.getExpression())) {
-                    result.setTest_resolution_id(predefinedResolution.getResolution_id());
-                    result.setComment(predefinedResolution.getComment());
-                    result.setAssignee(predefinedResolution.getAssignee());
+            for (IssueDto issue : issues) {
+                if (RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
+                    result.setIssue_id(issue.getId());
                     return true;
                 }
             }
