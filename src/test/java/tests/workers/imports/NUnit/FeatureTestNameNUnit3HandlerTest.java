@@ -7,7 +7,7 @@ import org.testng.annotations.BeforeMethod;
 import tests.workers.imports.IHandlerTest;
 import utils.FileUtils;
 
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 public class FeatureTestNameNUnit3HandlerTest implements IHandlerTest {
     private NUnitV3 nUnitV3;
@@ -32,7 +32,7 @@ public class FeatureTestNameNUnit3HandlerTest implements IHandlerTest {
         try {
             nUnitV3 = new NUnitV3(FileUtils.getResourceFile(getFilePath("Nunit3.xml")), TestNameNodeType.featureNameTestName);
         } catch (Exception e){
-            assertNull(e, String.format("Failed on Handler Creating: %s", e.getMessage()));
+            fail(String.format("Failed on Handler Creating: %s", e.getMessage()), e);
         }
     }
 }
