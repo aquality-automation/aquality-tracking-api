@@ -26,7 +26,7 @@ class HandlerFactory {
             case TestNGCucumber:
                 return new Cucumber(file, finishTime);
             case PHPCodeception:
-                return new PHPCodeception(file);
+                return new PHPCodeception(file, finishTime);
             case NUnit_v2:
                 return new NUnitV2(file);
             case NUnit_v3:

@@ -1,26 +1,25 @@
-package tests.workers.imports;
+package tests.workers.imports.codeception;
 
 import main.model.db.imports.Handler;
-import main.model.db.imports.ImportHandlers.Cucumber;
-import org.testng.Assert;
+import main.model.db.imports.ImportHandlers.PHPCodeception;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import tests.workers.imports.IHandlerTest;
 import utils.FileUtils;
 
 import static org.testng.Assert.fail;
 
-public class CucumberHandlerTest implements IHandlerTest{
+public class CodecepionHandlerTest implements IHandlerTest {
 
-    private Cucumber cucumber;
+    private PHPCodeception phpCodeception;
 
     @Override
     public Handler getHandler() {
-        return cucumber;
+        return phpCodeception;
     }
 
     @Override
     public String getReportPath() {
-        return "reports/cucumber/";
+        return "reports/codeception/";
     }
 
     @Override
@@ -32,14 +31,9 @@ public class CucumberHandlerTest implements IHandlerTest{
     @Override
     public void tryParse() {
         try {
-            cucumber = new Cucumber(FileUtils.getResourceFile("reports/cucumber/cucumber.json"), getFinishTime());
+            phpCodeception = new PHPCodeception(FileUtils.getResourceFile(getFilePath("codeception.xml")), getFinishTime());
         } catch (Exception e){
             fail(String.format("Failed on Handler Creating: %s", e.getMessage()));
         }
-    }
-
-    @Test
-    public void shouldFindChildElements() {
-        Assert.assertTrue(true);
     }
 }
