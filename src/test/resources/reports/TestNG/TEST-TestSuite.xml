@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="TestSuite" time="162.044" tests="29" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.8.0_201\jre\bin"/>
+    <property name="java.vm.version" value="25.201-b09"/>
+    <property name="user.country.format" value="RU"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="maven.multiModuleProjectDirectory" value="D:\framework\aquality-selenium-core-java"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="path.separator" value=";"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="file.encoding.pkg" value="sun.io"/>
+    <property name="user.script" value=""/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="D:\framework\aquality-selenium-core-java"/>
+    <property name="java.runtime.version" value="1.8.0_201-b09"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
+    <property name="java.endorsed.dirs" value="C:\Program Files\Java\jdk1.8.0_201\jre\lib\endorsed"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="C:\Users\SEF77~1.KNY\AppData\Local\Temp\"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="user.variant" value=""/>
+    <property name="os.name" value="Windows 10"/>
+    <property name="classworlds.conf" value="C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.3.4\plugins\maven\lib\maven3\bin\..\bin\m2.conf"/>
+    <property name="sun.jnu.encoding" value="Cp1251"/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk1.8.0_201\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;D:\Program files\php7.3;D:\Program files\php7.3\ext;C:\ProgramData\ComposerSetup\bin;D:\gforce\Sikuli;C:\Program Files\TortoiseSVN\bin;C:\Program Files (x86)\NUnit.org\nunit-console;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.3.4\plugins\maven\lib\maven3\bin;D:\Program files\allure-commandline-2.10.0\allure-2.10.0\bin;C:\Program Files\PuTTY\;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\IncrediBuild;C:\Program Files\Git\cmd;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE;C:\Program Files\nodejs\node.exe;C:\Program Files\nodejs\;C:\Program Files\Java\jdk1.8.0_201\bin;C:\Program Files (x86)\NuGet;C:\Gradle\gradle-6.1.1\bin;D:\Program files\tomcat\bin;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\s.knysh\AppData\Local\Programs\Python\Python37\Scripts\;C:\Users\s.knysh\AppData\Local\Programs\Python\Python37\;C:\Users\s.knysh\AppData\Local\Microsoft\WindowsApps;;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.3.4\bin;;C:\Program Files\JetBrains\PyCharm Community Edition 2018.3.4\bin;;C:\Program Files\JetBrains\PhpStorm 2018.3.4\bin;;C:\Users\s.knysh\AppData\Roaming\Composer\vendor\bin;C:\Users\s.knysh\.dotnet\tools;C:\Users\s.knysh\AppData\Roaming\npm;C:\Users\s.knysh\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\s.knysh\AppData\Local\Programs\Fiddler;."/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.class.version" value="52.0"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="10.0"/>
+    <property name="user.home" value="C:\Users\s.knysh"/>
+    <property name="user.timezone" value="Europe/Minsk"/>
+    <property name="java.awt.printerjob" value="sun.awt.windows.WPrinterJob"/>
+    <property name="java.specification.version" value="1.8"/>
+    <property name="file.encoding" value="Cp1251"/>
+    <property name="user.name" value="s.knysh"/>
+    <property name="java.class.path" value="C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.3.4\plugins\maven\lib\maven3\bin\..\boot\plexus-classworlds-2.5.2.jar"/>
+    <property name="java.vm.specification.version" value="1.8"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.home" value="C:\Program Files\Java\jdk1.8.0_201\jre"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher clean test"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="user.language" value="en"/>
+    <property name="user.language.format" value="ru"/>
+    <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.8.0_201"/>
+    <property name="java.ext.dirs" value="C:\Program Files\Java\jdk1.8.0_201\jre\lib\ext;C:\WINDOWS\Sun\Java\lib\ext"/>
+    <property name="sun.boot.class.path" value="C:\Program Files\Java\jdk1.8.0_201\jre\lib\resources.jar;C:\Program Files\Java\jdk1.8.0_201\jre\lib\rt.jar;C:\Program Files\Java\jdk1.8.0_201\jre\lib\sunrsasign.jar;C:\Program Files\Java\jdk1.8.0_201\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.8.0_201\jre\lib\jce.jar;C:\Program Files\Java\jdk1.8.0_201\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.8.0_201\jre\lib\jfr.jar;C:\Program Files\Java\jdk1.8.0_201\jre\classes"/>
+    <property name="sun.stderr.encoding" value="cp866"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.3.4\plugins\maven\lib\maven3\bin\.."/>
+    <property name="file.separator" value="\"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.stdout.encoding" value="cp866"/>
+    <property name="sun.desktop" value="windows"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+  </properties>
+  <testcase name="testNullCannotBePassedAsCondition" classname="tests.waitings.WaitForTests" time="0.006"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0.01"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0.003"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testShouldThrowException" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0.004"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0.001"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testTrueShouldBeReturnedIfConditionIsMetAndTimeoutIsNotOver" classname="tests.waitings.WaitForTests" time="0"/>
+  <testcase name="testShouldIgnoreExceptionWaitingWithCustomTimeout" classname="tests.waitings.WaitForTests" time="0.135"/>
+  <testcase name="testShouldIgnoreExceptionWaitingWithCustomTimeoutAndException" classname="tests.waitings.WaitForTests" time="0.136"/>
+  <testcase name="testShouldIgnoreExceptionForWaitingWithDefaultTimeout" classname="tests.waitings.WaitForTests" time="0.281"/>
+  <testcase name="testShouldIgnoreExceptionForWaitingWithoutCustomParameters" classname="tests.waitings.WaitForTests" time="0.293"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="30.035"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="30.048"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="30.07"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="30.058"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="10.087"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="10.085"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="10.084"/>
+  <testcase name="testFalseShouldBeReturnedIfConditionIsNotMetAndTimeoutIsOver" classname="tests.waitings.WaitForTests" time="10.087"/>
+</testsuite>
