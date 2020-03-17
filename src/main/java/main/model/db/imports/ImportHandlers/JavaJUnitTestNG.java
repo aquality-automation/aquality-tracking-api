@@ -12,13 +12,14 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public class JavaJUnitTestNG extends Handler{
     private JavaJUnitTestNGHandler handler;
 
-    public JavaJUnitTestNG(File file, TestNameNodeType testNameNodeType) throws AqualityException {
-        handler = new JavaJUnitTestNGHandler(testNameNodeType);
+    public JavaJUnitTestNG(File file, TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
+        handler = new JavaJUnitTestNGHandler(testNameNodeType, finishTime);
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {

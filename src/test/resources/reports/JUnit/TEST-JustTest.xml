@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="JustTest" time="0.05" tests="10" errors="0" skipped="0" failures="3">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="JustTest" time="30" tests="10" errors="0" skipped="0" failures="3">
   <properties>
     <property name="sun.desktop" value="windows"/>
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
@@ -62,24 +62,24 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="55.0"/>
   </properties>
-  <testcase name="passedMethod1[0]" classname="JustTest" time="0.004"/>
-  <testcase name="passedMethod2[0]" classname="JustTest" time="0"/>
-  <testcase name="passedMethod3[0]" classname="JustTest" time="0"/>
-  <testcase name="failedMethod1[0]" classname="JustTest" time="0"/>
-  <testcase name="failedMethod2[0]" classname="JustTest" time="0.004">
+  <testcase name="passedMethod1[0]" classname="JustTest" time="10"/>
+  <testcase name="passedMethod2[0]" classname="JustTest" time="1"/>
+  <testcase name="passedMethod3[0]" classname="JustTest" time="1"/>
+  <testcase name="failedMethod1[0]" classname="JustTest" time="1"/>
+  <testcase name="failedMethod2[0]" classname="JustTest" time="30">
     <failure message="Failed" type="java.lang.AssertionError">java.lang.AssertionError: Failed
 	at JustTest.failedMethod2(JustTest.java:31)
 </failure>
   </testcase>
-  <testcase name="passedMethod1[1]" classname="JustTest" time="0"/>
-  <testcase name="passedMethod2[1]" classname="JustTest" time="0"/>
-  <testcase name="passedMethod3[1]" classname="JustTest" time="0"/>
-  <testcase name="failedMethod1[1]" classname="JustTest" time="0.001">
+  <testcase name="passedMethod1[1]" classname="JustTest" time="1"/>
+  <testcase name="passedMethod2[1]" classname="JustTest" time="2"/>
+  <testcase name="passedMethod3[1]" classname="JustTest" time="3"/>
+  <testcase name="failedMethod1[1]" classname="JustTest" time="15">
     <failure message="Should be true" type="java.lang.AssertionError">java.lang.AssertionError: Should be true
 	at JustTest.failedMethod1(JustTest.java:20)
 </failure>
   </testcase>
-  <testcase name="failedMethod2[1]" classname="JustTest" time="0">
+  <testcase name="failedMethod2[1]" classname="JustTest" time="10">
     <failure message="Failed" type="java.lang.AssertionError">java.lang.AssertionError: Failed
 	at JustTest.failedMethod2(JustTest.java:31)
 </failure>

@@ -25,11 +25,11 @@ public class JavaJUnitTestNGHandler extends Handler {
     private Date currentTimeSlot;
     private TestNameNodeType testNameNodeType;
 
-    public JavaJUnitTestNGHandler(TestNameNodeType testNameNodeType) throws AqualityException {
+    public JavaJUnitTestNGHandler(TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
         super();
         this.testNameNodeType = testNameNodeType;
         result.setFail_reason("$blank");
-        testRun.setFinish_time(new Date());
+        testRun.setFinish_time(finishTime);
     }
 
     @Override
