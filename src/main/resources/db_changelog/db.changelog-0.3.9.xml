@@ -631,6 +631,209 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="create UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
 
+            DROP PROCEDURE IF EXISTS `UPDATE_TEST_RUN_STATS`;
+
+            #
+            CREATE PROCEDURE `UPDATE_TEST_RUN_STATS`(
+            In request_testrun_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM testrun_statistic WHERE testrun_id = request_testrun_id;
+
+            INSERT INTO testrun_statistic (testrun_id, failed, passed, not_executed, in_progress, pending, total, app_issue, warning, not_assigned, other)
+
+            SELECT
+            trn.id,
+            sum(frs.color = 1) as failed,
+            sum(frs.color = 5) as passed,
+            sum(frs.color = 3) as not_executed,
+            sum(frs.color = 2) as in_progress,
+            sum(frs.color = 4) as pending,
+            sum(frs.color != 0) as total,
+            sum(rr.color = 1 AND frs.color != 5) as app_issue,
+            sum(rr.color = 2 AND frs.color != 5) as warning,
+            sum((rr.color = 3 or rr.color is null) AND frs.color != 5) as not_assigned,
+            sum((rr.color = 4 OR rr.color = 5) AND frs.color != 5) as other
+
+            from test_runs as trn
+            right join test_results as trs on trn.id=test_run_id
+            left join final_results as frs on trs.final_result_id = frs.id
+            left join issues on trs.issue_id=issues.id
+            left join result_resolution as rr on issues.resolution_id = rr.id
+
+            Where trn.id = request_testrun_id;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update test_results_AFTER_INSERT with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_INSERT AFTER INSERT ON test_results FOR EACH ROW
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(NEW.test_run_id);
+
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id));
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update test_results_AFTER_INSERT with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_INSERT AFTER INSERT ON test_results FOR EACH ROW
+            BEGIN
+
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(NEW.test_run_id);
+
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id));
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update test_results_AFTER_UPDATE with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_UPDATE`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_UPDATE AFTER UPDATE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= NEW.test_run_id AND finish_status = 0)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(NEW.test_run_id);
+
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            NEW.test_id,
+            (SELECT stability_count from projects where id = NEW.project_id)
+            );
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update test_results_BEFORE_DELETE with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_BEFORE_DELETE`;
+
+            #
+            CREATE TRIGGER `test_results_BEFORE_DELETE` BEFORE DELETE ON `test_results` FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND finish_status = 0)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(OLD.test_run_id);
+
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (
+            OLD.test_id,
+            (SELECT stability_count from projects where id = OLD.project_id)
+            );
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update test_results_AFTER_DELETE with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_results_AFTER_DELETE`;
+
+            #
+            CREATE TRIGGER test_results_AFTER_DELETE AFTER DELETE ON test_results FOR EACH ROW
+            BEGIN
+            IF NOT EXISTS (SELECT * FROM imports WHERE testrun_id= OLD.test_run_id AND finish_status = 0)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(OLD.test_run_id);
+
+            END IF;
+
+            CALL UPDATE_LAST_RESULT_COLORS_FOR_TEST (OLD.test_id, (SELECT stability_count from projects where id = OLD.project_id));
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update UPDATE_LAST_RESULT_COLORS_FOR_TEST with Issues" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `UPDATE_LAST_RESULT_COLORS_FOR_TEST`;
+
+            #
+            CREATE PROCEDURE `UPDATE_LAST_RESULT_COLORS_FOR_TEST`(
+            IN request_test_id INT(10),
+            IN request_limit INT(10)
+            )
+            BEGIN
+            DELETE FROM last_test_results WHERE test_id = request_test_id;
+
+            INSERT INTO last_test_results (test_id, resolution_colors, result_colors, result_ids)
+
+            select
+            request_test_id,
+            GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
+            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
+            FROM (
+            select request_test_id, result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            from test_results
+            left join issues on issue_id=issues.id
+            left join result_resolution on issues.resolution_id = result_resolution.id
+            left join final_results on final_result_id = final_results.id
+
+            where test_id = request_test_id AND test_results.debug = 0
+            order by finish_date DESC
+            limit request_limit) as results;
+            END
+
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
 
 </databaseChangeLog>
