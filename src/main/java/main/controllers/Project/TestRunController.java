@@ -109,7 +109,6 @@ public class TestRunController extends BaseController<TestRunDto> {
             pendingTestResult.setTest_id(test.getId());
             pendingTestResult.setTest_run_id(testRunTemplate.getId());
             pendingTestResult.setFinal_result_id(3);
-            pendingTestResult.setTest_resolution_id(1);
             pendingTestResult.setDebug(testRunTemplate.getDebug());
             resultController.create(pendingTestResult);
         }

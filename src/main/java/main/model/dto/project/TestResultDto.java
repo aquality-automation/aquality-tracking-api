@@ -32,18 +32,10 @@ public class TestResultDto extends BaseDto {
     @DataBaseInsert
     private Integer final_result_id;
     private FinalResultDto final_result;
-    @DataBaseName(name="request_comment")
-    @DataBaseInsert
-    private String comment;
     @DataBaseName(name="request_test_run_id")
     @DataBaseSearchable
     @DataBaseInsert
     private Integer test_run_id;
-    @DataBaseName(name="request_test_resolution_id")
-    @DataBaseSearchable
-    @DataBaseInsert
-    private Integer test_resolution_id;
-    private ResultResolutionDto test_resolution;
     @DataBaseName(name="request_debug")
     @DataBaseSearchable
     @DataBaseInsert
@@ -69,10 +61,6 @@ public class TestResultDto extends BaseDto {
     @DataBaseSearchable
     @DataBaseInsert
     private String fail_reason;
-    @DataBaseName(name="request_assignee")
-    @DataBaseInsert
-    private Integer assignee;
-    private ProjectUserDto assigned_user;
     @DataBaseName(name="request_limit")
     @DataBaseSearchable
     private Integer limit;

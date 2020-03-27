@@ -192,9 +192,6 @@ class BaseImporter {
             if (existingResult != null) {
                 if(existingResult.getPending() > 0 || update){
                     result.setId(existingResult.getId());
-                    if(!Objects.equals(result.getFail_reason(), existingResult.getFail_reason())){
-                        result.setComment("$blank");
-                    }
                     if(result.getFinal_result_id() == 2){
                         result.setLog("$blank");
                         result.setFail_reason("$blank");
@@ -239,10 +236,8 @@ class BaseImporter {
                 if(similarResult == null){
                     similarResult = testResults.stream().filter(x -> x.getFail_reason() != null && x.getFail_reason().equals(result.getFail_reason())).findFirst().orElse(null);
                 }
-                if(similarResult != null){
-                    result.setComment(similarResult.getComment());
-                    result.setTest_resolution_id(similarResult.getTest_resolution_id());
-                    result.setAssignee(similarResult.getAssignee());
+                if(similarResult != null && similarResult.getIssue_id() != null){
+                    result.setIssue_id(similarResult.getIssue_id());
                 }
             }
         } catch (Exception e){
@@ -252,7 +247,7 @@ class BaseImporter {
 
     private TestResultDto compareByRegexp(TestResultDto result, List<TestResultDto> oldResults, String expression) {
         for (TestResultDto oldResult : oldResults) {
-            if(oldResult.getFail_reason() != null){
+            if(oldResult.getFail_reason() != null && oldResult.getIssue_id() != null ){
                 if(RegexpUtil.compareByRegexpGroups(result.getFail_reason(), oldResult.getFail_reason(), expression)){
                     return oldResult;
                 }
@@ -264,7 +259,7 @@ class BaseImporter {
     private boolean tryFillByIssue(TestResultDto result, List<IssueDto> issues) {
         if (result.getFail_reason() != null) {
             for (IssueDto issue : issues) {
-                if (RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
+                if (issue.getExpression() != null && RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
                     result.setIssue_id(issue.getId());
                     return true;
                 }

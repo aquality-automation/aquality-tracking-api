@@ -895,4 +895,157 @@
         <rollback>
         </rollback>
     </changeSet>
+
+    <changeSet id="update INSERT_TEST_RESULT remove resolution, comment and assignee" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `INSERT_TEST_RESULT`;
+
+            #
+            CREATE PROCEDURE `INSERT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(500),
+            IN request_final_result_id VARCHAR(500),
+            IN request_test_run_id VARCHAR(500),
+            IN request_log longtext,
+            IN request_debug VARCHAR(1),
+            IN request_finish_date VARCHAR(500),
+            IN request_start_date VARCHAR(500),
+            IN request_final_result_updated VARCHAR(500),
+            IN request_fail_reason mediumtext,
+            IN request_issue_id VARCHAR(11)
+            )
+            BEGIN
+            INSERT INTO test_results (project_id, id, test_id, final_result_id, test_run_id, log, debug, start_date, finish_date, final_result_updated, fail_reason, issue_id)
+            VALUES (
+            request_project_id,
+            IF(request_id='', null, request_id),
+            request_test_id,
+            IF(request_final_result_id='',1,request_final_result_id),
+            IF(request_test_run_id = '', null, request_test_run_id),
+            IF(request_log = '', null, request_log),
+            IF(request_debug = '', 0, request_debug),
+            If(request_start_date = '', null, FROM_UNIXTIME(request_start_date)),
+            If(request_finish_date = '', null, FROM_UNIXTIME(request_finish_date)),
+            NOW(),
+            IF(request_fail_reason = '', null, request_fail_reason),
+            replace_empty(request_issue_id, null))
+            ON DUPLICATE KEY UPDATE
+            test_id=IF(request_test_id = '',test_id,request_test_id),
+            final_result_id = IF(request_final_result_id = '', final_result_id, request_final_result_id),
+            log = IF(request_log = '', log, IF(request_log = '$blank', '', request_log)),
+            debug = IF(request_debug = '', debug, request_debug),
+            start_date = If(request_start_date = '', start_date, FROM_UNIXTIME(request_start_date)),
+            finish_date = If(request_finish_date = '', finish_date, FROM_UNIXTIME(request_finish_date)),
+            final_result_updated = IF(request_final_result_id = final_result_id AND request_final_result_updated = '', NOW(), IF(request_final_result_updated = '',final_result_updated, FROM_UNIXTIME(request_final_result_updated))),
+            fail_reason = IF(request_fail_reason = '', fail_reason, IF(request_fail_reason = '$blank', '', request_fail_reason)),
+            issue_id = apply_or_remove_id(request_issue_id, issue_id)
+            ;
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from test_results where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update SELECT_TEST_RESULT remove resolution" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_TEST_RESULT`;
+
+            #
+            CREATE PROCEDURE `SELECT_TEST_RESULT`(
+            IN request_project_id VARCHAR(10),
+            IN request_id VARCHAR(10),
+            IN request_test_id VARCHAR(10),
+            IN request_final_result_id VARCHAR(10),
+            IN request_test_run_id VARCHAR(10),
+            IN request_debug VARCHAR(1),
+            IN request_fail_reason VARCHAR(150),
+            IN request_fail_reason_regex VARCHAR(500),
+            IN request_issue_id VARCHAR(11),
+            In request_limit VARCHAR(11)
+            )
+            BEGIN
+            declare valid_limit int;
+            SET valid_limit = get_valid_limit(request_limit);
+
+            IF(request_fail_reason_regex = '') THEN SET request_fail_reason_regex = '.*';
+            END IF;
+
+            SELECT * FROM test_results as res
+            WHERE (request_id='' OR request_id=id)
+            AND (request_project_id='' OR request_project_id=project_id)
+            AND (request_test_id='' OR request_test_id=test_id)
+            AND (request_final_result_id='' OR request_final_result_id=final_result_id)
+            AND (request_test_run_id='' OR request_test_run_id=test_run_id)
+            AND (request_debug='' OR request_debug=debug)
+            AND (request_fail_reason='' OR INSTR(fail_reason, request_fail_reason) > 0)
+            AND IFNULL(fail_reason, '') REGEXP request_fail_reason_regex
+            AND (request_issue_id='' OR request_issue_id=issue_id)
+            ORDER BY start_date DESC
+            LIMIT valid_limit
+            ;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update test_results table remove resolution, comment and assignee" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `test_results`
+            DROP FOREIGN KEY `test_result_test_resolution`,
+            DROP FOREIGN KEY `test_result_assignee`;
+            #
+            ALTER TABLE `test_results`
+            DROP COLUMN `assignee`,
+            DROP COLUMN `test_resolution_id`,
+            DROP COLUMN `comment`,
+            DROP INDEX `test_result_test_resolution_idx` ,
+            DROP INDEX `test_result_assignee_idx` ;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update result_resolution table with resolution_to_project CONSTRAINT" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            ALTER TABLE `result_resolution`
+            ADD INDEX `resolution_to_project_idx` (`project_id` ASC);
+            #
+
+            ALTER TABLE `result_resolution`
+            ADD CONSTRAINT `resolution_to_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `union_reporting`.`projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update REMOVE_RESULT_RESOLUTION remove resolution" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `REMOVE_RESULT_RESOLUTION`;
+
+            #
+            CREATE PROCEDURE `REMOVE_RESULT_RESOLUTION`(
+            IN request_id VARCHAR(11)
+            )
+            BEGIN
+            DELETE FROM result_resolution
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

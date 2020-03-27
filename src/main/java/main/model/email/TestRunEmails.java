@@ -74,9 +74,9 @@ public class TestRunEmails extends Emails{
                 "  <p style=\"margin: 0;color:#e27070;text-transform: uppercase;font-family: Calibri, sans-serif;\">\n" +
                 "    Application Issues | " + appIssues.size() + " </p>\n" +
                 "  <p style=\"margin: 0;color:#676767;text-transform: uppercase;font-family: Calibri, sans-serif;\">\n" +
-                "    Test Issues | " + (int) failed.stream().filter(x -> x.getTest_resolution().getColor() == 2).count() + " </p>\n" +
+                "    Test Issues | " + (int) failed.stream().filter(x -> x.getIssue() != null && x.getIssue().getResolution().getColor() == 2).count() + " </p>\n" +
                 "  <p style=\"margin: 0;color:#676767;text-transform: uppercase;font-family: Calibri, sans-serif;\">\n" +
-                "    Not Assigned | " + (int) failed.stream().filter(x -> x.getTest_resolution().getColor() == 3).count() + " </p>\n" +
+                "    Not Assigned | " + (int) failed.stream().filter(x -> x.getIssue() == null || x.getIssue().getResolution().getColor() == 3).count() + " </p>\n" +
                 "  <p style=\"margin: 0;color:#676767;text-transform: uppercase;font-family: Calibri, sans-serif;\">\n" +
                 "    Other Issues | " + otherIssues.size() + " </p>\n" +
                 "  <br/>\n" +
@@ -116,7 +116,7 @@ public class TestRunEmails extends Emails{
     }
 
     private List<TestResultDto> getAppIssues(List<TestResultDto> testResults) {
-        return  testResults.stream().filter(x -> x.getTest_resolution().getColor() == 1).collect(Collectors.toList());
+        return  testResults.stream().filter(x -> x.getIssue() != null && x.getIssue().getResolution().getColor() == 1).collect(Collectors.toList());
     }
 
     private List<TestResultDto> getFailedResults(List<TestResultDto> testResults) {
@@ -124,7 +124,7 @@ public class TestRunEmails extends Emails{
     }
 
     private List<TestResultDto> getOtherIssues(List<TestResultDto> testResults) {
-        return testResults.stream().filter(x -> x.getTest_resolution().getColor() != 1 && x.getTest_resolution().getColor() != 2 && x.getTest_resolution().getColor() != 3).collect(Collectors.toList());
+        return testResults.stream().filter(x -> x.getIssue() != null && x.getIssue().getResolution().getColor() != 1 && x.getIssue().getResolution().getColor() != 2 && x.getIssue().getResolution().getColor() != 3).collect(Collectors.toList());
     }
 
     private double getTotalResultsCount(List<TestResultDto> testResults) {
@@ -155,10 +155,9 @@ public class TestRunEmails extends Emails{
                     .append("  <p style=\"font-family: Calibri, sans-serif;margin:0;color: #4c4c4c;\">")
                     .append(testResult.getTest().getName())
                     .append(": ")
-                    .append(
-                            testResult.getComment() != null
-                                    ? testResult.getComment()
-                                    : "No comment for This Failure.")
+                    .append( testResult.getIssue() != null
+                                    ? testResult.getIssue().getTitle()
+                                    : "No issue for This Failure.")
                     .append("</p>\n");
         }
 

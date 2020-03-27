@@ -22,6 +22,9 @@ public class AqualitySQLException extends AqualityException {
             case "40001":
                 return "You are trying to edit entity which is locked. Please retry the operation.";
             case "23000":
+                if(exception.getMessage().contains("Cannot delete or update a parent row")){
+                    return "You are trying to remove entity that is used in other place!";
+                }
                 return String.format("You have missed required parameter: %s", exception.getMessage());
             case "HY000":
                 return "Your Data Base does not support UTF characters, please contact administrator to allow it.";
