@@ -80,6 +80,15 @@ public class TestController extends BaseController<TestDto> {
         }
     }
 
+    public List<TestDto> get(Integer issueId, Integer projectId) throws AqualityException {
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
+            return fillTests(testDao.getTestsAffectedByIssue(issueId));
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
+        }
+    }
+
+
     @Override
     public boolean delete(TestDto template) throws AqualityException {
         if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {

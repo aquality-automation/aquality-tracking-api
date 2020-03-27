@@ -543,14 +543,14 @@
             #
             CREATE TRIGGER `issues_BEFORE_INSERT` BEFORE INSERT ON `issues` FOR EACH ROW
             BEGIN
-            IF EXISTS (SELECT * FROM issues WHERE title = NEW.title AND project_id = NEW.project_id)
+            IF EXISTS (SELECT * FROM issues WHERE title = NEW.title AND project_id = NEW.project_id AND id != NEW.id)
             THEN SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Issue with this title already exists in this Project!';
+            SET MESSAGE_TEXT = 'Cannot create! Issue with this title already exists in this Project!';
             END IF;
 
-            IF EXISTS (SELECT * FROM issues WHERE expression = NEW.expression AND project_id = NEW.project_id)
+            IF EXISTS (SELECT * FROM issues WHERE expression = NEW.expression AND project_id = NEW.project_id AND id != NEW.id)
             THEN SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Issue with this expression already exists in this Project!';
+            SET MESSAGE_TEXT = 'Cannot create! Issue with this expression already exists in this Project!';
             END IF;
             END
 
@@ -569,12 +569,12 @@
             BEGIN
             IF EXISTS (SELECT * FROM issues WHERE title = NEW.title AND project_id = NEW.project_id AND id != NEW.id)
             THEN SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Issue with this title already exists in this Project!';
+            SET MESSAGE_TEXT = 'Cannot Update! Issue with this title already exists in this Project!';
             END IF;
 
             IF EXISTS (SELECT * FROM issues WHERE expression = NEW.expression AND project_id = NEW.project_id AND id != NEW.id)
             THEN SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Issue with this expression already exists in this Project!';
+            SET MESSAGE_TEXT = 'Cannot Update! Issue with this expression already exists in this Project!';
             END IF;
             END
 
@@ -820,7 +820,7 @@
             GROUP_CONCAT(results SEPARATOR ',') as result_colors,
             GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
             FROM (
-            select request_test_id, result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            select request_test_id, CASE WHEN result_resolution.color is NULL THEN 3 ELSE result_resolution.color END as resolutions, final_results.color as results, test_results.id as result_id
             from test_results
             left join issues on issue_id=issues.id
             left join result_resolution on issues.resolution_id = result_resolution.id
@@ -836,4 +836,63 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="update imports_AFTER_INSERT with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `imports_AFTER_INSERT`;
+
+            #
+            CREATE TRIGGER imports_AFTER_INSERT AFTER INSERT ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.finish_status = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(NEW.testrun_id);
+
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update imports_AFTER_UPDATE with UPDATE_TEST_RUN_STATS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `imports_AFTER_UPDATE`;
+
+            #
+            CREATE TRIGGER imports_AFTER_UPDATE AFTER UPDATE ON imports FOR EACH ROW
+            BEGIN
+            IF (NEW.finish_status = 1 AND new.testrun_id IS NOT NULL)
+            THEN
+
+            CALL UPDATE_TEST_RUN_STATS(NEW.testrun_id);
+
+            END IF;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create SELECT_ISSUE_TESTS" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP PROCEDURE IF EXISTS `SELECT_ISSUE_TESTS`;
+
+            #
+            CREATE PROCEDURE `SELECT_ISSUE_TESTS`(
+            IN request_issue_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT DISTINCT tests.*, last_test_results.* FROM test_results
+            LEFT JOIN tests ON test_results.test_id = tests.id
+            LEFT JOIN last_test_results on tests.id = last_test_results.test_id
+            WHERE issue_id = request_issue_id;
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

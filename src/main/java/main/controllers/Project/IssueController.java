@@ -42,7 +42,9 @@ public class IssueController extends BaseController<IssueDto> {
     @Override
     public IssueDto create(IssueDto entity) throws AqualityException {
         if (baseUser.isManager() || baseUser.getProjectUser(entity.getProject_id()).isEditor()) {
-            return issueDao.create(entity);
+            List<IssueDto> issues = new ArrayList<>();
+            issues.add(issueDao.create(entity));
+            return fillIssues(issues).get(0);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to create Issues", baseUser);
         }
@@ -84,19 +86,24 @@ public class IssueController extends BaseController<IssueDto> {
         List<ResultResolutionDto> resultResolutions = resultResolutionController.get(resultResolution);
 
         for (IssueDto issue : issues) {
-            UserDto assignee = users.stream().filter(x -> x.getId().equals(issue.getAssignee_id())).findFirst().orElse(null);
-            UserDto creator = users.stream().filter(x -> x.getId().equals(issue.getCreator_id())).findFirst().orElse(null);
-            if(assignee != null) {
-                issue.setAssignee(assignee.toPublic());
-            }
-            if(creator != null) {
-                issue.setCreator(creator.toPublic());
-            }
-            issue.setStatus(issueStatuses.stream().filter(x -> x.getId().equals(issue.getStatus_id())).findFirst().orElse(null));
-            issue.setResolution(resultResolutions.stream().filter(x -> x.getId().equals(issue.getResolution_id())).findFirst().orElse(null));
-            filledIssues.add(issue);
+            filledIssues.add(fillIssue(issue, users, issueStatuses, resultResolutions));
         }
 
         return filledIssues;
+    }
+
+    private IssueDto fillIssue(IssueDto issue, List<UserDto> users, List<IssueStatusDto> issueStatuses, List<ResultResolutionDto> resultResolutions){
+        UserDto assignee = users.stream().filter(x -> x.getId().equals(issue.getAssignee_id())).findFirst().orElse(null);
+        UserDto creator = users.stream().filter(x -> x.getId().equals(issue.getCreator_id())).findFirst().orElse(null);
+        if (assignee != null) {
+            issue.setAssignee(assignee.toPublic());
+        }
+        if (creator != null) {
+            issue.setCreator(creator.toPublic());
+        }
+        issue.setStatus(issueStatuses.stream().filter(x -> x.getId().equals(issue.getStatus_id())).findFirst().orElse(null));
+        issue.setResolution(resultResolutions.stream().filter(x -> x.getId().equals(issue.getResolution_id())).findFirst().orElse(null));
+
+        return issue;
     }
 }
