@@ -24,7 +24,7 @@ public class TestIssueServlet extends BaseServlet implements IGet {
 
             Session session = createSession(req);
             Integer issueId = getIntegerQueryParameter(req, "issueId");
-            Integer projectId = getIntegerQueryParameter(req, "issueId");
+            Integer projectId = getIntegerQueryParameter(req, "projectId");
             validateGet(issueId, projectId);
             List<TestDto> tests = session.controllerFactory.getHandler(new TestDto()).get(issueId, projectId);
             setResponseBody(resp, tests);

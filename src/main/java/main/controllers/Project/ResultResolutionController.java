@@ -33,7 +33,7 @@ public class ResultResolutionController extends BaseController<ResultResolutionD
 
     @Override
     public boolean delete(ResultResolutionDto template) throws AqualityException {
-        if (baseUser.isAdmin()) {
+        if (baseUser.isAdmin() || baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isAdmin() || baseUser.getProjectUser(template.getProject_id()).isManager()) {
             return resultResolutionDao.delete(template);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Result Resolution", baseUser);
