@@ -2,10 +2,7 @@ package main.model.db.imports;
 
 import main.controllers.ControllerFactory;
 import main.exceptions.AqualityException;
-import main.model.db.dao.project.ImportDao;
-import main.model.db.dao.project.ProjectDao;
-import main.model.db.dao.project.TestDao;
-import main.model.db.dao.project.TestResultDao;
+import main.model.db.dao.project.*;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 import main.utils.RegexpUtil;
@@ -34,6 +31,7 @@ class BaseImporter {
     private ProjectDao projectDao = new ProjectDao();
     private TestResultDao testResultDao = new TestResultDao();
     private TestDao testDao = new TestDao();
+    private IssueDao issueDao = new IssueDao();
     protected int projectId;
     TestRunDto testRun;
     TestSuiteDto testSuite;
@@ -237,7 +235,10 @@ class BaseImporter {
                     similarResult = testResults.stream().filter(x -> x.getFail_reason() != null && x.getFail_reason().equals(result.getFail_reason())).findFirst().orElse(null);
                 }
                 if(similarResult != null && similarResult.getIssue_id() != null){
-                    result.setIssue_id(similarResult.getIssue_id());
+                    IssueDto issue = issueDao.getEntityById(similarResult.getIssue_id());
+                    if(issue.getStatus_id() != 4){
+                        result.setIssue_id(similarResult.getIssue_id());
+                    }
                 }
             }
         } catch (Exception e){
@@ -259,7 +260,7 @@ class BaseImporter {
     private boolean tryFillByIssue(TestResultDto result, List<IssueDto> issues) {
         if (result.getFail_reason() != null) {
             for (IssueDto issue : issues) {
-                if (issue.getExpression() != null && RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
+                if (issue.getExpression() != null && !issue.getStatus_id().equals(4) && RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
                     result.setIssue_id(issue.getId());
                     return true;
                 }

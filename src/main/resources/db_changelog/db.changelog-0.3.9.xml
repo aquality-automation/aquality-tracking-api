@@ -456,7 +456,7 @@
             declare valid_limit int;
             SET valid_limit = get_valid_limit(request_limit);
             SELECT * FROM issues
-            WHERE project_id = request_project_id
+            WHERE empty_or_equal(request_project_id,project_id)
             AND empty_or_equal(request_id, id)
             AND empty_or_equal(request_assignee_id, assignee_id)
             AND empty_or_equal(request_status_id, status_id)
