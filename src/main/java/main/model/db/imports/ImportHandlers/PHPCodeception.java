@@ -11,14 +11,15 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public class PHPCodeception extends Handler {
 
     private PHPCodeceptionHandler handler;
 
-    public PHPCodeception(File file) throws AqualityException {
-        handler = new PHPCodeceptionHandler();
+    public PHPCodeception(File file, Date finishTime) throws AqualityException {
+        handler = new PHPCodeceptionHandler(finishTime);
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {

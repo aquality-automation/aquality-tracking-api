@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="acceptance (chrome)" tests="2" assertions="0" errors="0" failures="0" skipped="0" time="10">
+    <testcase file="D:\gforce\Repo\gf-software-testing-automation-scv1\tests\acceptance\Tests\Arabic\TestCest.php" name="test1" class="tests\TestCest" feature="test1" assertions="0" time="5"/>
+    <testcase file="D:\gforce\Repo\gf-software-testing-automation-scv1\tests\acceptance\Tests\Arabic\TestCest.php" name="test2" class="tests\TestCest" feature="test2" assertions="0" time="5"/>
+  </testsuite>
+</testsuites>

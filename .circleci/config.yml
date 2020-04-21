@@ -23,7 +23,7 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
-      - run: mvn test -f pom.xml -P !run-migration
+      - run: mvn clean test -f pom.xml -P !run-migration
 
       - run:
           name: Save test results
