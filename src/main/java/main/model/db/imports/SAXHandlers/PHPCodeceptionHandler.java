@@ -26,10 +26,10 @@ public class PHPCodeceptionHandler extends Handler {
     private Calendar calendar = Calendar.getInstance();
     private boolean testcaseIsFound = false;
 
-    public PHPCodeceptionHandler() throws AqualityException {
+    public PHPCodeceptionHandler(Date finishTime) throws AqualityException {
         super();
         result.setFail_reason("$blank");
-        testRun.setFinish_time(new Date());
+        testRun.setFinish_time(finishTime);
     }
 
     @Override

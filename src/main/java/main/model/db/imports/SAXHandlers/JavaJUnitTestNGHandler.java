@@ -16,7 +16,7 @@ import java.util.List;
 
 import static main.model.db.imports.ResultStatus.*;
 
-public class JavaTestNGHandler extends Handler {
+public class JavaJUnitTestNGHandler extends Handler {
     private TestSuiteDto testSuite = new TestSuiteDto();
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result = new TestResultDto();
@@ -27,11 +27,11 @@ public class JavaTestNGHandler extends Handler {
     private Date currentTimeSlot;
     private TestNameNodeType testNameNodeType;
 
-    public JavaTestNGHandler(TestNameNodeType testNameNodeType) throws AqualityException {
+    public JavaJUnitTestNGHandler(TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
         super();
         this.testNameNodeType = testNameNodeType;
         result.setFail_reason("$blank");
-        testRun.setFinish_time(new Date());
+        testRun.setFinish_time(finishTime);
     }
 
     @Override

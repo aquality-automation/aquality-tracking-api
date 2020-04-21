@@ -51,7 +51,7 @@ public class RobotHandler extends Handler {
         currentElement = qName;
         if (qName.equals("robot")){
             try {
-                testRun.setFinish_time(convertToDate(attributes.getValue("generated")));
+                testRun.setStart_time(convertToDate(attributes.getValue("generated")));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -65,10 +65,10 @@ public class RobotHandler extends Handler {
             currentKWName = attributes.getValue("name");
         } else if(qName.equals("status") && testStarted && !kwStarted){
             try {
-
                 result.setFinal_result_id(getStatus(attributes.getValue("status")).getValue());
                 result.setStart_date(convertToDate(attributes.getValue("starttime")));
                 result.setFinish_date(convertToDate(attributes.getValue("endtime")));
+                testRun.setFinish_time(convertToDate(attributes.getValue("endtime")));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
