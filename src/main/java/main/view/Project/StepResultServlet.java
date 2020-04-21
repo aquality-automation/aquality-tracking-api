@@ -1,7 +1,7 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.StepResultDto;
+import main.model.dto.project.StepResultDto;
 import main.view.BaseServlet;
 import main.view.IPost;
 

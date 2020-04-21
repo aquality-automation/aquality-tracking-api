@@ -5,10 +5,10 @@ import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.MilestoneDao;
 import main.model.db.dao.project.Suite2MilestoneDao;
-import main.model.dto.MilestoneDto;
-import main.model.dto.Suite2MilestoneDto;
-import main.model.dto.TestSuiteDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.MilestoneDto;
+import main.model.dto.project.Suite2MilestoneDto;
+import main.model.dto.project.TestSuiteDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 import java.util.Objects;

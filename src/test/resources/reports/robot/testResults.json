@@ -1,0 +1,1 @@
+[{"final_result_id":2,"log":"\r\nVariable Should Exist | Variable ${Cell view} does not exist.","start_date":1584405571743,"finish_date":1584405588334,"fail_reason":"$blank"}]

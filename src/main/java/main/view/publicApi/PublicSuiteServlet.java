@@ -2,7 +2,7 @@ package main.view.publicApi;
 
 import main.Session;
 import main.exceptions.AqualityParametersException;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.TestSuiteDto;
 import main.view.BaseServlet;
 import main.view.IPost;
 

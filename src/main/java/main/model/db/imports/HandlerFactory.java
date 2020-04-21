@@ -21,12 +21,12 @@ class HandlerFactory {
                 if(testNameNodeType == null){
                     throw new AqualityException("testNameNode is required");
                 }
-                return new JavaTestNG(file, testNameNodeType);
+                return new JavaJUnitTestNG(file, testNameNodeType, finishTime);
             case Cucumber:
             case TestNGCucumber:
                 return new Cucumber(file, finishTime);
             case PHPCodeception:
-                return new PHPCodeception(file);
+                return new PHPCodeception(file, finishTime);
             case NUnit_v2:
                 return new NUnitV2(file);
             case NUnit_v3:

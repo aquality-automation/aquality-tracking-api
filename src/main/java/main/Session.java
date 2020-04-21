@@ -9,7 +9,10 @@ import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
-import main.model.dto.*;
+import main.model.dto.project.APITokenDto;
+import main.model.dto.project.ProjectUserDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.settings.UserDto;
 import main.model.email.TestRunEmails;
 
 import javax.naming.AuthenticationException;

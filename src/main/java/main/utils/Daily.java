@@ -4,7 +4,7 @@ import main.exceptions.AqualityException;
 import main.model.email.AuditEmails;
 import main.model.db.dao.settings.EmailSettingsDao;
 import main.model.dto.EmailDto;
-import main.model.dto.EmailSettingsDto;
+import main.model.dto.settings.EmailSettingsDto;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 

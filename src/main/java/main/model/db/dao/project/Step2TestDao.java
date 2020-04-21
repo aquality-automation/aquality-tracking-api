@@ -4,8 +4,8 @@ import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
 import main.model.dto.DtoMapper;
-import main.model.dto.Step2TestDto;
-import main.model.dto.StepDto;
+import main.model.dto.project.Step2TestDto;
+import main.model.dto.project.StepDto;
 
 import java.util.List;
 
@@ -24,6 +24,7 @@ public class Step2TestDao extends DAO<Step2TestDto> {
      */
     public Step2TestDto create(Step2TestDto entity) throws AqualityException {
         List<ConnectionUrlParser.Pair<String, String>> parameters = entity.getParameters();
+        checkInsertProcedure();
         CallStoredProcedure(insert, parameters);
         return entity;
     }
@@ -35,6 +36,7 @@ public class Step2TestDao extends DAO<Step2TestDto> {
      */
     public List<StepDto> getTestSteps(Step2TestDto entity) throws AqualityException {
         List<ConnectionUrlParser.Pair<String, String>> parameters = entity.getSearchParameters();
+        checkSelectProcedure();
         List<StepDto> results = new DtoMapper<>(StepDto.class).mapObjects(CallStoredProcedure(select, parameters).toString());
         return results;
     }

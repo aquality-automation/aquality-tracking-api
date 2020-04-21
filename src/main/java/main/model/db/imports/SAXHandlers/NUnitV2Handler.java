@@ -3,7 +3,10 @@ package main.model.db.imports.SAXHandlers;
 import main.model.db.imports.ResultStatus;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
-import main.model.dto.*;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -44,40 +47,40 @@ public class NUnitV2Handler extends Handler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         currentElement = qName;
-        if(qName.equals("test-results")){
+        if (qName.equals("test-results")) {
             try {
                 testRun.setFinish_time(convertToDate(attributes.getValue("date"), attributes.getValue("time")));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-        }
-        else if (qName.equals("environment")) {
+        } else if (qName.equals("environment")) {
             testRun.setExecution_environment(attributes.getValue("machine-name"));
             testRun.setAuthor(String.format("%s\\%s", attributes.getValue("user-domain"), attributes.getValue("user")));
 
-        }
-        else if (qName.equals("test-suite") && attributes.getValue("type").equals("TestSuite") && strTime == null) {
+        } else if (qName.equals("test-suite")
+                && (attributes.getValue("type").equals("TestSuite") || attributes.getValue("type").equals("Assembly"))
+                && strTime == null) {
 
             calendar.setTime(testRun.getFinish_time());
             strTime = attributes.getValue("time");
-            milliTime = Integer.parseInt(strTime.replaceAll("\\.",""));
+            milliTime = Integer.parseInt(strTime.replaceAll("\\.", ""));
             calendar.add(Calendar.MILLISECOND, -milliTime);
             testRun.setStart_time(calendar.getTime());
             currentTimeSlot = testRun.getStart_time();
-        } else if(qName.equals("test-suite") && attributes.getValue("type").equals("TestSuite")
-                && strTime.equals(attributes.getValue("time"))){
+        } else if (qName.equals("test-suite") && attributes.getValue("type").equals("TestSuite")
+                && strTime.equals(attributes.getValue("time"))) {
             testSuite.setName(attributes.getValue("name"));
-        } else if(qName.equals("test-case")) {
+        } else if (qName.equals("test-case")) {
             isTestCaseClose = false;
             test.setName(attributes.getValue("name"));
             result.setStart_date(currentTimeSlot);
             calendar.setTime(currentTimeSlot);
-            milliTime = Integer.parseInt(attributes.getValue("time").replaceAll("\\.",""));
+            milliTime = Integer.parseInt(attributes.getValue("time").replaceAll("\\.", ""));
             calendar.add(Calendar.MILLISECOND, milliTime);
             currentTimeSlot = calendar.getTime();
             result.setFinish_date(currentTimeSlot);
 
-            if(attributes.getValue("success").equals("False")){
+            if (attributes.getValue("success").equals("False")) {
                 isTestFailed = true;
             }
 
@@ -96,7 +99,7 @@ public class NUnitV2Handler extends Handler {
             tests.add(test);
             test = new TestDto();
             result.setInternalTestId(test.getName());
-            if(result.getFail_reason() != null && result.getFail_reason().equals("$blank")) result.setFail_reason("");
+            if (result.getFail_reason() != null && result.getFail_reason().equals("$blank")) result.setFail_reason("");
             results.add(result);
             result = new TestResultDto();
             result.setFail_reason("$blank");
@@ -105,7 +108,7 @@ public class NUnitV2Handler extends Handler {
 
     @Override
     public void characters(char[] ch, int start, int length) {
-        String value = new String(ch,start,length);
+        String value = new String(ch, start, length);
         if (isTestFailed) {
             if (currentElement.equals("message")) {
                 String res = result.getFail_reason();
@@ -129,7 +132,7 @@ public class NUnitV2Handler extends Handler {
         return format.parse(date);
     }
 
-    private ResultStatus getStatus(String status){
+    private ResultStatus getStatus(String status) {
         switch (status) {
             case "Success":
                 return PASSED;
@@ -141,19 +144,19 @@ public class NUnitV2Handler extends Handler {
         }
     }
 
-    public TestSuiteDto getTestSuite(){
+    public TestSuiteDto getTestSuite() {
         return testSuite;
     }
 
-    public TestRunDto getTestRun(){
+    public TestRunDto getTestRun() {
         return testRun;
     }
 
-    public List<TestDto> getTests(){
+    public List<TestDto> getTests() {
         return tests;
     }
 
-    public List<TestResultDto> getTestResults(){
+    public List<TestResultDto> getTestResults() {
         return results;
     }
 }

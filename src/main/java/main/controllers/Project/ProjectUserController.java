@@ -5,8 +5,8 @@ import main.controllers.Administration.UserController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.ProjectUserDao;
-import main.model.dto.ProjectUserDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.ProjectUserDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 

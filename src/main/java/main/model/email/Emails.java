@@ -3,7 +3,7 @@ package main.model.email;
 import main.exceptions.AqualityException;
 import main.model.db.dao.settings.EmailSettingsDao;
 import main.model.dto.EmailDto;
-import main.model.dto.EmailSettingsDto;
+import main.model.dto.settings.EmailSettingsDto;
 import main.utils.DateUtils;
 import main.utils.EmailUtil;
 

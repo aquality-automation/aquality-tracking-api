@@ -5,7 +5,10 @@ import main.controllers.CustomerController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
-import main.model.dto.*;
+import main.model.dto.customer.CustomerDto;
+import main.model.dto.project.ProjectDto;
+import main.model.dto.project.ProjectUserDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.*;
 

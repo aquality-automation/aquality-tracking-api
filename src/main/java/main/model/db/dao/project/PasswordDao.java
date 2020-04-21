@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.PasswordDto;
+import main.model.dto.settings.PasswordDto;
 
 public class PasswordDao extends DAO<PasswordDto> {
     public PasswordDao() {

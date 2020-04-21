@@ -1,14 +1,13 @@
 package main.view.Administration;
 
 import main.Session;
-import main.model.dto.UserDto;
+import main.model.dto.settings.UserDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 
 @WebServlet("/users/auth")
 public class AuthorizationServlet extends BaseServlet implements IGet {

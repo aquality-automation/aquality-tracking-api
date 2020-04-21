@@ -1,15 +1,14 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.TestRunDto;
-import main.model.dto.TestRunLabelDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestRunLabelDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet("/testrun/labels")

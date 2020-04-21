@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.SuiteStatisticDto;
+import main.model.dto.project.SuiteStatisticDto;
 
 public class SuiteStatisticDao extends DAO<SuiteStatisticDto> {
     public SuiteStatisticDao() {

@@ -4,7 +4,8 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +79,15 @@ public class TestController extends BaseController<TestDto> {
             throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
         }
     }
+
+    public List<TestDto> get(Integer issueId, Integer projectId) throws AqualityException {
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
+            return fillTests(testDao.getTestsAffectedByIssue(issueId));
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
+        }
+    }
+
 
     @Override
     public boolean delete(TestDto template) throws AqualityException {

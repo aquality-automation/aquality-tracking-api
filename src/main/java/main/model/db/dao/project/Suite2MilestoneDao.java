@@ -2,11 +2,10 @@ package main.model.db.dao.project;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.exceptions.AqualityException;
-import main.exceptions.AqualitySQLException;
 import main.model.db.dao.DAO;
 import main.model.dto.DtoMapper;
-import main.model.dto.Suite2MilestoneDto;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.Suite2MilestoneDto;
+import main.model.dto.project.TestSuiteDto;
 import java.util.List;
 
 public class Suite2MilestoneDao extends DAO<Suite2MilestoneDto> {

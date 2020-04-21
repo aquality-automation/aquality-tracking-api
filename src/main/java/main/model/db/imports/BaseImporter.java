@@ -2,11 +2,9 @@ package main.model.db.imports;
 
 import main.controllers.ControllerFactory;
 import main.exceptions.AqualityException;
-import main.model.db.dao.project.ImportDao;
-import main.model.db.dao.project.ProjectDao;
-import main.model.db.dao.project.TestDao;
-import main.model.db.dao.project.TestResultDao;
-import main.model.dto.*;
+import main.model.db.dao.project.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 import main.utils.RegexpUtil;
 
 import java.io.File;
@@ -18,21 +16,22 @@ class BaseImporter {
     private ControllerFactory controllerFactory;
     private String pattern;
     protected File file;
-    private List<PredefinedResolutionDto> predefinedResolutions;
+    private List<IssueDto> issues;
 
     BaseImporter(int projectId, String pattern, UserDto user) throws AqualityException {
         this.projectId = projectId;
         this.pattern = pattern;
         controllerFactory = new ControllerFactory(user);
-        PredefinedResolutionDto predefinedResolutionTemplate = new PredefinedResolutionDto();
-        predefinedResolutionTemplate.setProject_id(this.projectId);
-        predefinedResolutions = controllerFactory.getHandler(predefinedResolutionTemplate).get(predefinedResolutionTemplate);
+        IssueDto issueTemplate = new IssueDto();
+        issueTemplate.setProject_id(this.projectId);
+        issues = controllerFactory.getHandler(issueTemplate).get(issueTemplate);
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
     private ProjectDao projectDao = new ProjectDao();
     private TestResultDao testResultDao = new TestResultDao();
     private TestDao testDao = new TestDao();
+    private IssueDao issueDao = new IssueDao();
     protected int projectId;
     TestRunDto testRun;
     TestSuiteDto testSuite;
@@ -191,9 +190,6 @@ class BaseImporter {
             if (existingResult != null) {
                 if(existingResult.getPending() > 0 || update){
                     result.setId(existingResult.getId());
-                    if(!Objects.equals(result.getFail_reason(), existingResult.getFail_reason())){
-                        result.setComment("$blank");
-                    }
                     if(result.getFinal_result_id() == 2){
                         result.setLog("$blank");
                         result.setFail_reason("$blank");
@@ -214,7 +210,7 @@ class BaseImporter {
     }
 
     private void predictResultResolution(TestResultDto result) throws AqualityException {
-        if(!tryFillByPredefinedResolution(result, predefinedResolutions)) {
+        if(!tryFillByIssue(result, issues)) {
             updateResultWithSimilarError(result);
         }
     }
@@ -238,10 +234,11 @@ class BaseImporter {
                 if(similarResult == null){
                     similarResult = testResults.stream().filter(x -> x.getFail_reason() != null && x.getFail_reason().equals(result.getFail_reason())).findFirst().orElse(null);
                 }
-                if(similarResult != null){
-                    result.setComment(similarResult.getComment());
-                    result.setTest_resolution_id(similarResult.getTest_resolution_id());
-                    result.setAssignee(similarResult.getAssignee());
+                if(similarResult != null && similarResult.getIssue_id() != null){
+                    IssueDto issue = issueDao.getEntityById(similarResult.getIssue_id());
+                    if(issue.getStatus_id() != 4){
+                        result.setIssue_id(similarResult.getIssue_id());
+                    }
                 }
             }
         } catch (Exception e){
@@ -251,7 +248,7 @@ class BaseImporter {
 
     private TestResultDto compareByRegexp(TestResultDto result, List<TestResultDto> oldResults, String expression) {
         for (TestResultDto oldResult : oldResults) {
-            if(oldResult.getFail_reason() != null){
+            if(oldResult.getFail_reason() != null && oldResult.getIssue_id() != null ){
                 if(RegexpUtil.compareByRegexpGroups(result.getFail_reason(), oldResult.getFail_reason(), expression)){
                     return oldResult;
                 }
@@ -260,13 +257,11 @@ class BaseImporter {
         return null;
     }
 
-    private boolean tryFillByPredefinedResolution(TestResultDto result, List<PredefinedResolutionDto> predefinedResolutions) {
+    private boolean tryFillByIssue(TestResultDto result, List<IssueDto> issues) {
         if (result.getFail_reason() != null) {
-            for (PredefinedResolutionDto predefinedResolution : predefinedResolutions) {
-                if (RegexpUtil.match(result.getFail_reason(), predefinedResolution.getExpression())) {
-                    result.setTest_resolution_id(predefinedResolution.getResolution_id());
-                    result.setComment(predefinedResolution.getComment());
-                    result.setAssignee(predefinedResolution.getAssignee());
+            for (IssueDto issue : issues) {
+                if (issue.getExpression() != null && !issue.getStatus_id().equals(4) && RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
+                    result.setIssue_id(issue.getId());
                     return true;
                 }
             }

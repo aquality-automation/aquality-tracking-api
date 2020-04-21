@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.ProjectDto;
+import main.model.dto.project.ProjectDto;
 
 public class ProjectDao extends DAO<ProjectDto> {
     public ProjectDao(){

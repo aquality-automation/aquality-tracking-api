@@ -4,7 +4,10 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.PredefinedResolutionDao;
-import main.model.dto.*;
+import main.model.dto.project.PredefinedResolutionDto;
+import main.model.dto.project.ProjectUserDto;
+import main.model.dto.project.ResultResolutionDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 

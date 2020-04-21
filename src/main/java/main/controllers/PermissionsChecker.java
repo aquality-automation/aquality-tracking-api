@@ -1,7 +1,7 @@
 package main.controllers;
 
 import main.exceptions.AqualityPermissionsException;
-import main.model.dto.UserDto;
+import main.model.dto.settings.UserDto;
 
 public class PermissionsChecker {
     private UserDto baseUser;

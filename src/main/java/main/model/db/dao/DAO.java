@@ -78,6 +78,7 @@ public abstract class DAO<T extends BaseDto> {
      */
     public List<T> searchAll(T entity) throws AqualityException {
         List<Pair<String, String>> parameters = entity.getSearchParameters();
+        checkSelectProcedure();
         return dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
     }
 
@@ -95,6 +96,7 @@ public abstract class DAO<T extends BaseDto> {
         }
 
         List<Pair<String, String>> parameters = entity.getIdSearchParameters(id);
+        checkSelectProcedure();
         List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
 
         return getSingleResult(all, id);
@@ -107,6 +109,7 @@ public abstract class DAO<T extends BaseDto> {
      */
     public T getEntityById(T entity) throws AqualityException {
         List<Pair<String, String>> parameters = entity.getIdAndProjectIdSearchParameters();
+        checkSelectProcedure();
         List<T> all = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
 
         return getSingleResult(all, entity.getIdOrOverrideId());
@@ -129,6 +132,7 @@ public abstract class DAO<T extends BaseDto> {
         }
 
         List<Pair<String, String>> parameters = entity.getParameters();
+        checkInsertProcedure();
         List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
         if (!results.isEmpty()) {
             return results.get(0);
@@ -144,7 +148,7 @@ public abstract class DAO<T extends BaseDto> {
      */
     public boolean delete(T entity) throws AqualityException {
         List<Pair<String, String>> parameters = entity.getDataBaseIDParameters();
-
+        checkRemoveProcedure();
         CallStoredProcedure(remove, parameters);
         return true;
     }
@@ -164,6 +168,7 @@ public abstract class DAO<T extends BaseDto> {
 
         if(id == null){
             List<Pair<String, String>> parameters = entity.getParameters();
+            checkInsertProcedure();
             List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
             if(!results.isEmpty()){
                 return results.get(0);
@@ -329,5 +334,23 @@ public abstract class DAO<T extends BaseDto> {
         }
 
         return true;
+    }
+
+    protected void checkSelectProcedure() throws AqualityException {
+        checkProcedure(select, "SELECT");
+    }
+
+    protected void checkInsertProcedure() throws AqualityException {
+        checkProcedure(insert, "INSERT");
+    }
+
+    protected void checkRemoveProcedure() throws AqualityException {
+        checkProcedure(remove, "REMOVE");
+    }
+
+    private void checkProcedure(String sql, String sqlName) throws AqualityException {
+        if(sql == null){
+            throw new AqualityException(String.format("SQL procedure '%s' is not define for DAO '%s'", sqlName, getClass()));
+        }
     }
 }

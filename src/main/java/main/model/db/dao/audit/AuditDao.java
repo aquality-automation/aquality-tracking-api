@@ -1,7 +1,7 @@
 package main.model.db.dao.audit;
 
 import main.model.db.dao.DAO;
-import main.model.dto.AuditDto;
+import main.model.dto.audit.AuditDto;
 
 
 public class AuditDao extends DAO<AuditDto> {

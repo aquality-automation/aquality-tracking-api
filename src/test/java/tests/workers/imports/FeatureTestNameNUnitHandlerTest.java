@@ -4,6 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import main.model.db.imports.ImportHandlers.NUnitV3;
 import main.model.db.imports.TestNameNodeType;
 import main.model.dto.*;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -41,12 +45,12 @@ public class FeatureTestNameNUnitHandlerTest {
     @Test
     public void validateTestRun() throws JsonProcessingException {
         TestRunDto actualTestRun = nUnitV3.getTestRun();
-        assertEquals(mapper.serialize(actualTestRun), FileUtils.getResourceFileAsString("reports/Nunit3/testrun.json"));
+        assertEquals(mapper.serialize(actualTestRun), FileUtils.getResourceFileAsString("reports/Nunit3/testRun.json"));
     }
 
     @Test
     public void validateTestResults() throws JsonProcessingException {
         List<TestResultDto> actualTestResults = nUnitV3.getTestResults();
-        assertEquals(mapper.serialize(actualTestResults), FileUtils.getResourceFileAsString("reports/Nunit3/results.json"));
+        assertEquals(mapper.serialize(actualTestResults), FileUtils.getResourceFileAsString("reports/Nunit3/testResults.json"));
     }
 }

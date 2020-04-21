@@ -4,7 +4,7 @@ package main.model.db.dao.project;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
-import main.model.dto.APITokenDto;
+import main.model.dto.project.APITokenDto;
 import main.utils.RandomStringGenerator;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -24,7 +24,7 @@ public class APITokenDao extends DAO<APITokenDto> {
         String token = generateToken();
         entity.setApi_token(DigestUtils.md5Hex(token + "advbc1671-nlksdui-ff"));
         List<Pair<String, String>> parameters = entity.getParameters();
-
+        checkInsertProcedure();
         CallStoredProcedure(insert, parameters);
         entity.setApi_token(token);
         return entity;

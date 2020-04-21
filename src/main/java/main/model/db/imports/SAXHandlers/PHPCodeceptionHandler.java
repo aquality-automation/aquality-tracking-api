@@ -2,7 +2,10 @@ package main.model.db.imports.SAXHandlers;
 
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
-import main.model.dto.*;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.xml.sax.Attributes;
 
 import java.util.ArrayList;
@@ -23,10 +26,10 @@ public class PHPCodeceptionHandler extends Handler {
     private Calendar calendar = Calendar.getInstance();
     private boolean testcaseIsFound = false;
 
-    public PHPCodeceptionHandler() throws AqualityException {
+    public PHPCodeceptionHandler(Date finishTime) throws AqualityException {
         super();
         result.setFail_reason("$blank");
-        testRun.setFinish_time(new Date());
+        testRun.setFinish_time(finishTime);
     }
 
     @Override
