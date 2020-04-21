@@ -1,10 +1,16 @@
 # CHANGELOG
 
-## 0.3.9 (Unreleased)
+## 0.3.9 (2020-04-21)
 
 Features:
   - Added unit tests for import handlers -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/81)
   - Added unit tests for checking DAO's -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/80)
+  - Migrate results info to issues -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/82)
+  - Migrate predefined Resolutions to issues -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/83)
+  - Issue -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/69)
+  - Test Run: Auto Fill Results on issue creation -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/77)
+  - Issues List Page -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/75)
+  - add Failed test cases column(count) to Test Runs table -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/92)
 
 ## 0.3.8 (2020-03-11)
 
