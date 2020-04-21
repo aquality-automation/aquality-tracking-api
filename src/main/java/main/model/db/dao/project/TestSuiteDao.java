@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.TestSuiteDto;
 
 public class TestSuiteDao extends DAO<TestSuiteDto>{
     public TestSuiteDao() {

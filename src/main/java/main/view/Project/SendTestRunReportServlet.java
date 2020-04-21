@@ -3,13 +3,12 @@ package main.view.Project;
 import main.Session;
 import main.view.BaseServlet;
 import main.view.IPost;
-import main.model.dto.TestRunDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.settings.UserDto;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet("/testrun/report")

@@ -2,7 +2,7 @@ package main.view.Project;
 
 
 import main.Session;
-import main.model.dto.TestResultDto;
+import main.model.dto.project.TestResultDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;
@@ -11,7 +11,6 @@ import main.view.IPost;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet("/testresult")

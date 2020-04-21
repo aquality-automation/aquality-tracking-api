@@ -2,7 +2,7 @@ package main.view.Project;
 
 import main.Session;
 import main.exceptions.AqualityException;
-import main.model.dto.TestDto;
+import main.model.dto.project.TestDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 

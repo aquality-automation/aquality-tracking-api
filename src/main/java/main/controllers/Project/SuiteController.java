@@ -4,7 +4,8 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.*;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -3,7 +3,10 @@ package main.model.db.imports.SAXHandlers;
 import main.model.db.imports.ResultStatus;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
-import main.model.dto.*;
+import main.model.dto.project.TestDto;
+import main.model.dto.project.TestResultDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.project.TestSuiteDto;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 

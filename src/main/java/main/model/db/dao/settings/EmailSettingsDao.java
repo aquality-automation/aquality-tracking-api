@@ -3,7 +3,7 @@ package main.model.db.dao.settings;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
-import main.model.dto.EmailSettingsDto;
+import main.model.dto.settings.EmailSettingsDto;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 

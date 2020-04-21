@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.Suite2MilestoneDao;
-import main.model.dto.Suite2MilestoneDto;
+import main.model.dto.project.Suite2MilestoneDto;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.testng.annotations.BeforeMethod;

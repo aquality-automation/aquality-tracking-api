@@ -1,7 +1,7 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.BodyPatternDto;
+import main.model.dto.project.BodyPatternDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;

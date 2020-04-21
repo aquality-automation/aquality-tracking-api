@@ -3,7 +3,7 @@ package main.model.db.dao.project;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
-import main.model.dto.TestResultDto;
+import main.model.dto.project.TestResultDto;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ public class TestResultDao extends DAO<TestResultDto> {
     public TestResultDao() {
         super(TestResultDto.class);
         select = "{call SELECT_TEST_RESULT(?,?,?,?,?,?,?,?,?,?)}";
-        insert = "{call INSERT_TEST_RESULT(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}";
+        insert = "{call INSERT_TEST_RESULT(?,?,?,?,?,?,?,?,?,?,?,?)}";
         remove = "{call REMOVE_TEST_RESULT(?)}";
     }
 

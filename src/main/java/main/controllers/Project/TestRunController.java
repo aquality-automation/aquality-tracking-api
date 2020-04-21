@@ -6,7 +6,8 @@ import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestRunDao;
 import main.model.db.dao.project.TestRunLabelDao;
 import main.model.db.dao.project.TestRunStatisticDao;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 
@@ -108,7 +109,6 @@ public class TestRunController extends BaseController<TestRunDto> {
             pendingTestResult.setTest_id(test.getId());
             pendingTestResult.setTest_run_id(testRunTemplate.getId());
             pendingTestResult.setFinal_result_id(3);
-            pendingTestResult.setTest_resolution_id(1);
             pendingTestResult.setDebug(testRunTemplate.getDebug());
             resultController.create(pendingTestResult);
         }

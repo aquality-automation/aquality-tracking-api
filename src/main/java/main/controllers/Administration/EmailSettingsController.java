@@ -3,8 +3,8 @@ package main.controllers.Administration;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.settings.EmailSettingsDao;
-import main.model.dto.EmailSettingsDto;
-import main.model.dto.UserDto;
+import main.model.dto.settings.EmailSettingsDto;
+import main.model.dto.settings.UserDto;
 import org.apache.poi.util.NotImplemented;
 
 import java.util.List;

@@ -1,9 +1,9 @@
 package main.model.db.imports;
 
 import main.exceptions.AqualityException;
-import main.model.dto.ImportDto;
-import main.model.dto.TestRunDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.ImportDto;
+import main.model.dto.project.TestRunDto;
+import main.model.dto.settings.UserDto;
 
 import java.io.File;
 import java.util.ArrayList;

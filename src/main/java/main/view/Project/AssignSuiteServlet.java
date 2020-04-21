@@ -1,7 +1,7 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.Test2SuiteDto;
+import main.model.dto.project.Test2SuiteDto;
 import main.view.BaseServlet;
 
 import javax.servlet.annotation.WebServlet;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.TestRunLabelDao;
-import main.model.dto.TestRunLabelDto;
+import main.model.dto.project.TestRunLabelDto;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.testng.annotations.BeforeMethod;

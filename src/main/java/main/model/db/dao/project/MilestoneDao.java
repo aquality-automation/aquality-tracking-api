@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.MilestoneDto;
+import main.model.dto.project.MilestoneDto;
 
 public class MilestoneDao extends DAO<MilestoneDto> {
 

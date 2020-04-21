@@ -4,9 +4,9 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.Test2SuiteDao;
-import main.model.dto.Test2SuiteDto;
-import main.model.dto.TestSuiteDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.Test2SuiteDto;
+import main.model.dto.project.TestSuiteDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 import java.util.stream.Collectors;

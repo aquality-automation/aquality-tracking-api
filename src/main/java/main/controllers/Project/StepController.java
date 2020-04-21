@@ -4,9 +4,9 @@ import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.Step2TestDao;
 import main.model.db.dao.project.StepDao;
-import main.model.dto.Step2TestDto;
-import main.model.dto.StepDto;
-import main.model.dto.UserDto;
+import main.model.dto.project.Step2TestDto;
+import main.model.dto.project.StepDto;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 import java.util.Objects;

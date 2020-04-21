@@ -1,8 +1,8 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.Step2TestDto;
-import main.model.dto.StepDto;
+import main.model.dto.project.Step2TestDto;
+import main.model.dto.project.StepDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
 import main.view.IGet;

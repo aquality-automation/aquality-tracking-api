@@ -1,7 +1,7 @@
 package main.model.db.dao.settings;
 
 import main.model.db.dao.DAO;
-import main.model.dto.AppSettingsDto;
+import main.model.dto.settings.AppSettingsDto;
 
 public class AppSettingsDao extends DAO<AppSettingsDto> {
 

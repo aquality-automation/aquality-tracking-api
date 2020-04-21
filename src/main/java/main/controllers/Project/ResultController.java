@@ -3,10 +3,10 @@ package main.controllers.Project;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
-import main.model.db.dao.project.TestDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.db.dao.project.TestResultStatDao;
-import main.model.dto.*;
+import main.model.dto.project.*;
+import main.model.dto.settings.UserDto;
 
 import java.util.List;
 
@@ -14,24 +14,22 @@ public class ResultController extends BaseController<TestResultDto> {
     private TestResultDao testResultDao;
     private TestResultStatDao testResultStatDao;
     private TestController testController;
-    private ProjectUserController projectUserController;
-    private ResultResolutionController resultResolutionController;
     private FinalResultController finalResultController;
     private ProjectController projectController;
     private StepController stepController;
     private StepResultController stepResultController;
+    private IssueController issueController;
 
     public ResultController(UserDto user) {
         super(user);
         testResultDao = new TestResultDao();
         testResultStatDao = new TestResultStatDao();
-        projectUserController = new ProjectUserController(user);
         testController = new TestController(user);
-        resultResolutionController = new ResultResolutionController(user);
         finalResultController = new FinalResultController(user);
         projectController = new ProjectController(user);
         stepController = new StepController(user);
         stepResultController = new StepResultController(user);
+        issueController = new IssueController(user);
     }
 
     @Override
@@ -50,9 +48,6 @@ public class ResultController extends BaseController<TestResultDto> {
     @Override
     public List<TestResultDto> get(TestResultDto template) throws AqualityException {
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()) {
-            if (template.getLimit() == null) {
-                template.setLimit(0);
-            }
             return fillResults(testResultDao.searchAll(template));
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
@@ -114,7 +109,9 @@ public class ResultController extends BaseController<TestResultDto> {
 
         if (results.size() > 0) {
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());
-            List<ResultResolutionDto> resolutions = resultResolutionController.get(new ResultResolutionDto());
+            IssueDto issueDto = new IssueDto();
+            issueDto.setProject_id(results.get(0).getProject_id());
+            List<IssueDto> issues = issueController.get(issueDto);
 
             TestDto testTemplate = new TestDto();
             testTemplate.setProject_id(results.get(0).getProject_id());
@@ -122,25 +119,25 @@ public class ResultController extends BaseController<TestResultDto> {
 
             ProjectUserDto projectUserDto = new ProjectUserDto();
             projectUserDto.setProject_id(results.get(0).getProject_id());
-            List<ProjectUserDto> projectUsers = projectUserController.get(projectUserDto);
 
             for (TestResultDto result : results) {
-                fillResult(result, finalResults, resolutions, tests, projectUsers);
+                fillResult(result, finalResults, tests, issues);
             }
         }
 
         return results;
     }
 
-    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<ResultResolutionDto> resolutions, List<TestDto> tests, List<ProjectUserDto> projectUsers) throws AqualityException {
+    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests, List<IssueDto> issues) throws AqualityException {
         if (projectController.isStepsEnabled(result.getProject_id())) {
             fillResultSteps(result);
         }
 
         result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id())).findFirst().orElse(null));
         result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
-        result.setTest_resolution(resolutions.stream().filter(x -> x.getId().equals(result.getTest_resolution_id())).findFirst().orElse(null));
-        fillResultAssignee(result, projectUsers);
+        if(result.getIssue_id() != null) {
+            result.setIssue(issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
+        }
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {
@@ -148,13 +145,6 @@ public class ResultController extends BaseController<TestResultDto> {
         stepResultTemplate.setResult_id(result.getId());
         stepResultTemplate.setProject_id(result.getProject_id());
         result.setSteps(stepResultController.get(stepResultTemplate));
-    }
-
-    private void fillResultAssignee(TestResultDto result, List<ProjectUserDto> projectUsers) throws AqualityException {
-        if (result.getAssignee() != null) {
-            ProjectUserDto projectUser = projectUsers.stream().filter(user -> user.getUser_id().equals(result.getAssignee())).findFirst().orElse(null);
-            result.setAssigned_user(projectUser);
-        }
     }
 
 }

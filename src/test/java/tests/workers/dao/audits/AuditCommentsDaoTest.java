@@ -3,7 +3,7 @@ package tests.workers.dao.audits;
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.audit.AuditCommentsDao;
-import main.model.dto.AuditCommentDto;
+import main.model.dto.audit.AuditCommentDto;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.testng.annotations.BeforeMethod;

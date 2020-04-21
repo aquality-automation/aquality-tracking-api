@@ -1,6 +1,6 @@
 package main.exceptions;
 
-import main.model.dto.UserDto;
+import main.model.dto.settings.UserDto;
 
 public class AqualityPermissionsException extends AqualityException {
     public AqualityPermissionsException(String error, UserDto user) {

@@ -1,8 +1,7 @@
 package main.model.db.dao.project;
 
 import main.model.db.dao.DAO;
-import main.model.dto.Suite2DashboardDto;
-import main.model.dto.TestSuiteDto;
+import main.model.dto.project.Suite2DashboardDto;
 
 public class Suite2DashboardDao extends DAO<Suite2DashboardDto>{
     public Suite2DashboardDao() {

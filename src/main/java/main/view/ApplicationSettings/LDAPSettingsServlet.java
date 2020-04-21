@@ -1,7 +1,7 @@
 package main.view.ApplicationSettings;
 
 import main.Session;
-import main.model.dto.LdapDto;
+import main.model.dto.settings.LdapDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 import main.view.IPost;

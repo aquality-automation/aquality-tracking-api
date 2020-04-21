@@ -6,7 +6,7 @@ import main.annotations.*;
 
 
 @Data @EqualsAndHashCode(callSuper = true)
-class AttachmentDto extends BaseDto {
+public class AttachmentDto extends BaseDto {
     @DataBaseName(name = "request_id")
     @DataBaseSearchable
     private Integer id;

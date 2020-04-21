@@ -2,7 +2,7 @@ package tests.workers.dto;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
-import main.model.dto.TestResultDto;
+import main.model.dto.project.TestResultDto;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.testng.annotations.Test;
 import testData.TestDto;

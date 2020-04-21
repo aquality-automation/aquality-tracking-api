@@ -1,7 +1,7 @@
 package main.view.Project;
 
 import main.Session;
-import main.model.dto.ImportDto;
+import main.model.dto.project.ImportDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 
