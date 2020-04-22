@@ -296,8 +296,8 @@
             END IF;
 
             ELSE
-            IF EXISTS (SELECT * FROM issues WHERE project_id=my_project_id AND title=CAST(my_test_resolution_id as unsigned)) THEN
-            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id AND title=CAST(my_test_resolution_id as unsigned);
+            IF EXISTS (SELECT * FROM issues WHERE project_id=my_project_id AND CAST(title as CHAR)=CAST(my_test_resolution_id as CHAR)) THEN
+            SELECT id INTO @my_current_issue FROM issues WHERE project_id=my_project_id AND CAST(title as CHAR)=CAST(my_test_resolution_id as CHAR);
 
             call INSERT_ISSUE(@my_current_issue, my_test_resolution_id, my_test_resolution_id, '', '', my_assignee, '', '', '', my_project_id, '1');
 
