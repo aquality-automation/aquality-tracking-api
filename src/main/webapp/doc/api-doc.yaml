@@ -7,12 +7,16 @@ info:
     To Authorize you can use API token that you can create in Aquality Tracking Administration
     - As user name you should use `project:{your project id}`
     - As password you should use API token
-  version: '0.3.8'
-  title: 'Aquality Tracker - API documentation'
+  version: '0.3.10'
+  title: 'Aquality Tracking - API documentation'
 
 servers:
-  - url: http://localhost:8080/api
-  - url: http://localhost:8888/api
+  - url: 'http://localhost:8080/api'
+  - url: 'http://localhost:8888/api'
+  - url: '{customURL}/api'
+    variables:
+      customURL:
+       default: 'http://localhost:8080'
 
 components:
   securitySchemes:
