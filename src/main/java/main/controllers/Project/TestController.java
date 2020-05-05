@@ -13,11 +13,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TestController extends BaseController<TestDto> {
-    private TestDao testDao;
-    private TestSuiteDao suiteDao;
-    private TestResultDao resultDao;
-    private Test2SuiteController test2SuiteController;
-    private ProjectUserController projectUserController;
+    private final TestDao testDao;
+    private final TestSuiteDao suiteDao;
+    private final TestResultDao resultDao;
+    private final Test2SuiteController test2SuiteController;
+    private final ProjectUserController projectUserController;
 
     public TestController(UserDto user) {
         super(user);
@@ -54,10 +54,8 @@ public class TestController extends BaseController<TestDto> {
         if(existingTests.size() > 0) {
             TestDto existingTest = existingTests.get(0);
             if(existingTest.getSuites() != null) {
-                TestSuiteDto testSuite = existingTest.getSuites().stream().filter(suite -> suite.getId().equals(test.getSuites().get(0).getId())).findFirst().orElse(null);
-                if(testSuite != null) {
-                    existingTest.getSuites().add(test.getSuites().get(0));
-                }
+                existingTest.getSuites().stream()
+                        .filter(suite -> suite.getId().equals(test.getSuites().get(0).getId())).findFirst().ifPresent(testSuite -> existingTest.getSuites().add(test.getSuites().get(0)));
             }else {
                 existingTest.setSuites(test.getSuites());
             }
@@ -98,12 +96,12 @@ public class TestController extends BaseController<TestDto> {
         }
     }
 
-    public boolean updateMultipleTests(List<TestDto> entities) throws AqualityException {
+    public void updateMultipleTests(List<TestDto> entities) throws AqualityException {
         if (entities.size() > 0 && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())) {
             for (TestDto test : entities) {
                 updateSuites(test);
             }
-            return testDao.updateMultiply(entities);
+            testDao.updateMultiply(entities);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to update Test ", baseUser);
         }
@@ -162,16 +160,12 @@ public class TestController extends BaseController<TestDto> {
             TestSuiteDto testSuiteDto = new TestSuiteDto();
             testSuiteDto.setProject_id(projectId);
             List<TestSuiteDto> testSuites = suiteDao.searchAll(testSuiteDto);
-            List<Test2SuiteDto> test2Suites = new ArrayList<>();
             ProjectDto projectDto = new ProjectDto();
             projectDto.setId(tests.get(0).getProject_id());
 
-            for (TestSuiteDto testSuite : testSuites) {
-                Test2SuiteDto test2Suite = new Test2SuiteDto();
-                test2Suite.setSuite_id(testSuite.getId());
-                test2Suites.addAll(test2SuiteController.get(test2Suite));
-            }
-
+            Test2SuiteDto test2Suite = new Test2SuiteDto();
+            test2Suite.setProject_id(projectId);
+            List<Test2SuiteDto> test2Suites = test2SuiteController.get(test2Suite);
 
             for (TestDto test : tests) {
                 if (test.getDeveloper_id() != null) {
@@ -192,7 +186,8 @@ public class TestController extends BaseController<TestDto> {
         test2SuiteDto.setTest_id(test.getId());
         List<Test2SuiteDto> oldSuites = test2SuiteController.get(test2SuiteDto);
         if (test.getSuites() != null && test.getSuites().size() > 0) {
-            for (TestSuiteDto newSuite : test.getSuites()) {
+            List<TestSuiteDto> suites = test.getSuites();
+            for (TestSuiteDto newSuite : suites) {
                 Test2SuiteDto alreadyExists = oldSuites.stream().filter(x -> Objects.equals(x.getSuite_id(), newSuite.getId())).findAny().orElse(null);
                 if (alreadyExists != null) {
                     oldSuites.removeIf(x -> Objects.equals(x.getSuite_id(), alreadyExists.getSuite_id()));
