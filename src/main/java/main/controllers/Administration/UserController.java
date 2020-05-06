@@ -25,9 +25,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UserController extends BaseController<UserDto> {
-    private UserDao userDao;
-    private PasswordDao passwordDao;
-    private UserSessionDao userSessionDao;
+    private final UserDao userDao;
+    private final PasswordDao passwordDao;
+    private final UserSessionDao userSessionDao;
 
     public UserController(UserDto user) {
         super(user);
@@ -42,7 +42,7 @@ public class UserController extends BaseController<UserDto> {
             if (template.getPassword() != null) {
                 template.setPassword(saltPassword(template, template.getPassword()));
             }
-            return userDao.create(template);
+            return toPublicUser(userDao.create(template));
         } else {
             throw new AqualityPermissionsException("Account is not allowed to create User", baseUser);
         }
@@ -104,12 +104,16 @@ public class UserController extends BaseController<UserDto> {
     }
 
     private List<UserDto> toPublicUsers(List<UserDto> users) {
-        for (UserDto user :
-                users) {
-            user.setPassword("");
-            user.setSession_code("");
+        for (UserDto user : users) {
+            toPublicUser(user);
         }
         return users;
+    }
+
+    private UserDto toPublicUser(UserDto user) {
+        user.setPassword("");
+        user.setSession_code("");
+        return user;
     }
 
     private String generateSessionCode(UserDto user) {

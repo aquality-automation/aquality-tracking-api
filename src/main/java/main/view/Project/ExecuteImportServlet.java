@@ -51,9 +51,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         setPostResponseHeaders(resp);
         try {
             readParameters(req);
-            Session session = importToken != null
-                    ? new Session(importToken, projectId)
-                    : createSession(req);
+            Session session = createSession(req);
 
             suiteController = session.controllerFactory.getHandler(new TestSuiteDto());
             testRunController = session.controllerFactory.getHandler(new TestRunDto());
@@ -130,6 +128,10 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
     }
 
     private void validateRequest() throws AqualityQueryParameterException {
+        if(importToken != null)
+        {
+            throw new AqualityQueryParameterException("Import Token is deprecated. Follow instructions on the API Token page.");
+        }
 
         if(singleTestRun)
         {

@@ -40,20 +40,6 @@ public class Session {
         controllerFactory = new ControllerFactory(this.user);
     }
 
-    @Deprecated
-    public Session(String apiToken, int projectId) throws AqualityException {
-        user = new UserDto();
-        controllerFactory = new ControllerFactory(user);
-        if(controllerFactory.getHandler(new APITokenDto()).isTokenValid(apiToken, projectId)){
-            ProjectUserDto projectUser = new ProjectUserDto();
-            projectUser.setProject_id(projectId);
-            projectUser.setEngineer(1);
-            projectUser.setViewer(1);
-            user.setProjectUsers(Collections.singletonList(projectUser));
-            controllerFactory = new ControllerFactory(user);
-        }
-    }
-
     public List<ProjectUserDto> getProjectPermissions(){
         return user.getProjectUsers();
     }
