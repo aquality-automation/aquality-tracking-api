@@ -26,13 +26,7 @@ public class BaseServlet extends HttpServlet {
     protected static final String PROJECT_ID_KEY = "project_id";
 
     protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
-        String importToken = getStringQueryParameter(req, "importToken");
-        Integer projectId = getIntegerQueryParameter(req, "projectId");
-        if (importToken != null && projectId != null) {
-            return new Session(importToken, projectId);
-        } else {
-            return new Session(getSessionId(req));
-        }
+        return new Session(getSessionId(req));
     }
 
     private String replacer(String value) {
