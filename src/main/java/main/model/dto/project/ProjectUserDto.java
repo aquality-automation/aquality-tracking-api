@@ -50,4 +50,8 @@ public class ProjectUserDto extends BaseDto {
     public boolean isEditor() {
         return isAdmin() || isManager() || isEngineer();
     }
+
+    public boolean isAdminOrManager() {
+        return isAdmin() || isManager();
+    }
 }
