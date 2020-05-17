@@ -35,14 +35,13 @@ public class UsersServlet extends BaseServlet implements IGet, IPost {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
-        resp.addHeader("Access-Control-Expose-Headers", "id");
-        resp.addHeader("Access-Control-Allow-Headers", "id");
 
         try {
             Session session = createSession(req);
             UserDto user = mapper.mapObject(UserDto.class, getRequestJson(req));
             user = session.controllerFactory.getHandler(user).create(user);
-            resp.setHeader("id", user.getId().toString());
+            setJSONContentType(resp);
+            resp.getWriter().write(mapper.serialize(user));
         } catch (Exception e) {
             handleException(resp, e);
         }

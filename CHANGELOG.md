@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.3.10 (unreleased)
+
+Features:
+  - Update Tests to use Admin API to create preconditions -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/100)
+
+Bugfixes:
+  - Test run View Page performance is bad -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/99)
+  - Change Title on swagger page -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/98)
+  - Swagger: Authorization is impossible due to localhost Servers selection -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/85)
+
 ## 0.3.9 (2020-04-21)
 
 Features:

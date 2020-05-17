@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Update SELECT_TEST_SUITES add project_id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_SUITES`;
+
+            #
+            CREATE PROCEDURE `SELECT_TEST_SUITES`(
+            IN request_test_id VARCHAR(11),
+            IN request_suite_id VARCHAR(11),
+            IN request_project_id VARCHAR(11)
+            )
+            BEGIN
+            Select suite_tests.*, tests.project_id as project_id
+            FROM suite_tests LEFT JOIN tests on test_id = tests.id
+            where (request_test_id = '' OR test_id = request_test_id)
+            AND (request_suite_id = '' OR suite_id = request_suite_id)
+            AND (request_project_id='' OR project_id = request_project_id);
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

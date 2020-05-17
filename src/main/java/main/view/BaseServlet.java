@@ -26,13 +26,7 @@ public class BaseServlet extends HttpServlet {
     protected static final String PROJECT_ID_KEY = "project_id";
 
     protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
-        String importToken = getStringQueryParameter(req, "importToken");
-        Integer projectId = getIntegerQueryParameter(req, "projectId");
-        if (importToken != null && projectId != null) {
-            return new Session(importToken, projectId);
-        } else {
-            return new Session(getSessionId(req));
-        }
+        return new Session(getSessionId(req));
     }
 
     private String replacer(String value) {
@@ -90,9 +84,6 @@ public class BaseServlet extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Methods", "Post");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
-        resp.addHeader("Access-Control-Allow-Credentials", "true");
-        resp.addHeader("Access-Control-Expose-Headers", "ErrorMessage");
-        resp.addHeader("Access-Control-Allow-Headers", "ErrorMessage");
     }
 
     protected void setEncoding(@NotNull HttpServletResponse resp) {
@@ -107,18 +98,12 @@ public class BaseServlet extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Methods", "Delete");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
-        resp.addHeader("Access-Control-Allow-Credentials", "true");
-        resp.addHeader("Access-Control-Expose-Headers", "ErrorMessage");
-        resp.addHeader("Access-Control-Allow-Headers", "ErrorMessage");
     }
 
     protected void setGetResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "Get");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
-        resp.addHeader("Access-Control-Allow-Credentials", "true");
-        resp.addHeader("Access-Control-Expose-Headers", "ErrorMessage");
-        resp.addHeader("Access-Control-Allow-Headers", "ErrorMessage");
         resp.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
         resp.addHeader("Access-Control-Allow-Headers", "Content-Disposition");
     }
@@ -126,9 +111,7 @@ public class BaseServlet extends HttpServlet {
     protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
         resp.addHeader("Access-Control-Allow-Origin", "*");
-        resp.addHeader("Access-Control-Allow-Headers", "Authorization, authorization, ErrorMessage, Disposition");
-        resp.addHeader("Access-Control-Allow-Credentials", "true");
-        resp.addHeader("Access-Control-Expose-Headers", "ErrorMessage");
+        resp.addHeader("Access-Control-Allow-Headers", "Authorization, authorization, Disposition, Content-Type");
         resp.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
         resp.setStatus(204);
     }

@@ -89,8 +89,16 @@ public class TestRunController extends BaseController<TestRunDto> {
 
     @Override
     public boolean delete(TestRunDto template) throws AqualityException {
-        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
+        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isAdminOrManager()) {
             return testRunDao.delete(template);
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to delete Test Run", baseUser);
+        }
+    }
+
+    public boolean delete(List<TestRunDto> template) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(template.get(0).getProject_id()).isAdminOrManager()) {
+            return testRunDao.deleteMultiply(template);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Test Run", baseUser);
         }

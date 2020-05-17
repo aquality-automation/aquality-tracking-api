@@ -108,28 +108,31 @@ public class ResultController extends BaseController<TestResultDto> {
     private List<TestResultDto> fillResults(List<TestResultDto> results) throws AqualityException {
 
         if (results.size() > 0) {
+            int projectId = results.get(0).getProject_id();
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());
             IssueDto issueDto = new IssueDto();
-            issueDto.setProject_id(results.get(0).getProject_id());
+            issueDto.setProject_id(projectId);
             List<IssueDto> issues = issueController.get(issueDto);
 
             TestDto testTemplate = new TestDto();
-            testTemplate.setProject_id(results.get(0).getProject_id());
+            testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
 
             ProjectUserDto projectUserDto = new ProjectUserDto();
-            projectUserDto.setProject_id(results.get(0).getProject_id());
+            projectUserDto.setProject_id(projectId);
+
+            boolean isStepsEnabled = projectController.isStepsEnabled(projectId);
 
             for (TestResultDto result : results) {
-                fillResult(result, finalResults, tests, issues);
+                fillResult(result, finalResults, tests, issues, isStepsEnabled);
             }
         }
 
         return results;
     }
 
-    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests, List<IssueDto> issues) throws AqualityException {
-        if (projectController.isStepsEnabled(result.getProject_id())) {
+    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests, List<IssueDto> issues, boolean isStepsEnabled) throws AqualityException {
+        if (isStepsEnabled) {
             fillResultSteps(result);
         }
 

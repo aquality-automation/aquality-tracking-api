@@ -22,6 +22,7 @@ public class APITokenServlet extends BaseServlet implements IGet {
             APITokenDto tokenDto = new APITokenDto();
             tokenDto.getSearchTemplateFromRequestParameters(req);
             tokenDto.setApi_token(session.controllerFactory.getHandler(tokenDto).create(tokenDto).getApi_token());
+            setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(tokenDto));
         } catch (Exception e) {
             handleException(resp, e);

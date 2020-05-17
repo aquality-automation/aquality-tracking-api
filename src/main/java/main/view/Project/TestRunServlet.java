@@ -44,10 +44,15 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
         setDeleteResponseHeaders(resp);
         try {
             Session session = createSession(req);
-            TestRunDto testRun = new TestRunDto();
-            testRun.setId(Integer.parseInt(req.getParameter("id")));
-            testRun.setProject_id(getProjectId(req));
-            session.controllerFactory.getHandler(testRun).delete(testRun);
+            String requestedJson = getRequestJson(req);
+            if(requestedJson == null || requestedJson.isEmpty()) {
+                TestRunDto testRun = new TestRunDto();
+                testRun.getSearchTemplateFromRequestParameters(req);
+                session.controllerFactory.getHandler(testRun).delete(testRun);
+            } else {
+                List<TestRunDto> testRuns = mapper.mapObjects(TestRunDto.class, requestedJson);
+                session.controllerFactory.getHandler(testRuns.get(0)).delete(testRuns);
+            }
         }catch (Exception e) {
             handleException(resp, e);
         }

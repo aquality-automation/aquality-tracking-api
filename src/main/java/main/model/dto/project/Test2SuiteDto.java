@@ -17,4 +17,7 @@ public class Test2SuiteDto extends BaseDto {
     @DataBaseInsert
     @DataBaseSearchable
     private Integer suite_id;
+    @DataBaseName(name="request_project_id")
+    @DataBaseSearchable
+    private Integer project_id;
 }
