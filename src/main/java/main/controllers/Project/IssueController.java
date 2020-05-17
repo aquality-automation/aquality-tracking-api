@@ -32,7 +32,7 @@ public class IssueController extends BaseController<IssueDto> {
     }
     @Override
     public List<IssueDto> get(IssueDto entity) throws AqualityException {
-        if (baseUser.isManager() || baseUser.getProjectUser(entity.getProject_id()).isViewer()) {
+        if (baseUser.isManager() || baseUser.isAuditAdmin() || baseUser.isAuditor() || baseUser.getProjectUser(entity.getProject_id()).isViewer()) {
             return fillIssues(issueDao.searchAll(entity));
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Issues", baseUser);
