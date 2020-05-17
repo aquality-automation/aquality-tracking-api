@@ -45,7 +45,7 @@ public class TestRunServlet  extends BaseServlet implements IDelete, IPost, IGet
         try {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
-            if(requestedJson == null) {
+            if(requestedJson == null || requestedJson.isEmpty()) {
                 TestRunDto testRun = new TestRunDto();
                 testRun.getSearchTemplateFromRequestParameters(req);
                 session.controllerFactory.getHandler(testRun).delete(testRun);
