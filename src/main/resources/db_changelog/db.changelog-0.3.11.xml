@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="Create test_result_attachments table" author="v.kostyukevich">
+        <sql endDelimiter="#">
+            CREATE TABLE `test_result_attachments` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `path` VARCHAR(500) NOT NULL,
+            `project_id` INT(11) NOT NULL,
+            `test_result_id` INT(11) NOT NULL,
+            `test_run_id` INT(11) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC))
+            ENGINE = InnoDB;
+
+            #
+
+            ALTER TABLE `test_result_attachments`
+            ADD INDEX `result_attach_to_project_idx` (`project_id` ASC),
+            ADD INDEX `result_attach_to_result_idx` (`test_result_id` ASC),
+            ADD INDEX `result_attach_to_test_run_idx` (`test_run_id` ASC);
+
+            #
+
+            ALTER TABLE `test_result_attachments`
+            ADD CONSTRAINT `result_attach_to_project`
+            FOREIGN KEY (`project_id`)
+            REFERENCES `projects` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            ADD CONSTRAINT `result_attach_to_result`
+            FOREIGN KEY (`test_result_id`)
+            REFERENCES `test_results` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+            ADD CONSTRAINT `result_attach_to_test_run`
+            FOREIGN KEY (`test_run_id`)
+            REFERENCES `test_runs` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+        </sql>
+        <rollback>
+            DROP TABLE `test_result_attachments`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create INSERT_TEST_RESULT_ATTACH" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TEST_RESULT_ATTACH`;
+
+            #
+            CREATE PROCEDURE `INSERT_TEST_RESULT_ATTACH` (
+            In request_test_result_id varchar(11),
+            In request_path varchar(500),
+            In request_project_id varchar(11)
+            )
+            BEGIN
+            DECLARE test_run int;
+            SELECT test_run_id INTO @test_run FROM test_results WHERE id=request_test_result_id;
+
+            INSERT INTO test_result_attachments (path, project_id, test_result_id, test_run_id)
+            VALUES (request_path, request_project_id, request_test_result_id, @test_run);
+
+            Select * from test_result_attachments Where id=LAST_INSERT_ID();
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="Create SELECT_TEST_RESULT_ATTACH" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT_ATTACH`;
+
+            #
+            CREATE PROCEDURE `SELECT_TEST_RESULT_ATTACH` (
+            In request_id varchar(11),
+            In request_test_result_id varchar(11),
+            In request_test_run_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM test_result_attachments
+            WHERE (request_test_result_id = '' OR test_result_id=request_test_result_id)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_id = '' OR id=request_id);
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

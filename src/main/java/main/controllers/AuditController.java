@@ -21,16 +21,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AuditController extends BaseController<AuditDto> {
-    private AuditDao auditDao;
-    private AuditStatusDao auditStatusDao;
-    private ServiceDao serviceDao;
-    private ProjectDao projectDao;
-    private AuditorsDao auditorsDao;
-    private AuditCommentsDao auditCommentsDao;
-    private AuditAttachmentsDao auditAttachmentsDao;
-    private AuditStatisticDao auditStatisticDao;
-    private UserDao userDao;
-    private SimpleDateFormat formatter = new SimpleDateFormat("MM.dd.yyyy");
+    private final AuditDao auditDao;
+    private final AuditStatusDao auditStatusDao;
+    private final ServiceDao serviceDao;
+    private final ProjectDao projectDao;
+    private final AuditorsDao auditorsDao;
+    private final AuditCommentsDao auditCommentsDao;
+    private final AuditAttachmentsDao auditAttachmentsDao;
+    private final AuditStatisticDao auditStatisticDao;
+    private final UserDao userDao;
+    private final SimpleDateFormat formatter = new SimpleDateFormat("MM.dd.yyyy");
 
     public AuditController(UserDto user) {
         super(user);

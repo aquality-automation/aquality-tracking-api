@@ -7,7 +7,7 @@ info:
     To Authorize you can use API token that you can create in Aquality Tracking Administration
     - As user name you should use `project:{your project id}`
     - As password you should use API token
-  version: '0.3.10'
+  version: '0.3.11'
   title: 'Aquality Tracking - API documentation'
 
 servers:
@@ -16,7 +16,7 @@ servers:
   - url: '{customURL}/api'
     variables:
       customURL:
-       default: 'http://localhost:8080'
+        default: 'http://localhost:8080'
 
 components:
   securitySchemes:
@@ -387,6 +387,63 @@ paths:
                 $ref: '#/definitions/TestResult'
         400:
           description: 'You have missed one of required parameters you should specify `project_id` AND `id` AND `final_result_id`'
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        401:
+          description: "You've missed your authorization header!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+        403:
+          description: "You have no permissions for selected project!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+  /public/test/result/attachment:
+    post:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'public'
+      summary: 'Add attachment'
+      description: |
+        Create Attachment for specified `test_result_id` and `project_id`.
+      produces:
+        - 'application/json'
+      consumes:
+        - 'multipart/form-data'
+      parameters:
+        - in: query
+          name: project_id
+          description: 'ID of Project'
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: test_result_id
+          description: 'id of test result'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: file
+      responses:
+        200:
+          description: 'Attachment was added'
+        400:
+          description: 'You have missed one of required parameters you should specify `project_id` AND `test_result_id`'
           content:
             application/json:
               schema:

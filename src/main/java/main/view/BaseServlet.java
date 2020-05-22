@@ -81,7 +81,7 @@ public class BaseServlet extends HttpServlet {
     }
 
     protected void setPostResponseHeaders(@NotNull HttpServletResponse resp) {
-        resp.addHeader("Access-Control-Allow-Methods", "Post");
+        resp.addHeader("Access-Control-Allow-Methods", "POST");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
     }
@@ -95,13 +95,13 @@ public class BaseServlet extends HttpServlet {
     }
 
     protected void setDeleteResponseHeaders(@NotNull HttpServletResponse resp) {
-        resp.addHeader("Access-Control-Allow-Methods", "Delete");
+        resp.addHeader("Access-Control-Allow-Methods", "DELETE");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
     }
 
     protected void setGetResponseHeaders(@NotNull HttpServletResponse resp) {
-        resp.addHeader("Access-Control-Allow-Methods", "Get");
+        resp.addHeader("Access-Control-Allow-Methods", "GET");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
         resp.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
