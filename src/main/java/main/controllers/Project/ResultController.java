@@ -3,27 +3,31 @@ package main.controllers.Project;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
+import main.model.db.dao.project.TestResultAttachmentDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.db.dao.project.TestResultStatDao;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResultController extends BaseController<TestResultDto> {
-    private TestResultDao testResultDao;
-    private TestResultStatDao testResultStatDao;
-    private TestController testController;
-    private FinalResultController finalResultController;
-    private ProjectController projectController;
-    private StepController stepController;
-    private StepResultController stepResultController;
-    private IssueController issueController;
+    private final TestResultDao testResultDao;
+    private final TestResultStatDao testResultStatDao;
+    private final TestResultAttachmentDao testResultAttachmentDao;
+    private final TestController testController;
+    private final FinalResultController finalResultController;
+    private final ProjectController projectController;
+    private final StepController stepController;
+    private final StepResultController stepResultController;
+    private final IssueController issueController;
 
     public ResultController(UserDto user) {
         super(user);
         testResultDao = new TestResultDao();
-        testResultStatDao = new TestResultStatDao();
+        testResultStatDao = new TestResultStatDao();;
+        testResultAttachmentDao = new TestResultAttachmentDao();
         testController = new TestController(user);
         finalResultController = new FinalResultController(user);
         projectController = new ProjectController(user);
@@ -54,13 +58,20 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
-
     @Override
     public boolean delete(TestResultDto template) throws AqualityException {
         if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
             return testResultDao.delete(template);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to delete Test Result", baseUser);
+        }
+    }
+
+    public boolean createMultiple(List<TestResultAttachmentDto> listOfAttachments) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(listOfAttachments.get(0).getProject_id()).isEditor()) {
+            return testResultAttachmentDao.createMultiply(listOfAttachments);
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to add Test Result Attachment", baseUser);
         }
     }
 
@@ -85,6 +96,30 @@ public class ResultController extends BaseController<TestResultDto> {
             return testResultStatDao.searchAll(template);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Result Statistic", baseUser);
+        }
+    }
+
+    public TestResultAttachmentDto create(TestResultAttachmentDto attachment) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(attachment.getProject_id()).isEditor()) {
+            return testResultAttachmentDao.create(attachment);
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to add Test Result Attachment", baseUser);
+        }
+    }
+
+    public List<TestResultAttachmentDto> get(TestResultAttachmentDto testResultAttachment) throws AqualityException {
+        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(testResultAttachment.getProject_id()).isViewer()) {
+            return testResultAttachmentDao.searchAll(testResultAttachment);
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to view Test Result Attachment", baseUser);
+        }
+    }
+
+    public boolean delete(TestResultAttachmentDto attachment) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(attachment.getProject_id()).isEditor()) {
+            return testResultAttachmentDao.delete(attachment);
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to delete Test Result Attachment", baseUser);
         }
     }
 
@@ -149,5 +184,4 @@ public class ResultController extends BaseController<TestResultDto> {
         stepResultTemplate.setProject_id(result.getProject_id());
         result.setSteps(stepResultController.get(stepResultTemplate));
     }
-
 }

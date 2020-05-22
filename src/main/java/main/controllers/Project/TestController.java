@@ -51,11 +51,17 @@ public class TestController extends BaseController<TestDto> {
 
         List<TestDto> existingTests = get(searchTemplate);
 
-        if(existingTests.size() > 0) {
+        if(!existingTests.isEmpty()) {
             TestDto existingTest = existingTests.get(0);
             if(existingTest.getSuites() != null) {
-                existingTest.getSuites().stream()
-                        .filter(suite -> suite.getId().equals(test.getSuites().get(0).getId())).findFirst().ifPresent(testSuite -> existingTest.getSuites().add(test.getSuites().get(0)));
+                TestSuiteDto existingSuite = existingTest.getSuites().stream()
+                        .filter(suite -> suite.getId().equals(test.getSuites().get(0).getId()))
+                        .findFirst().orElse(null);
+                if(existingSuite == null) {
+                    List<TestSuiteDto> listOfSuites = existingTest.getSuites();
+                    listOfSuites.add(test.getSuites().get(0));
+                    existingTest.setSuites(listOfSuites);
+                }
             }else {
                 existingTest.setSuites(test.getSuites());
             }
