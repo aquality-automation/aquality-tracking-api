@@ -1,6 +1,7 @@
 package main.view.Audits;
 
 import main.Session;
+import main.exceptions.AqualityException;
 import main.model.dto.audit.AuditAttachmentDto;
 import main.utils.FileUtils;
 import main.utils.PathUtils;
@@ -35,7 +36,7 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
                 resp.getWriter().write(mapper.serialize(attachments));
             } else {
                 resp.setStatus(400);
-                setErrorHeader(resp, "You have no specify Audit ID!");
+                throw new AqualityException("You have no specify Audit ID!");
             }
         }catch (Exception e) {
             handleException(resp, e);
@@ -44,7 +45,7 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
 
     @Override
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
-        setPostResponseHeaders(resp);
+        setDeleteResponseHeaders(resp);
         try {
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("id")) {
@@ -62,9 +63,9 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {
+            setPostResponseHeaders(resp);
             req.setCharacterEncoding(StandardCharsets.UTF_8.toString());
             setEncoding(resp);
-            setPostResponseHeaders(resp);
             Session session = createSession(req);
             if (req.getParameterMap().containsKey("audit_id")) {
                 FileUtils fileUtils = new FileUtils();
@@ -80,7 +81,7 @@ public class AuditAttachmentsServlet extends BaseServlet implements IGet, IPost,
                 session.getAuditController().createMultiply(listOfAttachments);
             } else {
                 resp.setStatus(400);
-                setErrorHeader(resp, "You have no specify Audit ID!");
+                throw new AqualityException("You have no specify Audit ID!");
             }
         } catch (Exception e) {
             handleException(resp, e);

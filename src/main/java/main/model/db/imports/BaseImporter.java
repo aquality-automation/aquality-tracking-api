@@ -1,6 +1,7 @@
 package main.model.db.imports;
 
 import main.controllers.ControllerFactory;
+import main.controllers.Project.IssueController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.*;
 import main.model.dto.project.*;
@@ -11,9 +12,11 @@ import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 class BaseImporter {
     private ControllerFactory controllerFactory;
+    private IssueController issueController;
     private String pattern;
     protected File file;
     private List<IssueDto> issues;
@@ -24,7 +27,8 @@ class BaseImporter {
         controllerFactory = new ControllerFactory(user);
         IssueDto issueTemplate = new IssueDto();
         issueTemplate.setProject_id(this.projectId);
-        issues = controllerFactory.getHandler(issueTemplate).get(issueTemplate);
+        issueController = controllerFactory.getHandler(issueTemplate);
+        issues = issueController.get(issueTemplate);
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
@@ -260,9 +264,18 @@ class BaseImporter {
     private boolean tryFillByIssue(TestResultDto result, List<IssueDto> issues) {
         if (result.getFail_reason() != null) {
             for (IssueDto issue : issues) {
-                if (issue.getExpression() != null && !issue.getStatus_id().equals(4) && RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
-                    result.setIssue_id(issue.getId());
-                    return true;
+                try {
+                    if (issue.getExpression() != null && !issue.getStatus_id().equals(4) && RegexpUtil.match(result.getFail_reason(), issue.getExpression())) {
+                        result.setIssue_id(issue.getId());
+                        return true;
+                    }
+                } catch (PatternSyntaxException regexException) {
+                    issue.setExpression("$blank");
+                    try {
+                        issueController.create(issue);
+                    } catch (AqualityException controllerException) {
+                        System.out.println(String.format("Was not able to fix invalid issue expression: id: %s", issue.getId()));
+                    }
                 }
             }
         }

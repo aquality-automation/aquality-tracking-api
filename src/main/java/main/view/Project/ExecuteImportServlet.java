@@ -78,7 +78,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     @Override
     public void doOptions(HttpServletRequest req, HttpServletResponse resp) {
-        setPostResponseHeaders(resp);
+        setOptionsResponseHeaders(resp);
     }
 
     private void readParameters(HttpServletRequest req) throws AqualityQueryParameterException {
