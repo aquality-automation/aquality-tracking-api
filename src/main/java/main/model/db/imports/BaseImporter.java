@@ -154,19 +154,23 @@ class BaseImporter {
         List<TestDto> completedTests = new ArrayList<>();
 
         for (TestDto test : this.tests) {
-            test.setProject_id(this.projectId);
-            TestDto existingTest = tryGetExistingTest(allTests, test);
+            try {
+                test.setProject_id(this.projectId);
+                TestDto existingTest = tryGetExistingTest(allTests, test);
 
-            if (existingTest != null) {
-                test.setId(existingTest.getId());
-            } else {
-                allTests.add(test);
+                if (existingTest != null) {
+                    test.setId(existingTest.getId());
+                } else {
+                    allTests.add(test);
+                }
+
+                test.setId(controllerFactory.getHandler(test).create(test, false).getId());
+                linkTestToSuite(test);
+
+                completedTests.add(test);
+            } catch (AqualityException exception) {
+                logToImport(String.format("Was not able to create or update test:\n%s\nCreation was failed with error:\n%s", test.getName(), exception.getMessage()));
             }
-
-            test.setId(controllerFactory.getHandler(test).create(test, false).getId());
-            linkTestToSuite(test);
-
-            completedTests.add(test);
         }
         this.tests = completedTests;
 
@@ -207,9 +211,10 @@ class BaseImporter {
             }
             controllerFactory.getHandler(result).create(result);
         } catch (AqualityException e){
-            throw e;
-        } catch (Exception e){
-            throw new AqualityException("Failed on Result Creation for test id: " + result.getTest_id());
+            logToImport(
+                    String.format("Failed on Result Creation for test id:\n%s\nCreation was failed with error:\n%s",
+                    result.getTest_id(),
+                    e.getMessage()));
         }
     }
 
@@ -246,7 +251,10 @@ class BaseImporter {
                 }
             }
         } catch (Exception e){
-            throw new AqualityException("Failed on update Result with similar error");
+            logToImport(
+                    String.format("Failed on predicting fail reason for test id:\n%s\nPrediction was failed with error:\n%s",
+                            result.getTest_id(),
+                            e.getMessage()));
         }
     }
 
