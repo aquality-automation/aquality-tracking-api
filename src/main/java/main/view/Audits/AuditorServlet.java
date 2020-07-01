@@ -24,7 +24,7 @@ public class AuditorServlet extends BaseServlet implements IPost {
             String requestedJson = getRequestJson(req);
             List<AuditorDto> auditors = mapper.mapObjects(AuditorDto.class, requestedJson);
             for (AuditorDto auditorDto :  auditors) {
-                auditorDto.setAudit_id(Integer.parseInt(req.getParameter("audit_id")));
+                auditorDto.setAudit_id(getIntegerQueryParameter(req, "audit_id"));
             }
             session.getAuditController().updateAuditors(auditors);
         }catch (Exception e) {
@@ -34,6 +34,6 @@ public class AuditorServlet extends BaseServlet implements IPost {
 
     @Override
     public void doOptions(HttpServletRequest req, HttpServletResponse resp){
-        setPostResponseHeaders(resp);
+        setOptionsResponseHeaders(resp);
     }
 }

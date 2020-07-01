@@ -95,7 +95,7 @@ public class BaseServlet extends HttpServlet {
     }
 
     protected void setDeleteResponseHeaders(@NotNull HttpServletResponse resp) {
-        resp.addHeader("Access-Control-Allow-Methods", "DELETE");
+        resp.addHeader("Access-Control-Allow-Methods", "DELETE, POST");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
     }
@@ -104,31 +104,22 @@ public class BaseServlet extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Methods", "GET");
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
-        resp.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
-        resp.addHeader("Access-Control-Allow-Headers", "Content-Disposition");
     }
 
     protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp) {
-        resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+        resp.addHeader("Access-Control-Allow-Methods", "OPTIONS, DELETE, POST, GET, PUT");
         resp.addHeader("Access-Control-Allow-Origin", "*");
-        resp.addHeader("Access-Control-Allow-Headers", "Authorization, authorization, Disposition, Content-Type");
-        resp.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
+        resp.addHeader("Access-Control-Allow-Headers", "Authorization, content-type");
         resp.setStatus(204);
     }
 
     private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
         resp.setStatus(401);
-        resp.addHeader("ErrorMessage", !Objects.equals(e.getMessage(), "") ? e.getMessage() : "Are you sure you logged in?");
         setResponseBody(resp, !Objects.equals(e.getMessage(), "") ? e.getMessage() : "Are you sure you logged in?");
     }
 
-    protected void setAuthorizationProblem(@NotNull HttpServletResponse resp) {
-        resp.setStatus(401);
-        resp.addHeader("ErrorMessage", "Are you sure you logged in?");
-    }
-
-    protected void setErrorHeader(@NotNull HttpServletResponse resp, String errorMessage) {
-        resp.addHeader("ErrorMessage", errorMessage);
+    protected void setAuthorizationProblem(@NotNull HttpServletResponse resp) throws AqualityException {
+        setAuthorizationProblem(resp, new Exception("Are you sure you logged in?"));
     }
 
     private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException, AuthenticationException {
@@ -203,7 +194,6 @@ public class BaseServlet extends HttpServlet {
                 case "AqualitySQLException":
                     AqualityException exception = (AqualityException) e;
                     resp.setStatus(exception.getResponseCode());
-                    resp.addHeader("ErrorMessage", exception.getMessage());
                     setResponseBody(resp, new ErrorDto(exception.getMessage()));
                     return;
                 default:
@@ -216,13 +206,11 @@ public class BaseServlet extends HttpServlet {
 
     private void setNotImplementedFunction(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
         resp.setStatus(501);
-        resp.addHeader("ErrorMessage", e.getMessage());
         setResponseBody(resp, new ErrorDto(e.getMessage()));
     }
 
     private void setUnknownIssue(@NotNull HttpServletResponse resp) throws AqualityException {
         resp.setStatus(500);
-        resp.addHeader("ErrorMessage", "Unknown Issue.");
         setResponseBody(resp, new ErrorDto("Unknown Issue."));
     }
 

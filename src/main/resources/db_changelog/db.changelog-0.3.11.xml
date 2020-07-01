@@ -95,4 +95,45 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Update SELECT_RESULTS_STAT with issue" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_RESULTS_STAT`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_RESULTS_STAT`(
+            In request_project_id varchar(11),
+            In request_testrun_started_from_date varchar(25),
+            In request_testrun_started_to_date varchar(25)
+            )
+            BEGIN
+            Select test_results.test_run_id,
+            test_runs.start_time as test_run_started,
+            tests.name,
+            final_results.name as status,
+            result_resolution.name as resolution,
+            issue_assignee.user_name as issue_assignee,
+            developer.user_name as developer_name,
+            issues.id as issue_id,
+            issues.title as issue_title
+
+            FROM test_results
+            LEFT JOIN final_results ON final_result_id = final_results.id
+            LEFT JOIN issues ON issue_id = issues.id
+            LEFT JOIN result_resolution ON issues.resolution_id = result_resolution.id
+            LEFT JOIN tests ON test_id = tests.id
+            LEFT JOIN test_runs ON test_run_id = test_runs.id
+            LEFT JOIN users as issue_assignee ON issues.assignee_id = issue_assignee.id
+            LEFT JOIN users as developer ON tests.developer_id = developer.id
+
+            where test_results.project_id = request_project_id
+            AND (request_testrun_started_from_date='' OR test_runs.start_time &gt;=  CAST(request_testrun_started_from_date AS DATETIME))
+            AND (request_testrun_started_to_date='' OR test_runs.start_time &lt;=  CAST(request_testrun_started_to_date AS DATETIME));
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
