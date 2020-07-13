@@ -74,4 +74,5 @@ public class TestResultDto extends BaseDto {
     @DataBaseInsert
     private Integer issue_id;
     private IssueDto issue;
+    private List<TestResultAttachmentDto> attachments;
 }

@@ -136,4 +136,29 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="Update SELECT_TEST_RESULT_ATTACH with project_id" author="v.kostyukevich">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT_ATTACH`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_RESULT_ATTACH`(
+            In request_id varchar(11),
+            In request_test_result_id varchar(11),
+            In request_test_run_id varchar(11),
+            In request_project_id varchar(11)
+            )
+            BEGIN
+            SELECT * FROM test_result_attachments
+            WHERE (request_test_result_id = '' OR test_result_id=request_test_result_id)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id=request_project_id);
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
