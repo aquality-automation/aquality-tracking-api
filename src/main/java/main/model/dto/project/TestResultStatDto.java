@@ -26,7 +26,8 @@ public class TestResultStatDto extends BaseDto {
     private String name;
     private String status;
     private String resolution;
-    private String assignee;
-    private String developer;
-    private String comment;
+    private String issue_assignee;
+    private String developer_name;
+    private String issue_id;
+    private String issue_title;
 }

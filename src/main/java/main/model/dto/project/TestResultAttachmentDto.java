@@ -2,6 +2,7 @@ package main.model.dto.project;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import main.annotations.DataBaseID;
 import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
@@ -15,6 +16,7 @@ public class TestResultAttachmentDto extends AttachmentDto {
     @DataBaseInsert
     private Integer test_result_id;
 
+    @DataBaseID
     @DataBaseName(name = "request_project_id")
     @DataBaseSearchable
     @DataBaseInsert
@@ -23,4 +25,10 @@ public class TestResultAttachmentDto extends AttachmentDto {
     @DataBaseName(name = "request_test_run_id")
     @DataBaseSearchable
     private Integer test_run_id;
+
+    @DataBaseID
+    @DataBaseName(name = "request_id")
+    private Integer id;
+
+    private String url;
 }

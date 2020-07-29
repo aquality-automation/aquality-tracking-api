@@ -1,6 +1,7 @@
 package main.view.Audits;
 
 import main.Session;
+import main.exceptions.AqualityException;
 import main.model.dto.audit.AuditAttachmentDto;
 import main.view.BaseServlet;
 import main.view.IGet;
@@ -28,7 +29,7 @@ public class AuditDownloadAttachmentServlet extends BaseServlet implements IGet 
                 processResponse(resp, auditAttachments.get(0).getPath());
             } else {
                 resp.setStatus(400);
-                setErrorHeader(resp, "You have no specify Attachment ID");
+                throw new AqualityException("You have no specify Attachment ID");
             }
         }catch (Exception e) {
             handleException(resp, e);
