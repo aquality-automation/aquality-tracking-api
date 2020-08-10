@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="JustTest" time="30" tests="10" errors="0" skipped="0" failures="3">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="JustTest" time="30" tests="10" errors="1" skipped="0" failures="3">
   <properties>
     <property name="sun.desktop" value="windows"/>
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
@@ -65,7 +65,14 @@
   <testcase name="passedMethod1[0]" classname="JustTest" time="10"/>
   <testcase name="passedMethod2[0]" classname="JustTest" time="1"/>
   <testcase name="passedMethod3[0]" classname="JustTest" time="1"/>
-  <testcase name="failedMethod1[0]" classname="JustTest" time="1"/>
+  <testcase name="failedWithError" classname="JustTest" time="10">
+    <error type="org.awaitility.core.ConditionTimeoutException">
+      <![CDATA[org.awaitility.core.ConditionTimeoutException: Failed to instantiate alt unity driver on device on appium-jenkins-a-client-autotests-surefire-6-9:13000 within 40 seconds ]]>
+    </error>
+    <system-err>
+      <![CDATA[Aug 05, 2020 1:11:26 PM io.appium.java_client.remote.AppiumCommandExecutor$1 lambda$0 INFO: Detected dialect: W3C ]]>
+    </system-err>
+  </testcase>
   <testcase name="failedMethod2[0]" classname="JustTest" time="30">
     <failure message="Failed" type="java.lang.AssertionError">java.lang.AssertionError: Failed
 	at JustTest.failedMethod2(JustTest.java:31)

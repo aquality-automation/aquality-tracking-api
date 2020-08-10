@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 1.0.0 (Unreleased)
+## 1.0.1
+
+Bugfixes:
+  - [API] Incorrect Error status code processing [JUnit5] (https://github.com/aquality-automation/aquality-tracking/issues/112)
+
+## 1.0.0
 
 Features:
   - Migrate to Angular 9 -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/101)
