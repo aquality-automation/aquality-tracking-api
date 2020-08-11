@@ -4,6 +4,7 @@
 
 Bugfixes:
   - [API] Incorrect Error status code processing [JUnit5] (https://github.com/aquality-automation/aquality-tracking/issues/112)
+  - [API] Incorrect Skipped status code processing [JUnit5] (https://github.com/aquality-automation/aquality-tracking/issues/111)
 
 ## 1.0.0
 
