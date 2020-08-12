@@ -9,7 +9,6 @@ import main.model.db.dao.project.TestResultStatDao;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ResultController extends BaseController<TestResultDto> {

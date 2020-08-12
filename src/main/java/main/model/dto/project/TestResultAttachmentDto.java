@@ -16,7 +16,6 @@ public class TestResultAttachmentDto extends AttachmentDto {
     private Integer test_result_id;
 
     @DataBaseName(name = "request_project_id")
-    @DataBaseSearchable
     @DataBaseInsert
     private Integer project_id;
 
