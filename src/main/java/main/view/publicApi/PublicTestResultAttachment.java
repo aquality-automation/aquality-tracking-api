@@ -58,8 +58,6 @@ public class PublicTestResultAttachment extends BaseServlet implements IPost {
         }
     }
 
-
-
     private void validatePost(TestResultAttachmentDto attachment) throws AqualityParametersException {
         if(attachment.getProject_id() == null) {
             throw new AqualityParametersException("You should specify 'project_id'!");
