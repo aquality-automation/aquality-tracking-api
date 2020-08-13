@@ -1,7 +1,7 @@
 package tests.workers.imports.TestNG;
 
 import main.model.db.imports.Handler;
-import main.model.db.imports.ImportHandlers.JavaJUnitTestNG;
+import main.model.db.imports.ImportHandlers.MavenSurefireHandler;
 import main.model.db.imports.TestNameNodeType;
 import org.testng.annotations.BeforeMethod;
 import tests.workers.imports.IHandlerTest;
@@ -11,11 +11,11 @@ import static org.testng.Assert.fail;
 
 public class ClassNameTestNGHandlerTest implements IHandlerTest {
 
-    private JavaJUnitTestNG javaJUnitTestNGHandler;
+    private MavenSurefireHandler mavenSurefireHandlerHandler;
 
     @Override
     public Handler getHandler() {
-        return javaJUnitTestNGHandler;
+        return mavenSurefireHandlerHandler;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class ClassNameTestNGHandlerTest implements IHandlerTest {
     @Override
     public void tryParse() {
         try {
-            javaJUnitTestNGHandler = new JavaJUnitTestNG(FileUtils.getResourceFile(getFilePath("TEST-TestSuite.xml")), TestNameNodeType.className, getFinishTime());
+            mavenSurefireHandlerHandler = new MavenSurefireHandler(FileUtils.getResourceFile(getFilePath("TEST-TestSuite.xml")), TestNameNodeType.className, getFinishTime());
         } catch (Exception e) {
             fail(String.format("Failed on Handler Creating: %s", e.getMessage()), e);
         }

@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 import static main.model.db.imports.ResultStatus.*;
 
-public class JavaJUnitTestNGHandler extends Handler {
+public class MavenSurefireSaxHandler extends Handler {
     private TestSuiteDto testSuite = new TestSuiteDto();
     private List<TestResultDto> results = new ArrayList<>();
     private TestResultDto result;
@@ -27,7 +27,7 @@ public class JavaJUnitTestNGHandler extends Handler {
 
     private static final String BLANK_RESULT = "$blank";
 
-    public JavaJUnitTestNGHandler(TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
+    public MavenSurefireSaxHandler(TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
         super();
         this.testNameNodeType = testNameNodeType;
         testRun.setFinish_time(finishTime);
