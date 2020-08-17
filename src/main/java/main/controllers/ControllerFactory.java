@@ -78,4 +78,7 @@ public class ControllerFactory {
     public IssueController getHandler(IssueDto entity) {
         return new IssueController(user);
     }
+    public TestResultAttachmentController getHandler(TestResultAttachmentDto entity) {
+        return new TestResultAttachmentController(user);
+    }
 }
