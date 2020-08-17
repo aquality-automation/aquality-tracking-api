@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-public class JavaJUnitTestNG extends Handler{
+public class JavaJUnitTestNG extends Handler {
     private JavaJUnitTestNGHandler handler;
 
     public JavaJUnitTestNG(File file, TestNameNodeType testNameNodeType, Date finishTime) throws AqualityException {
@@ -23,7 +23,9 @@ public class JavaJUnitTestNG extends Handler{
         try {
             this.parser.parse(file, handler);
         } catch (SAXException | IOException e) {
-            throw new AqualityException("Cannot Parse TestNG file");
+            throw new AqualityException(String.format("Cannot parse file '%1$s'. Error: %2$s",
+                    file.getName(),
+                    e.getMessage()));
         }
     }
 
@@ -46,8 +48,8 @@ public class JavaJUnitTestNG extends Handler{
     public List<TestResultDto> getTestResults() {
         return handler.getTestResults();
     }
-    
-    public void setTestRun(TestRunDto testRun){
+
+    public void setTestRun(TestRunDto testRun) {
         handler.setTestRun(testRun);
     }
 }

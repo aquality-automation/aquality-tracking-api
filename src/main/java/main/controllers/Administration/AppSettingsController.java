@@ -1,5 +1,6 @@
 package main.controllers.Administration;
 
+import main.World;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
@@ -52,7 +53,9 @@ public class AppSettingsController extends BaseController<AppSettingsDto> {
     @Override
     public AppSettingsDto create(AppSettingsDto template) throws AqualityException {
         if (baseUser.isAdmin()) {
-            return appSettingsDao.create(template);
+            AppSettingsDto appSettingsDto = appSettingsDao.create(template);
+            World.updateInstance();
+            return appSettingsDto;
         } else {
             throw new AqualityPermissionsException("Account is not allowed to update Application Settings", baseUser);
         }

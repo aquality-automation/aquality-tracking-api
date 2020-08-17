@@ -10,6 +10,7 @@ import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResultController extends BaseController<TestResultDto> {
     private final TestResultDao testResultDao;
@@ -152,20 +153,24 @@ public class ResultController extends BaseController<TestResultDto> {
             testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
 
+            TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
+            testResultAttachmentTemplate.setProject_id(projectId);
+            List<TestResultAttachmentDto> testResultAttachments = get(testResultAttachmentTemplate);
+
             ProjectUserDto projectUserDto = new ProjectUserDto();
             projectUserDto.setProject_id(projectId);
 
             boolean isStepsEnabled = projectController.isStepsEnabled(projectId);
 
             for (TestResultDto result : results) {
-                fillResult(result, finalResults, tests, issues, isStepsEnabled);
+                fillResult(result, finalResults, tests, issues, testResultAttachments, isStepsEnabled);
             }
         }
 
         return results;
     }
 
-    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests, List<IssueDto> issues, boolean isStepsEnabled) throws AqualityException {
+    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests, List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled) throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
         }
@@ -175,6 +180,7 @@ public class ResultController extends BaseController<TestResultDto> {
         if(result.getIssue_id() != null) {
             result.setIssue(issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
         }
+        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId())).collect(Collectors.toList()));
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {

@@ -27,7 +27,7 @@ public class AqualitySQLException extends AqualityException {
                 }
                 return String.format("You have missed required parameter: %s", exception.getMessage());
             case "HY000":
-                return "Your Data Base does not support UTF characters, please contact administrator to allow it.";
+                return String.format("Data base error: %s", exception.getMessage());
             case "42S02":
                 return "There is some missed table in your Data Base, please contact administrator.";
             case "S1000":

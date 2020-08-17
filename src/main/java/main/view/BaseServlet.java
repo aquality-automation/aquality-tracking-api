@@ -1,6 +1,7 @@
 package main.view;
 
 import main.Session;
+import main.World;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityQueryParameterException;
 import main.model.dto.DtoMapperGeneral;
@@ -9,11 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.naming.AuthenticationException;
 import javax.servlet.ServletContext;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -24,6 +27,7 @@ public class BaseServlet extends HttpServlet {
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
     protected static final String PROJECT_ID_KEY = "project_id";
+
 
     protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
         return new Session(getSessionId(req));
@@ -82,7 +86,7 @@ public class BaseServlet extends HttpServlet {
 
     protected void setPostResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "POST");
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader("Access-Control-Allow-Origin", getOrigin());
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
     }
 
@@ -96,21 +100,28 @@ public class BaseServlet extends HttpServlet {
 
     protected void setDeleteResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "DELETE, POST");
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        resp.addHeader("Access-Control-Allow-Origin", getOrigin());
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
     }
 
     protected void setGetResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Methods", "GET");
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        resp.addHeader("Access-Control-Allow-Origin", getOrigin());
         resp.addHeader("Access-Control-Allow-Headers", "Authorization");
     }
 
     protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp) {
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
         resp.addHeader("Access-Control-Allow-Methods", "OPTIONS, DELETE, POST, GET, PUT");
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader("Access-Control-Allow-Origin",getOrigin());
         resp.addHeader("Access-Control-Allow-Headers", "Authorization, content-type");
         resp.setStatus(204);
+    }
+
+    private String getOrigin(){
+        return World.getInstance().getBaseURL() != null ? World.getInstance().getBaseURL() : "*";
     }
 
     private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
@@ -124,10 +135,20 @@ public class BaseServlet extends HttpServlet {
 
     private String getSessionId(@NotNull HttpServletRequest req) throws AqualityException, AuthenticationException {
         String header = req.getHeader("Authorization");
+        Cookie[] cookies = req.getCookies();
         if (header != null) {
             validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
+        } else if(cookies != null){
+            Cookie iio78 = Arrays.stream(cookies).filter(x -> x.getName().equals("iio78")).findFirst().orElse(null);
+            if(iio78 != null) {
+                try{
+                    return URLDecoder.decode(iio78.getValue(), "utf-8");
+                } catch (UnsupportedEncodingException e){
+                    throw new AuthenticationException("Your cookie is wrong!");
+                }
+            }
         }
         throw new AuthenticationException("You've missed your authorization header!");
     }
