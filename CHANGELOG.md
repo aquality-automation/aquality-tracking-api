@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.0.2 (2020-08-18)
+
+Changes: 
+  - Added new import type - Maven Surefire, it will be used for JUnit/TestNG Java projects
+
 ## 1.0.1
 
 Bugfixes:
