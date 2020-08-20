@@ -14,9 +14,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,29 +26,20 @@ public class TestResultAttachmentServlet extends BaseServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         setGetResponseHeaders(resp);
-        ServletContext context= req.getServletContext();
+        setEncoding(resp);
         try {
             Session session = createSession(req);
-            TestResultAttachmentDto testResultAttachmentDto = new TestResultAttachmentDto();
-            testResultAttachmentDto.getSearchTemplateFromRequestParameters(req);
-            List<TestResultAttachmentDto> attachments = session.controllerFactory.getHandler(new TestResultDto()).get(testResultAttachmentDto);
-            if (attachments.size() > 0) {
-                TestResultAttachmentDto attachment = attachments.get(0);
-                String mime = context.getMimeType(attachment.getPath());
-                File file = new File(attachment.getPath());
-                resp.setContentLength((int)file.length());
-                resp.setContentType(mime);
-
-                FileInputStream in = new FileInputStream(file);
-                OutputStream out = resp.getOutputStream();
-                byte[] buf = new byte[1024];
-                int count;
-                while ((count = in.read(buf)) >= 0) {
-                    out.write(buf, 0, count);
-                }
-                out.close();
-                in.close();
-            }
+            TestResultAttachmentDto attachTemplate = new TestResultAttachmentDto();
+            attachTemplate.setId(getIntegerQueryParameter(req, "id"));
+            attachTemplate.setProject_id(getIntegerQueryParameter(req, "project_id"));
+            validateGet(attachTemplate);
+            TestResultAttachmentDto attachmentDto = session.controllerFactory.getHandler(attachTemplate).get(attachTemplate).get(0);
+            File file = new File(attachmentDto.getPath());
+            ServletContext context = getServletContext();
+            attachmentDto.setAttachment(Files.readAllBytes(file.toPath()));
+            attachmentDto.setMimeType(context.getMimeType(attachmentDto.getPath()));
+            setJSONContentType(resp);
+            resp.getWriter().write(mapper.serialize(attachmentDto));
         }catch (Exception e) {
             handleException(resp, e);
         }
