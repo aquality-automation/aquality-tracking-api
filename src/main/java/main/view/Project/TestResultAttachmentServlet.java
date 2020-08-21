@@ -33,11 +33,14 @@ public class TestResultAttachmentServlet extends BaseServlet {
             attachTemplate.setId(getIntegerQueryParameter(req, "id"));
             attachTemplate.setProject_id(getIntegerQueryParameter(req, "project_id"));
             validateGet(attachTemplate);
-            TestResultAttachmentDto attachmentDto = session.controllerFactory.getHandler(attachTemplate).get(attachTemplate).get(0);
-            File file = new File(attachmentDto.getPath());
             ServletContext context = getServletContext();
+            TestResultAttachmentDto attachmentDto = session.controllerFactory.getHandler(attachTemplate).get(attachTemplate).get(0);
+
+            File file = new File(attachmentDto.getPath());
             attachmentDto.setAttachment(Files.readAllBytes(file.toPath()));
             attachmentDto.setMimeType(context.getMimeType(attachmentDto.getPath()));
+            attachmentDto.setPath(null);
+
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(attachmentDto));
         }catch (Exception e) {
@@ -53,7 +56,7 @@ public class TestResultAttachmentServlet extends BaseServlet {
             TestResultAttachmentDto testResultAttachmentDto = new TestResultAttachmentDto();
             testResultAttachmentDto.getIDTemplateFromRequestParameters(req);
             validateDelete(testResultAttachmentDto);
-            session.controllerFactory.getHandler(new TestResultDto()).delete(testResultAttachmentDto);
+            session.controllerFactory.getHandler(new TestResultAttachmentDto()).delete(testResultAttachmentDto);
         } catch (Exception e) {
             handleException(resp, e);
         }

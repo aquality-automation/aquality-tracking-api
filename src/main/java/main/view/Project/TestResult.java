@@ -41,6 +41,9 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.getSearchTemplateFromRequestParameters(req);
             List<TestResultDto> testResults = session.controllerFactory.getHandler(testResultTemplate).get(testResultTemplate);
+            testResults.forEach(
+                    testResultDto -> testResultDto.getAttachments().
+                    forEach(testResultAttachmentDto -> testResultAttachmentDto.setPath(null)));
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(testResults));
         }catch (Exception e) {

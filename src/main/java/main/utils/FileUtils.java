@@ -8,12 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 public class FileUtils {
@@ -22,15 +18,15 @@ public class FileUtils {
         List<String> files = new ArrayList<>();
         new File(destination).mkdirs();
         Collection<Part> parts = request.getParts();
-        for (Part filePart:parts) {
-            System.out.printf("part Type: %s",filePart.getContentType());
+        for (Part filePart : parts) {
+            System.out.printf("part Type: %s", filePart.getContentType());
             OutputStream out = null;
             InputStream fileContent = null;
             PrintWriter writer = response.getWriter();
             String fileName = getFileName(filePart);
 
             try {
-                String filePath = PathUtils.createPath(destination, fileName);
+                String filePath = PathUtils.getUniquePath(PathUtils.createPath(destination, fileName));
                 out = new FileOutputStream(new File(filePath));
                 fileContent = filePart.getInputStream();
                 int read;
@@ -57,13 +53,13 @@ public class FileUtils {
         return files;
     }
 
-    public void removeFiles(List<String> filePaths){
-        for (String path : filePaths){
+    public void removeFiles(List<String> filePaths) {
+        for (String path : filePaths) {
             removeFile(path);
         }
     }
 
-    public void removeFile(String path){
+    public void removeFile(String path) {
         new File(path).delete();
     }
 
