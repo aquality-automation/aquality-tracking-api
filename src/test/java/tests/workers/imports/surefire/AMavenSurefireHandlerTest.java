@@ -1,4 +1,4 @@
-package tests.workers.imports.JUnit;
+package tests.workers.imports.surefire;
 
 import main.model.db.imports.Handler;
 import main.model.db.imports.ImportHandlers.MavenSurefireHandler;
@@ -9,16 +9,18 @@ import utils.FileUtils;
 
 import static org.testng.Assert.fail;
 
-public abstract class AJUnitHandlerTest implements IHandlerTest {
+public abstract class AMavenSurefireHandlerTest implements IHandlerTest {
     private MavenSurefireHandler mavenSurefireHandler;
     private final String actualFileName;
     private final String resultsFileName;
     private final TestNameNodeType type;
+    private final String reportPath;
 
-    AJUnitHandlerTest(TestNameNodeType type, String actualFileName, String expectedFileName) {
+    AMavenSurefireHandlerTest(TestNameNodeType type, String actualFileName, String expectedFileName, String reportPath) {
         this.type = type;
         this.actualFileName = actualFileName;
         this.resultsFileName = expectedFileName;
+        this.reportPath = reportPath;
     }
 
     @Override
@@ -28,7 +30,7 @@ public abstract class AJUnitHandlerTest implements IHandlerTest {
 
     @Override
     public String getReportPath() {
-        return "reports/JUnit/";
+        return reportPath;
     }
 
     @Override
