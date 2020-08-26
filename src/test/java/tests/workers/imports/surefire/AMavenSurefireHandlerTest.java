@@ -1,7 +1,7 @@
-package tests.workers.imports.JUnit;
+package tests.workers.imports.surefire;
 
 import main.model.db.imports.Handler;
-import main.model.db.imports.ImportHandlers.JavaJUnitTestNG;
+import main.model.db.imports.ImportHandlers.MavenSurefireHandler;
 import main.model.db.imports.TestNameNodeType;
 import org.testng.annotations.BeforeMethod;
 import tests.workers.imports.IHandlerTest;
@@ -9,26 +9,28 @@ import utils.FileUtils;
 
 import static org.testng.Assert.fail;
 
-public abstract class AJUnitHandlerTest implements IHandlerTest {
-    private JavaJUnitTestNG javaJUnitTestNG;
+public abstract class AMavenSurefireHandlerTest implements IHandlerTest {
+    private MavenSurefireHandler mavenSurefireHandler;
     private final String actualFileName;
     private final String resultsFileName;
     private final TestNameNodeType type;
+    private final String reportPath;
 
-    AJUnitHandlerTest(TestNameNodeType type, String actualFileName, String expectedFileName) {
+    AMavenSurefireHandlerTest(TestNameNodeType type, String actualFileName, String expectedFileName, String reportPath) {
         this.type = type;
         this.actualFileName = actualFileName;
         this.resultsFileName = expectedFileName;
+        this.reportPath = reportPath;
     }
 
     @Override
     public Handler getHandler() {
-        return javaJUnitTestNG;
+        return mavenSurefireHandler;
     }
 
     @Override
     public String getReportPath() {
-        return "reports/JUnit/";
+        return reportPath;
     }
 
     @Override
@@ -39,7 +41,7 @@ public abstract class AJUnitHandlerTest implements IHandlerTest {
     @BeforeMethod
     public void tryParse() {
         try {
-            javaJUnitTestNG = new JavaJUnitTestNG(FileUtils.getResourceFile(getFilePath(actualFileName)), type, getFinishTime());
+            mavenSurefireHandler = new MavenSurefireHandler(FileUtils.getResourceFile(getFilePath(actualFileName)), type, getFinishTime());
         } catch (Exception e) {
             fail(String.format("Failed on Handler Creating: %s", e.getMessage()), e);
         }

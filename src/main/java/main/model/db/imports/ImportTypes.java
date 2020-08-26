@@ -9,5 +9,6 @@ public enum ImportTypes {
     TestNGCucumber,
     PHPCodeception,
     NUnit_v2,
-    NUnit_v3
+    NUnit_v3,
+    MavenSurefire
 }
