@@ -5,6 +5,7 @@ import main.controllers.Administration.AdministrationController;
 import main.controllers.Administration.AppSettingsController;
 import main.controllers.Project.ProjectController;
 import main.controllers.Project.ProjectUserController;
+import main.controllers.Project.TestResultAttachmentController;
 import main.exceptions.AqualityException;
 import main.model.db.dao.project.UserDao;
 import main.model.db.imports.Importer;
@@ -58,6 +59,10 @@ public class Session {
 
     public AuditController getAuditController() {
         return new AuditController(user);
+    }
+
+    public TestResultAttachmentController getTestResultAttachmentController() {
+        return new TestResultAttachmentController(user);
     }
 
     public AdministrationController getAdministrationController() {
