@@ -28,6 +28,8 @@ public class Cucumber extends Handler{
         private Date dateCounter;
         private boolean previousWasBackground = false;
         private TestDto currentTest;
+        private Date startTime = new Date();
+        private Date finishTime = new Date(0);
 
         public Cucumber(@NotNull File file, Date finishTime) throws AqualityException {
             super();
@@ -45,9 +47,14 @@ public class Cucumber extends Handler{
 
         private void handleTestRun() {
             testRun = new TestRunDto();
-            testRun.setFinish_time(dateCounter);
-            features.forEach(this::handleFeature);
             testRun.setStart_time(dateCounter);
+            features.forEach(this::handleFeature);
+            testRun.setFinish_time(dateCounter);
+
+            if(!finishTime.equals(new Date(0))){
+                testRun.setStart_time(startTime);
+                testRun.setFinish_time(finishTime);
+            }
         }
 
         private void handleFeature(@NotNull FeatureDto feature) {
@@ -58,6 +65,9 @@ public class Cucumber extends Handler{
         }
 
         private void handleScenario(@NotNull ScenarioDto scenario) {
+            if(scenario.getStart_timestamp() != null){
+                startTime = scenario.getStart_timestamp().before(startTime) ? scenario.getStart_timestamp() : startTime;
+            }
             String type = scenario.getType()==null ? scenario.getKeyword().toLowerCase() :scenario.getType();
             if(Objects.equals(type, "background")){
                 previousWasBackground = true;
@@ -82,6 +92,13 @@ public class Cucumber extends Handler{
                 if(scenario.getAfter() != null) scenario.getAfter().forEach(this::handleStep);
                 dateCounter = dateUtils.removeMS(dateCounter, testTime);
                 currentResult.setStart_date(dateCounter);
+
+                if(scenario.getStart_timestamp() != null){
+                    finishTime = Date.from(scenario.getStart_timestamp().toInstant().plusMillis(testTime)).after(finishTime)
+                            ? Date.from(scenario.getStart_timestamp().toInstant().plusMillis(testTime))
+                            : finishTime;
+                }
+
                 testTime = 0;
                 tests.add(currentTest);
                 results.add(currentResult);
