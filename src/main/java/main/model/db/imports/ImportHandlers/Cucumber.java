@@ -28,8 +28,8 @@ public class Cucumber extends Handler{
         private Date dateCounter;
         private boolean previousWasBackground = false;
         private TestDto currentTest;
-        private Date startTime = new Date();
-        private Date finishTime = new Date(0);
+        private Date testRunStartTime = new Date();
+        private Date testRunFinishTime = new Date(0);
 
         public Cucumber(@NotNull File file, Date finishTime) throws AqualityException {
             super();
@@ -51,9 +51,9 @@ public class Cucumber extends Handler{
             features.forEach(this::handleFeature);
             testRun.setFinish_time(dateCounter);
 
-            if(!finishTime.equals(new Date(0))){
-                testRun.setStart_time(startTime);
-                testRun.setFinish_time(finishTime);
+            if(!testRunFinishTime.equals(new Date(0))){
+                testRun.setStart_time(testRunStartTime);
+                testRun.setFinish_time(testRunFinishTime);
             }
         }
 
@@ -65,9 +65,6 @@ public class Cucumber extends Handler{
         }
 
         private void handleScenario(@NotNull ScenarioDto scenario) {
-            if(scenario.getStart_timestamp() != null){
-                startTime = scenario.getStart_timestamp().before(startTime) ? scenario.getStart_timestamp() : startTime;
-            }
             String type = scenario.getType()==null ? scenario.getKeyword().toLowerCase() :scenario.getType();
             if(Objects.equals(type, "background")){
                 previousWasBackground = true;
@@ -94,9 +91,7 @@ public class Cucumber extends Handler{
                 currentResult.setStart_date(dateCounter);
 
                 if(scenario.getStart_timestamp() != null){
-                    finishTime = Date.from(scenario.getStart_timestamp().toInstant().plusMillis(testTime)).after(finishTime)
-                            ? Date.from(scenario.getStart_timestamp().toInstant().plusMillis(testTime))
-                            : finishTime;
+                    updateTestRunTime(scenario.getStart_timestamp());
                 }
 
                 testTime = 0;
@@ -117,6 +112,13 @@ public class Cucumber extends Handler{
                 return Integer.parseInt(String.valueOf(step.getResult().getDuration() / 1000000));
             }
             return (0);
+        }
+
+        private void updateTestRunTime(Date scenarioStartTime){
+            testRunStartTime = scenarioStartTime.before(testRunStartTime) ? scenarioStartTime : testRunStartTime;
+            testRunFinishTime = Date.from(scenarioStartTime.toInstant().plusMillis(testTime)).after(testRunFinishTime)
+                    ? Date.from(scenarioStartTime.toInstant().plusMillis(testTime))
+                    : testRunFinishTime;
         }
 
         private void handleStep(@NotNull StepDto step) {

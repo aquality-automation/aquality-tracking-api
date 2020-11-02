@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.0.4 (2020-11-02)
+
+Bugfixes:
+  - Changed testRun start and finish time calculation for Cucumber version 4.3.0+ -> [View Issue](https://github.com/aquality-automation/aquality-tracking/issues/125)
+
 ## 1.0.3 (2020-08-27)
 
 Features: 
