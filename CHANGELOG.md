@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.1.0 (2020-12-02)
+Features:
+- Added option to enable/disable 'STARTTLS' in the email settings
+- Refactored email utilities class
+
 ## 1.0.4 (2020-11-02)
 
 Bugfixes:

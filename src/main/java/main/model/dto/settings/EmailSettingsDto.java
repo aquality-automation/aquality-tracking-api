@@ -32,10 +32,25 @@ public class EmailSettingsDto extends BaseDto {
     @DataBaseName(name="request_use_auth")
     @DataBaseInsert
     private Integer use_auth;
+    @DataBaseName(name="request_starttls")
+    @DataBaseInsert
+    private Integer starttls;
     @DataBaseName(name="request_default_email_pattern")
     @DataBaseInsert
     private String default_email_pattern;
     @DataBaseName(name="request_base_url")
     @DataBaseInsert
     private String base_url;
+
+    public boolean isStartTlsEnabled(){
+        return isPropertyEnabled(starttls);
+    }
+
+    public boolean isSmtpAuthEnabled(){
+        return isPropertyEnabled(use_auth);
+    }
+
+    private boolean isPropertyEnabled(Integer property){
+        return property != null && property.equals(1);
+    }
 }
