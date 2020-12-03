@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="adding column starttls to email_settings table" author="d.bogatko">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'email_settings' AND table_schema = 'union_reporting' AND column_name = 'starttls';
+            </sqlCheck>
+        </preConditions>
+        <sql endDelimiter="#">
+            ALTER TABLE `union_reporting`.`email_settings` ADD COLUMN starttls INTEGER DEFAULT 0 AFTER use_auth;
+        </sql>
+        <rollback>
+            ALTER TABLE `union_reporting`.`email_settings` DROP COLUMN starttls;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="updating INSERT_EMAIL_SETTINGS procedure by adding starttls parameter" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_EMAIL_SETTINGS`;
+            #
+            CREATE PROCEDURE `INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN request_use_auth varchar(1),
+            IN request_starttls varchar(1),
+            IN request_default_email_pattern varchar(50),
+            IN request_base_url varchar(500))
+            BEGIN
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port, use_auth, starttls, default_email_pattern, base_url)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port,
+            request_use_auth,
+            request_starttls,
+            request_default_email_pattern,
+            request_base_url
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port),
+            use_auth = IF (request_use_auth='', use_auth, request_use_auth),
+            starttls = IF (request_starttls='', starttls, request_starttls),
+            default_email_pattern = request_default_email_pattern,
+            base_url = apply_or_remove_value(request_base_url, base_url)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from email_settings where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_EMAIL_SETTINGS`;
+
+            #
+
+            CREATE PROCEDURE `INSERT_EMAIL_SETTINGS`(
+            IN request_id VARCHAR(11),
+            IN request_host VARCHAR(100),
+            IN request_port varchar(4),
+            IN request_user VARCHAR(100),
+            IN request_from_email VARCHAR(100),
+            IN request_password VARCHAR(1000),
+            IN request_enabled varchar(1),
+            IN request_use_auth varchar(1),
+            IN request_default_email_pattern varchar(50),
+            IN request_base_url varchar(500))
+            BEGIN
+            INSERT INTO email_settings (id, host, user, password, enabled, from_email, port, use_auth, default_email_pattern, base_url)
+            VALUES (
+            request_id,
+            request_host,
+            request_user,
+            request_password,
+            request_enabled,
+            request_from_email,
+            request_port,
+            request_use_auth,
+            request_default_email_pattern,
+            request_base_url
+            )
+            ON DUPLICATE KEY UPDATE
+            host= IF(request_host = '', host, request_host),
+            user = IF(request_user = '', user, request_user),
+            password = IF(request_password = '', password, request_password),
+            enabled = IF(request_enabled = '', enabled, request_enabled),
+            from_email = IF(request_from_email = '', from_email, request_from_email),
+            port = IF(request_port = '', port, request_port),
+            use_auth = IF (request_use_auth='', use_auth, request_use_auth),
+            default_email_pattern = request_default_email_pattern,
+            base_url = apply_or_remove_value(request_base_url, base_url)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from email_settings where id = @insert_id;
+            END
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

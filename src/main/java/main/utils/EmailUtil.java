@@ -15,36 +15,18 @@ public class EmailUtil {
 
     private EmailSettingsDto emailSettingsDto;
 
-    public EmailUtil(EmailSettingsDto emailSettingsDto){
+    public EmailUtil(EmailSettingsDto emailSettingsDto) {
         this.emailSettingsDto = emailSettingsDto;
     }
 
     public boolean sendHtmlEmail(List<String> to, String subject, String content) {
-        Properties properties = System.getProperties();
-
-        properties.setProperty("mail.smtp.host", emailSettingsDto.getHost());
-        properties.put("mail.smtp.port", emailSettingsDto.getPort());
-        Session session;
-        if(emailSettingsDto.getUse_auth() != 1){
-            properties.setProperty("mail.smtp.auth", "false");
-            properties.setProperty("mail.user", emailSettingsDto.getUser());
-            properties.setProperty("mail.password", emailSettingsDto.getPassword());
-
-            session = Session.getDefaultInstance(properties);
-        } else {
-            properties.setProperty("mail.smtp.auth", "true");
-            SMTPAuthenticator smtpAuthenticator = new SMTPAuthenticator();
-
-            session = Session.getInstance(properties, smtpAuthenticator);
-        }
+        Session session = createSession();
 
         try {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(emailSettingsDto.getFrom_email()));
-            for(String email: to){
-                if(!emailSettingsDto.getFrom_email().endsWith("@a1qa.com") || email.endsWith("@a1qa.com") || email.endsWith("@itransition.com")){
-                    message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
-                }
+            for (String email : to) {
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
             }
             message.setSubject(subject);
 
@@ -68,10 +50,8 @@ public class EmailUtil {
 
             Transport.send(message);
             return true;
-        }catch(SendFailedException e){
-            for(String email: to){
-                System.out.println("Can't send email to: " + email);
-            }
+        } catch (SendFailedException e) {
+            System.out.println("Can't send email to: " + String.join(",", to));
             e.printStackTrace();
             return false;
         } catch (Exception e) {
@@ -80,7 +60,25 @@ public class EmailUtil {
         }
     }
 
+    private Session createSession() {
+        Properties properties = System.getProperties();
+        properties.put("mail.smtp.host", emailSettingsDto.getHost());
+        properties.put("mail.smtp.port", emailSettingsDto.getPort());
+        properties.put("mail.smtp.starttls.enable", String.valueOf(emailSettingsDto.isStartTlsEnabled()));
+        properties.put("mail.smtp.auth", String.valueOf(emailSettingsDto.isSmtpAuthEnabled()));
+
+        Session session;
+        if (!emailSettingsDto.isSmtpAuthEnabled()) {
+            session = Session.getDefaultInstance(properties);
+        } else {
+            SMTPAuthenticator smtpAuthenticator = new SMTPAuthenticator();
+            session = Session.getInstance(properties, smtpAuthenticator);
+        }
+        return session;
+    }
+
     private class SMTPAuthenticator extends javax.mail.Authenticator {
+        @Override
         public PasswordAuthentication getPasswordAuthentication() {
             String username = emailSettingsDto.getUser();
             String password = emailSettingsDto.getPassword();
