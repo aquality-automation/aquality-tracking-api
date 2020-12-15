@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.1 (2020-12-15)
+Bugfixes:
+- Added handling of non utf-8 body in the request
+
 ## 1.1.0 (2020-12-02)
 Features:
 - Added option to enable/disable 'STARTTLS' in the email settings

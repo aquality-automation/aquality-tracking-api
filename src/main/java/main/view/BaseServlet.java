@@ -16,12 +16,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import static java.nio.charset.StandardCharsets.*;
-import static javax.ws.rs.core.MediaType.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 public class BaseServlet extends HttpServlet {
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
@@ -46,15 +47,11 @@ public class BaseServlet extends HttpServlet {
     }
 
     protected String getRequestJson(@NotNull HttpServletRequest req) {
-        try {
-            req.setCharacterEncoding(UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
         StringBuilder sb = new StringBuilder();
         String s;
         try {
-            while ((s = req.getReader().readLine()) != null) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(req.getInputStream(), StandardCharsets.UTF_8));
+            while ((s = reader.readLine()) != null) {
                 sb.append(s);
             }
         } catch (IOException e) {
@@ -115,12 +112,12 @@ public class BaseServlet extends HttpServlet {
     protected void setOptionsResponseHeaders(@NotNull HttpServletResponse resp) {
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         resp.addHeader("Access-Control-Allow-Methods", "OPTIONS, DELETE, POST, GET, PUT");
-        resp.addHeader("Access-Control-Allow-Origin",getOrigin());
+        resp.addHeader("Access-Control-Allow-Origin", getOrigin());
         resp.addHeader("Access-Control-Allow-Headers", "Authorization, content-type");
         resp.setStatus(204);
     }
 
-    private String getOrigin(){
+    private String getOrigin() {
         return World.getInstance().getBaseURL() != null ? World.getInstance().getBaseURL() : "*";
     }
 
@@ -140,12 +137,12 @@ public class BaseServlet extends HttpServlet {
             validateAuthHeader(header);
             String[] strings = header.split(" ");
             return strings[1];
-        } else if(cookies != null){
+        } else if (cookies != null) {
             Cookie iio78 = Arrays.stream(cookies).filter(x -> x.getName().equals("iio78")).findFirst().orElse(null);
-            if(iio78 != null) {
-                try{
+            if (iio78 != null) {
+                try {
                     return URLDecoder.decode(iio78.getValue(), "utf-8");
-                } catch (UnsupportedEncodingException e){
+                } catch (UnsupportedEncodingException e) {
                     throw new AuthenticationException("Your cookie is wrong!");
                 }
             }
