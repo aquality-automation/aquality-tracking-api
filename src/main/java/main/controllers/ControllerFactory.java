@@ -3,7 +3,11 @@ package main.controllers;
 import main.controllers.Administration.EmailSettingsController;
 import main.controllers.Administration.StepTypeController;
 import main.controllers.Administration.UserController;
+import main.controllers.Integrations.IntegrationSystemController;
+import main.controllers.Integrations.IntegrationTestController;
 import main.controllers.Project.*;
+import main.model.dto.integrations.IntegrationSystemDto;
+import main.model.dto.integrations.IntegrationTestDto;
 import main.model.dto.project.*;
 import main.model.dto.settings.EmailSettingsDto;
 import main.model.dto.settings.UserDto;
@@ -80,5 +84,13 @@ public class ControllerFactory {
     }
     public TestResultAttachmentController getHandler(TestResultAttachmentDto entity) {
         return new TestResultAttachmentController(user);
+    }
+
+    public IntegrationSystemController getHandler(IntegrationSystemDto entity) {
+        return new IntegrationSystemController(user);
+    }
+
+    public IntegrationTestController getHandler(IntegrationTestDto entity) {
+        return new IntegrationTestController(user);
     }
 }

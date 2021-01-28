@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="add integration_systems table" author="d.bogatko">
+        <sql>
+            CREATE TABLE `integration_systems` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `integration_systems`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add jira into integration_systems" author="d.bogatko">
+        <sql endDelimiter="#">
+            INSERT INTO `integration_systems` (`name`) VALUES ('Jira');
+        </sql>
+        <rollback>
+            DELETE FROM union_reporting.integration_systems where id = 1;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="select integrations from integration_systems table" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_INTEGRATION_SYSTEMS`;
+
+            #
+            CREATE PROCEDURE `SELECT_INTEGRATION_SYSTEMS`()
+            BEGIN
+            SELECT * FROM integration_systems;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INTEGRATION_SYSTEMS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="add integration_tests table" author="d.bogatko">
+        <sql>
+            CREATE TABLE `integration_tests` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `key` VARCHAR(20) NOT NULL,
+            `test_id` INT NOT NULL,
+            `project_id` INT NOT NULL,
+            `integration_system_id` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `integration_systems`;
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="add procedure to insert item into integration_tests table" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_INTEGRATION_TEST`;
+
+            #
+            CREATE PROCEDURE `INSERT_INTEGRATION_TEST`(
+            IN request_id VARCHAR(20),
+            IN request_key VARCHAR(20),
+            IN request_test_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_integration_system_id VARCHAR(2)
+            )
+            BEGIN
+            INSERT INTO `integration_tests`(
+            id,
+            `key`,
+            test_id,
+            project_id,
+            integration_system_id
+            )
+
+            VALUES (
+            IF(request_id = '', null, request_id),
+            IF(request_key = '', null, request_key),
+            IF(request_test_id ='',null,request_test_id),
+            IF(request_project_id ='',null,request_project_id),
+            IF(request_integration_system_id = '', null, request_integration_system_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            `key` = IF(request_key = '' OR null, `key`, request_key),
+            test_id = IF(request_test_id = '' OR null, test_id, request_test_id),
+            project_id = IF(request_project_id = '' OR null, project_id, request_project_id),
+            integration_system_id = IF(request_integration_system_id = '' OR null, integration_system_id, request_integration_system_id)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from integration_tests where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_INTEGRATION_TEST`;
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="select integration tests from integration_tests table" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_INTEGRATION_TEST`;
+
+            #
+            CREATE PROCEDURE `SELECT_INTEGRATION_TEST` (
+            IN request_id VARCHAR(20),
+            IN request_key VARCHAR(20),
+            IN request_test_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_integration_system_id VARCHAR(2)
+            )
+            BEGIN
+            SELECT * FROM integration_tests
+            WHERE
+            empty_or_equal(request_id, id)
+            AND empty_or_equal(request_key, `key`)
+            AND empty_or_equal(request_test_id, test_id)
+            AND empty_or_equal(request_project_id, project_id)
+            AND empty_or_equal(request_integration_system_id, integration_system_id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INTEGRATION_TEST`;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
