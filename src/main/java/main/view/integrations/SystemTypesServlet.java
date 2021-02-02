@@ -1,8 +1,7 @@
-package main.view.Integrations;
+package main.view.integrations;
 
 import main.Session;
-import main.model.dto.integrations.IntegrationSystemDto;
-import main.model.dto.project.StepTypeDto;
+import main.model.dto.integrations.types.SystemTypeDto;
 import main.view.BaseServlet;
 import main.view.IGet;
 
@@ -11,8 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
-@WebServlet("/integration/systems")
-public class IntegrationSystemServlet extends BaseServlet implements IGet {
+@WebServlet("/integration/system/types")
+public class SystemTypesServlet extends BaseServlet implements IGet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
@@ -21,7 +20,7 @@ public class IntegrationSystemServlet extends BaseServlet implements IGet {
 
         try {
             Session session = createSession(req);
-            List<IntegrationSystemDto> stepTypes = session.controllerFactory.getHandler(new IntegrationSystemDto()).get(new IntegrationSystemDto());
+            List<SystemTypeDto> stepTypes = session.controllerFactory.getHandler(new SystemTypeDto()).get(new SystemTypeDto());
             resp.getWriter().write(mapper.serialize(stepTypes));
         } catch (Exception e) {
             handleException(resp, e);

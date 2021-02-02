@@ -5,9 +5,9 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
 
-    <changeSet id="add integration_systems table" author="d.bogatko">
+    <changeSet id="CREATE TABLE INT_SYSTEM_TYPES" author="d.bogatko">
         <sql>
-            CREATE TABLE `integration_systems` (
+            CREATE TABLE `int_system_types` (
             `id` INT NOT NULL AUTO_INCREMENT,
             `name` VARCHAR(45) NOT NULL,
             PRIMARY KEY (`id`),
@@ -15,121 +15,286 @@
 
         </sql>
         <rollback>
-            DROP TABLE `integration_systems`;
+            DROP TABLE `int_system_types`;
         </rollback>
     </changeSet>
 
-    <changeSet id="add jira into integration_systems" author="d.bogatko">
+    <changeSet id="INSERT JIRA INTO INT_SYSTEM_TYPES" author="d.bogatko">
         <sql endDelimiter="#">
-            INSERT INTO `integration_systems` (`name`) VALUES ('Jira');
+            INSERT INTO `int_system_types` (`name`) VALUES ('Jira');
         </sql>
         <rollback>
-            DELETE FROM union_reporting.integration_systems where id = 1;
+            DELETE FROM union_reporting.int_system_types where id = 1;
         </rollback>
     </changeSet>
 
-    <changeSet id="select integrations from integration_systems table" author="d.bogatko">
+    <changeSet id="CREATE PROCEDURE SELECT_INT_SYSTEM_TYPE" author="d.bogatko">
         <sql endDelimiter="#">
 
-            DROP procedure IF EXISTS `SELECT_INTEGRATION_SYSTEMS`;
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_TYPE`;
 
             #
-            CREATE PROCEDURE `SELECT_INTEGRATION_SYSTEMS`()
+            CREATE PROCEDURE `SELECT_INT_SYSTEM_TYPE`()
             BEGIN
-            SELECT * FROM integration_systems;
+            SELECT * FROM int_system_types;
             END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `SELECT_INTEGRATION_SYSTEMS`;
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_TYPE`;
         </rollback>
     </changeSet>
 
-    <changeSet id="add integration_tests table" author="d.bogatko">
+    <changeSet id="CREATE TABLE INT_SYSTEMS" author="d.bogatko">
         <sql>
-            CREATE TABLE `integration_tests` (
+            CREATE TABLE `int_systems` (
             `id` INT NOT NULL AUTO_INCREMENT,
-            `key` VARCHAR(20) NOT NULL,
-            `test_id` INT NOT NULL,
+            `name` VARCHAR(20) NOT NULL,
+            `username` VARCHAR(20) NOT NULL,
+            `password` VARCHAR(20) NOT NULL,
+            `api_token` VARCHAR(20) NOT NULL,
+            `int_system_type` INT NOT NULL,
             `project_id` INT NOT NULL,
-            `integration_system_id` INT NOT NULL,
             PRIMARY KEY (`id`),
             UNIQUE INDEX `id_UNIQUE` (`id` ASC));
         </sql>
         <rollback>
-            DROP TABLE `integration_systems`;
+            DROP TABLE `int_systems`;
         </rollback>
     </changeSet>
 
-
-    <changeSet id="add procedure to insert item into integration_tests table" author="d.bogatko">
+    <changeSet id="CREATE PROCEDURE INSERT_INT_SYSTEMS" author="d.bogatko">
         <sql endDelimiter="#">
-            DROP procedure IF EXISTS `INSERT_INTEGRATION_TEST`;
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEMS`;
 
             #
-            CREATE PROCEDURE `INSERT_INTEGRATION_TEST`(
+            CREATE PROCEDURE `INSERT_INT_SYSTEMS`(
             IN request_id VARCHAR(20),
-            IN request_key VARCHAR(20),
-            IN request_test_id VARCHAR(10),
-            IN request_project_id VARCHAR(10),
-            IN request_integration_system_id VARCHAR(2)
+            IN request_name VARCHAR(20),
+            IN request_username VARCHAR(20),
+            IN request_password VARCHAR(20),
+            IN request_api_token VARCHAR(20),
+            IN request_int_system_type VARCHAR(2),
+            IN request_project_id VARCHAR(10)
             )
             BEGIN
-            INSERT INTO `integration_tests`(
+            INSERT INTO `int_systems`(
             id,
-            `key`,
-            test_id,
-            project_id,
-            integration_system_id
+            `name`,
+            `username`,
+            `password`,
+            `api_token`,
+            int_system_type,
+            project_id
             )
 
             VALUES (
             IF(request_id = '', null, request_id),
-            IF(request_key = '', null, request_key),
-            IF(request_test_id ='',null,request_test_id),
-            IF(request_project_id ='',null,request_project_id),
-            IF(request_integration_system_id = '', null, request_integration_system_id)
+            IF(request_name = '', null, request_name),
+            IF(request_username = '', null, request_username),
+            IF(request_password = '', null, request_password),
+            IF(request_api_token = '', null, request_api_token),
+            IF(request_int_system_type = '', null, request_int_system_type),
+            IF(request_project_id ='',null,request_project_id)
             )
             ON DUPLICATE KEY UPDATE
-            `key` = IF(request_key = '' OR null, `key`, request_key),
-            test_id = IF(request_test_id = '' OR null, test_id, request_test_id),
-            project_id = IF(request_project_id = '' OR null, project_id, request_project_id),
-            integration_system_id = IF(request_integration_system_id = '' OR null, integration_system_id, request_integration_system_id)
+            `name` = IF(request_name = '' OR null, `name`, request_name),
+            `username` = IF(request_username = '' OR null, `name`, request_username),
+            `password` = IF(request_password = '' OR null, `name`, request_password),
+            `api_token` = IF(request_api_token = '' OR null, `name`, request_api_token),
+            int_system_type = IF(request_int_system_type = '' OR null, int_system_type, request_int_system_type),
+            project_id = IF(request_project_id = '' OR null, project_id, request_project_id)
             ;
 
             SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
-            SELECT * from integration_tests where id = @insert_id;
+            SELECT * from int_systems where id = @insert_id;
             END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `INSERT_INTEGRATION_TEST`;
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEMS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_SYSTEMS" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEMS`;
+
+            #
+            CREATE PROCEDURE `SELECT_INT_SYSTEMS` (
+            IN request_id VARCHAR(20),
+            IN request_name VARCHAR(20),
+            IN request_username VARCHAR(20),
+            IN request_password VARCHAR(20),
+            IN request_api_token VARCHAR(20),
+            IN request_int_system_type VARCHAR(2),
+            IN request_project_id VARCHAR(10)
+            )
+            BEGIN
+            SELECT * FROM int_systems
+            WHERE
+            empty_or_equal(request_id, id)
+            AND empty_or_equal(request_name, `name`)
+            AND empty_or_equal(request_username, `name`)
+            AND empty_or_equal(request_password, `name`)
+            AND empty_or_equal(request_api_token, `name`)
+            AND empty_or_equal(request_int_system_type, int_system_type)
+            AND empty_or_equal(request_project_id, project_id);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEMS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE FUNCTION NULLABLE" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP FUNCTION IF EXISTS `nullable`;
+
+            #
+            CREATE FUNCTION `nullable`(request_value longtext) RETURNS longtext CHARSET utf8
+            BEGIN
+                RETURN IF(request_value = '' OR null, null, request_value);
+            END
+        </sql>
+        <rollback>
+            DROP FUNCTION `nullable`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE INT_TEST_REFERENCES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_test_references` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `key` VARCHAR(20) NOT NULL,
+            `entity_id` INT NOT NULL,
+            `project_id` INT NOT NULL,
+            `int_system` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `int_test_references`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE INT_TESTRUN_REFERENCES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_testrun_references` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `key` VARCHAR(20) NOT NULL,
+            `entity_id` INT NOT NULL,
+            `project_id` INT NOT NULL,
+            `int_system` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `int_testrun_references`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE INT_ISSUE_REFERENCES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_issue_references` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `key` VARCHAR(20) NOT NULL,
+            `entity_id` INT NOT NULL,
+            `project_id` INT NOT NULL,
+            `int_system` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `int_issue_references`;
         </rollback>
     </changeSet>
 
 
-    <changeSet id="select integration tests from integration_tests table" author="d.bogatko">
+    <changeSet id="CREATE PROCEDURE INSERT_INT_REFERENCE" author="d.bogatko">
         <sql endDelimiter="#">
-            DROP procedure IF EXISTS `SELECT_INTEGRATION_TEST`;
+            DROP procedure IF EXISTS `INSERT_INT_REFERENCE`;
 
             #
-            CREATE PROCEDURE `SELECT_INTEGRATION_TEST` (
+            CREATE PROCEDURE `INSERT_INT_REFERENCE`(
+            IN request_ref_table VARCHAR(50),
             IN request_id VARCHAR(20),
             IN request_key VARCHAR(20),
-            IN request_test_id VARCHAR(10),
+            IN request_entity_id VARCHAR(10),
             IN request_project_id VARCHAR(10),
-            IN request_integration_system_id VARCHAR(2)
+            IN request_int_system VARCHAR(2)
             )
             BEGIN
-            SELECT * FROM integration_tests
-            WHERE
-            empty_or_equal(request_id, id)
-            AND empty_or_equal(request_key, `key`)
-            AND empty_or_equal(request_test_id, test_id)
-            AND empty_or_equal(request_project_id, project_id)
-            AND empty_or_equal(request_integration_system_id, integration_system_id);
+
+            SET @insert_command =CONCAT(
+            'INSERT INTO ', request_ref_table ,'(',
+            'id,',
+            '`key`,',
+            'entity_id,',
+            'project_id,',
+            'int_system',
+            ') ',
+            'VALUES (',
+            'nullable(\'', request_id ,'\'),',
+            'nullable(\'', request_key ,'\'),',
+            'nullable(\'', request_entity_id ,'\'),',
+            'nullable(\'', request_project_id ,'\'),',
+            'nullable(\'', request_int_system ,'\')',
+            ') ',
+            'ON DUPLICATE KEY UPDATE ',
+            '`key` = nullable(\'', request_key ,'\'),',
+            'entity_id = nullable(', request_entity_id ,'),',
+            'project_id = nullable(', request_project_id ,'),',
+            'int_system = nullable(', request_int_system ,');'
+            );
+
+            PREPARE insert_statement FROM @insert_command;
+            EXECUTE insert_statement;
+            DEALLOCATE PREPARE insert_statement;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+
+            SET @select_command = CONCAT('SELECT * from ', request_ref_table, ' where id = ', @insert_id ,';');
+
+            PREPARE select_statement FROM @select_command;
+            EXECUTE select_statement;
+            DEALLOCATE PREPARE select_statement;
             END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `SELECT_INTEGRATION_TEST`;
+            DROP procedure IF EXISTS `INSERT_INT_REFERENCE`;
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_REFERENCE" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_INT_REFERENCE`;
+
+            #
+            CREATE PROCEDURE `SELECT_INT_REFERENCE`(
+            IN request_ref_table VARCHAR(50),
+            IN request_id VARCHAR(20),
+            IN request_key VARCHAR(20),
+            IN request_entity_id VARCHAR(10),
+            IN request_project_id VARCHAR(10),
+            IN request_int_system VARCHAR(2)
+            )
+            BEGIN
+            SET @select_command = CONCAT(
+            'SELECT * FROM ', request_ref_table ,' ',
+            'WHERE empty_or_equal(\'', request_id ,'\', id) ',
+            'AND empty_or_equal(\'', request_key ,'\', `key`)	',
+            'AND empty_or_equal(\'', request_entity_id ,'\', entity_id) ',
+            'AND empty_or_equal(\'', request_project_id ,'\', project_id) ',
+            'AND empty_or_equal(\'', request_int_system ,'\', int_system);'
+            );
+
+            PREPARE select_statement FROM @select_command;
+            EXECUTE select_statement;
+            DEALLOCATE PREPARE select_statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_REFERENCE`;
         </rollback>
     </changeSet>
 

@@ -3,11 +3,14 @@ package main.controllers;
 import main.controllers.Administration.EmailSettingsController;
 import main.controllers.Administration.StepTypeController;
 import main.controllers.Administration.UserController;
-import main.controllers.Integrations.IntegrationSystemController;
-import main.controllers.Integrations.IntegrationTestController;
+import main.controllers.integrations.ReferenceController;
+import main.controllers.integrations.SystemController;
+import main.controllers.integrations.SystemTypeController;
 import main.controllers.Project.*;
-import main.model.dto.integrations.IntegrationSystemDto;
-import main.model.dto.integrations.IntegrationTestDto;
+import main.model.dto.integrations.SystemDto;
+import main.model.dto.integrations.references.ReferenceDto;
+import main.model.dto.integrations.references.ReferenceType;
+import main.model.dto.integrations.types.SystemTypeDto;
 import main.model.dto.project.*;
 import main.model.dto.settings.EmailSettingsDto;
 import main.model.dto.settings.UserDto;
@@ -15,82 +18,107 @@ import main.model.dto.settings.UserDto;
 public class ControllerFactory {
     private UserDto user;
 
-    public ControllerFactory(UserDto user){
+    public ControllerFactory(UserDto user) {
         this.user = user;
     }
 
     public ProjectController getHandler(ProjectDto entity) {
         return new ProjectController(user);
     }
+
     public BodyPatternController getHandler(BodyPatternDto entity) {
         return new BodyPatternController(user);
     }
+
     public FinalResultController getHandler(FinalResultDto entity) {
         return new FinalResultController(user);
     }
+
     public ImportController getHandler(ImportDto entity) {
         return new ImportController(user);
     }
+
     public APITokenController getHandler(APITokenDto entity) {
         return new APITokenController(user);
     }
+
     public MilestoneController getHandler(MilestoneDto entity) {
         return new MilestoneController(user);
     }
+
     public ProjectUserController getHandler(ProjectUserDto entity) {
         return new ProjectUserController(user);
     }
+
     public ResultController getHandler(TestResultDto entity) {
         return new ResultController(user);
     }
+
     public ResultResolutionController getHandler(ResultResolutionDto entity) {
         return new ResultResolutionController(user);
     }
+
     public SuiteController getHandler(TestSuiteDto entity) {
         return new SuiteController(user);
     }
+
     public SuiteDashboardController getHandler(SuiteDashboardDto entity) {
         return new SuiteDashboardController(user);
     }
+
     public Test2SuiteController getHandler(Test2SuiteDto entity) {
         return new Test2SuiteController(user);
     }
+
     public TestController getHandler(TestDto entity) {
         return new TestController(user);
     }
+
     public TestRunController getHandler(TestRunDto entity) {
         return new TestRunController(user);
     }
+
     public UserController getHandler(UserDto entity) {
         return new UserController(user);
     }
+
     public EmailSettingsController getHandler(EmailSettingsDto entity) {
         return new EmailSettingsController(user);
     }
+
     public StepController getHandler(StepDto entity) {
         return new StepController(user);
     }
+
     public StepResultController getHandler(StepResultDto entity) {
         return new StepResultController(user);
     }
+
     public StepTypeController getHandler(StepTypeDto entity) {
         return new StepTypeController(user);
     }
+
     public PredefinedResolutionController getHandler(PredefinedResolutionDto entity) {
         return new PredefinedResolutionController(user);
     }
+
     public IssueController getHandler(IssueDto entity) {
         return new IssueController(user);
     }
+
     public TestResultAttachmentController getHandler(TestResultAttachmentDto entity) {
         return new TestResultAttachmentController(user);
     }
 
-    public IntegrationSystemController getHandler(IntegrationSystemDto entity) {
-        return new IntegrationSystemController(user);
+    public SystemTypeController getHandler(SystemTypeDto entity) {
+        return new SystemTypeController(user);
     }
 
-    public IntegrationTestController getHandler(IntegrationTestDto entity) {
-        return new IntegrationTestController(user);
+    public SystemController getHandler(SystemDto entity) {
+        return new SystemController(user);
+    }
+
+    public <DTO extends ReferenceDto> ReferenceController<DTO> getHandler(ReferenceType<DTO> referenceType) {
+        return new ReferenceController<>(user, referenceType);
     }
 }

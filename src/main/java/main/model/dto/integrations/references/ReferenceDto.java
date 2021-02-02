@@ -1,4 +1,4 @@
-package main.model.dto.integrations;
+package main.model.dto.integrations.references;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +9,7 @@ import main.model.dto.BaseDto;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class IntegrationTestDto extends BaseDto {
+public class ReferenceDto extends BaseDto {
     @DataBaseSearchable
     @DataBaseInsert
     @DataBaseName(name = "request_id")
@@ -19,15 +19,15 @@ public class IntegrationTestDto extends BaseDto {
     @DataBaseInsert
     private String key;
     @DataBaseSearchable
-    @DataBaseName(name = "request_test_id")
+    @DataBaseName(name = "request_entity_id")
     @DataBaseInsert
-    private Integer test_id;
+    private Integer entity_id;
     @DataBaseSearchable
     @DataBaseName(name = "request_project_id")
     @DataBaseInsert
     private Integer project_id;
     @DataBaseSearchable
-    @DataBaseName(name = "request_integration_system_id")
+    @DataBaseName(name = "request_int_system")
     @DataBaseInsert
-    private Integer integration_system_id;
+    private Integer int_system;
 }

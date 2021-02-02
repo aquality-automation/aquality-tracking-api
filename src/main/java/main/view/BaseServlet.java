@@ -118,7 +118,7 @@ public class BaseServlet extends HttpServlet {
     }
 
     private String getOrigin() {
-        return World.getInstance().getBaseURL() != null ? World.getInstance().getBaseURL() : "*";
+        return /*World.getInstance().getBaseURL() != null ? World.getInstance().getBaseURL() :*/ "*";
     }
 
     private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
