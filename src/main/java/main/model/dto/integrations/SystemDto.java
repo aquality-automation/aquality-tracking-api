@@ -20,6 +20,10 @@ public class SystemDto extends BaseDto implements IProjectEntity {
     @DataBaseInsert
     private String name;
     @DataBaseSearchable
+    @DataBaseName(name = "request_url")
+    @DataBaseInsert
+    private String url;
+    @DataBaseSearchable
     @DataBaseName(name = "request_username")
     @DataBaseInsert
     private String username;

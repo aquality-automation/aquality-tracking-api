@@ -49,6 +49,7 @@
             CREATE TABLE `int_systems` (
             `id` INT NOT NULL AUTO_INCREMENT,
             `name` VARCHAR(20) NOT NULL,
+            `url` VARCHAR(100) NOT NULL,
             `username` VARCHAR(20) NOT NULL,
             `password` VARCHAR(20) NOT NULL,
             `api_token` VARCHAR(20) NOT NULL,
@@ -70,6 +71,7 @@
             CREATE PROCEDURE `INSERT_INT_SYSTEMS`(
             IN request_id VARCHAR(20),
             IN request_name VARCHAR(20),
+            IN request_url VARCHAR(100),
             IN request_username VARCHAR(20),
             IN request_password VARCHAR(20),
             IN request_api_token VARCHAR(20),
@@ -80,6 +82,7 @@
             INSERT INTO `int_systems`(
             id,
             `name`,
+            `url`,
             `username`,
             `password`,
             `api_token`,
@@ -90,6 +93,7 @@
             VALUES (
             IF(request_id = '', null, request_id),
             IF(request_name = '', null, request_name),
+            IF(request_url = '', null, request_url),
             IF(request_username = '', null, request_username),
             IF(request_password = '', null, request_password),
             IF(request_api_token = '', null, request_api_token),
@@ -98,6 +102,7 @@
             )
             ON DUPLICATE KEY UPDATE
             `name` = IF(request_name = '' OR null, `name`, request_name),
+            `url` = IF(request_url = '' OR null, `name`, request_url),
             `username` = IF(request_username = '' OR null, `name`, request_username),
             `password` = IF(request_password = '' OR null, `name`, request_password),
             `api_token` = IF(request_api_token = '' OR null, `name`, request_api_token),
@@ -122,6 +127,7 @@
             CREATE PROCEDURE `SELECT_INT_SYSTEMS` (
             IN request_id VARCHAR(20),
             IN request_name VARCHAR(20),
+            IN request_url VARCHAR(100),
             IN request_username VARCHAR(20),
             IN request_password VARCHAR(20),
             IN request_api_token VARCHAR(20),
@@ -133,9 +139,10 @@
             WHERE
             empty_or_equal(request_id, id)
             AND empty_or_equal(request_name, `name`)
-            AND empty_or_equal(request_username, `name`)
-            AND empty_or_equal(request_password, `name`)
-            AND empty_or_equal(request_api_token, `name`)
+            AND empty_or_equal(request_url, `url`)
+            AND empty_or_equal(request_username, `username`)
+            AND empty_or_equal(request_password, `password`)
+            AND empty_or_equal(request_api_token, `api_token`)
             AND empty_or_equal(request_int_system_type, int_system_type)
             AND empty_or_equal(request_project_id, project_id);
             END
