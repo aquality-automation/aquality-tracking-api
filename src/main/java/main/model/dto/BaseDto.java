@@ -13,8 +13,6 @@ import java.util.function.BooleanSupplier;
 
 public abstract class BaseDto {
 
-    private final AqualityException expNoIdParameter = new AqualityException("Entity has no id parameter");
-
     public List<Pair<String, String>> getParameters() throws AqualityException {
         List<Pair<String, String>> list = new ArrayList<>();
         List<Field> classFields = this.getClassFields();
@@ -65,11 +63,18 @@ public abstract class BaseDto {
         List<Field> classFields = this.getClassFields();
         boolean hasIdAnnotation = hasIdAnnotation(DataBaseID.class);
         for (Field field : classFields) {
+            field.setAccessible(true);
+            DataBaseName nameAnnotation = field.getAnnotation(DataBaseName.class);
+
+            // TODO: whole class should be refactored
+            getRequiredParameter(field)
+                    .ifPresent(value -> list.add(new Pair<String, String>(nameAnnotation.name(), getStringValue(value))));
+
             if ((!hasIdAnnotation && Objects.equals(field.getName(), "id")) || field.getAnnotation(DataBaseID.class) != null) {
                 try {
-                    DataBaseName nameAnnotation = field.getAnnotation(DataBaseName.class);
+
                     if (nameAnnotation != null) {
-                        field.setAccessible(true);
+
                         Object value = field.get(this);
                         Pair<String, String> pair = new Pair<>(nameAnnotation.name(), getStringValue(value));
                         list.add(pair);
@@ -111,7 +116,7 @@ public abstract class BaseDto {
         }
 
         if (list.isEmpty()) {
-            throw expNoIdParameter;
+            throw new AqualityException("Entity has no id parameter");
         }
 
         return list;
@@ -156,7 +161,7 @@ public abstract class BaseDto {
         }
 
         if (list.isEmpty()) {
-            throw expNoIdParameter;
+            throw new AqualityException("Entity has no id parameter");
         }
 
         return list;
@@ -179,7 +184,7 @@ public abstract class BaseDto {
             }
         }
 
-        throw expNoIdParameter;
+        throw new AqualityException("Entity has no id parameter");
     }
 
     public boolean hasProjectId() throws AqualityException {

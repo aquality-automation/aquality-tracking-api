@@ -6,10 +6,11 @@ import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.model.dto.BaseDto;
+import main.model.dto.IProjectEntity;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ReferenceDto extends BaseDto {
+public class ReferenceDto extends BaseDto implements IProjectEntity {
     @DataBaseSearchable
     @DataBaseInsert
     @DataBaseName(name = "request_id")
@@ -30,4 +31,9 @@ public class ReferenceDto extends BaseDto {
     @DataBaseName(name = "request_int_system")
     @DataBaseInsert
     private Integer int_system;
+
+    @Override
+    public int getProjectId() {
+        return project_id;
+    }
 }

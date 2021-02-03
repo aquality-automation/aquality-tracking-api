@@ -298,4 +298,29 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="CREATE PROCEDURE REMOVE_INT_REFERENCE" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP PROCEDURE IF EXISTS `REMOVE_INT_REFERENCE`;
+
+            #
+            CREATE PROCEDURE `REMOVE_INT_REFERENCE`(
+            IN request_ref_table VARCHAR(50),
+            IN request_id VARCHAR(20)
+            )
+            BEGIN
+            SET @remove_command = CONCAT(
+            'DELETE FROM ', request_ref_table , ' ',
+            'WHERE id=', request_id ,';'
+            );
+
+            PREPARE remove_statement FROM @remove_command;
+            EXECUTE remove_statement;
+            DEALLOCATE PREPARE remove_statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_INT_REFERENCE`;
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

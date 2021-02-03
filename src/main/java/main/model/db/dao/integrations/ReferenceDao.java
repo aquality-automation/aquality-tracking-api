@@ -10,6 +10,6 @@ public class ReferenceDao<T extends ReferenceDto> extends DAO<T> {
         super(referenceType.getDtoClass());
         select ="{call SELECT_INT_REFERENCE(?,?,?,?,?,?)}";
         insert = "{call INSERT_INT_REFERENCE(?,?,?,?,?,?)}";
-        // TODO: remove = "{call REMOVE_SUITE(?)}";
+        remove = "{call REMOVE_INT_REFERENCE(?,?)}";
     }
 }
