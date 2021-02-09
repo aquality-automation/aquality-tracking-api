@@ -68,7 +68,7 @@ public abstract class BaseDto {
 
             // TODO: whole class should be refactored
             getRequiredParameter(field)
-                    .ifPresent(value -> list.add(new Pair<String, String>(nameAnnotation.name(), getStringValue(value))));
+                    .ifPresent(value -> list.add(new Pair<>(nameAnnotation.name(), getStringValue(value))));
 
             if ((!hasIdAnnotation && Objects.equals(field.getName(), "id")) || field.getAnnotation(DataBaseID.class) != null) {
                 try {
@@ -86,6 +86,23 @@ public abstract class BaseDto {
         }
 
         return list;
+    }
+
+    public List<Pair<String, String>> getSearchParameter(DtoFields dtoField) throws AqualityException {
+        List<Field> classFields = this.getClassFields();
+        for (Field field : classFields) {
+            DataBaseName nameAnnotation = field.getAnnotation(DataBaseName.class);
+            if (nameAnnotation != null) {
+                field.setAccessible(true);
+                Optional<String> projectId = getParameterByFieldName(field, dtoField.getFieldName());
+                if (projectId.isPresent()) {
+                    Pair<String, String> pair = new Pair<>(nameAnnotation.name(), projectId.get());
+                    return Collections.singletonList(pair);
+                }
+            }
+        }
+        throw new AqualityException(String.format("Field '%1$s' should be defined in the class '%2$s' and marked with @DataBaseName annotation",
+                dtoField.getFieldName(), this.getClass().getCanonicalName()));
     }
 
     public List<Pair<String, String>> getIdAndProjectIdSearchParameters() throws AqualityException {

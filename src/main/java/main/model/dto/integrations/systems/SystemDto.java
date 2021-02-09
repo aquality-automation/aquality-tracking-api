@@ -1,4 +1,4 @@
-package main.model.dto.integrations;
+package main.model.dto.integrations.systems;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -6,7 +6,7 @@ import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
 import main.model.dto.BaseDto;
-import main.model.dto.IProjectEntity;
+import main.model.dto.interfaces.IProjectEntity;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -47,5 +47,20 @@ public class SystemDto extends BaseDto implements IProjectEntity {
     @Override
     public int getProjectId() {
         return project_id;
+    }
+
+    @Override
+    public void setProjectId(int projectId) {
+        this.project_id = projectId;
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 }

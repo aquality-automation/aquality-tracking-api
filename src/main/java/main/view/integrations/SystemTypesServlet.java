@@ -1,34 +1,16 @@
 package main.view.integrations;
 
-import main.Session;
-import main.model.dto.integrations.types.SystemTypeDto;
-import main.view.BaseServlet;
-import main.view.IGet;
+import main.controllers.ControllerType;
+import main.model.db.dao.integrations.SystemTypeDao;
+import main.model.dto.integrations.systems.SystemTypeDto;
+import main.view.GetOnlyServlet;
 
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 @WebServlet("/integration/system/types")
-public class SystemTypesServlet extends BaseServlet implements IGet {
+public class SystemTypesServlet extends GetOnlyServlet<SystemTypeDto, SystemTypeDao> {
 
-    @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        setPostResponseHeaders(resp);
-        setEncoding(resp);
-
-        try {
-            Session session = createSession(req);
-            List<SystemTypeDto> stepTypes = session.controllerFactory.getHandler(new SystemTypeDto()).get(new SystemTypeDto());
-            resp.getWriter().write(mapper.serialize(stepTypes));
-        } catch (Exception e) {
-            handleException(resp, e);
-        }
-    }
-
-    @Override
-    public void doOptions(HttpServletRequest req, HttpServletResponse resp) {
-        setOptionsResponseHeaders(resp);
+    public SystemTypesServlet() {
+        super(ControllerType.SYSTEM_TYPE_CONTROLLER);
     }
 }

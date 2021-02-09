@@ -1,7 +1,7 @@
 package main.model.db.dao.integrations;
 
 import main.model.db.dao.DAO;
-import main.model.dto.integrations.types.SystemTypeDto;
+import main.model.dto.integrations.systems.SystemTypeDto;
 
 public class SystemTypeDao extends DAO<SystemTypeDto> {
 

@@ -1,7 +1,6 @@
-package main.model.dto.integrations.references;
+package main.model.dto.integrations.tts;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import main.annotations.DataBaseInsert;
 import main.annotations.DataBaseName;
 import main.annotations.DataBaseSearchable;
@@ -9,28 +8,31 @@ import main.model.dto.BaseDto;
 import main.model.dto.interfaces.IProjectEntity;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class ReferenceDto extends BaseDto implements IProjectEntity {
+public class TestTrackingStatusDto extends BaseDto implements IProjectEntity {
     @DataBaseSearchable
     @DataBaseInsert
     @DataBaseName(name = "request_id")
     private Integer id;
     @DataBaseSearchable
-    @DataBaseName(name = "request_key")
+    @DataBaseName(name = "request_tts_type")
     @DataBaseInsert
-    private String key;
+    private Integer tts_type;
     @DataBaseSearchable
-    @DataBaseName(name = "request_entity_id")
+    @DataBaseName(name = "request_status_id")
     @DataBaseInsert
-    private Integer entity_id;
+    private Integer status_id;
+    @DataBaseSearchable
+    @DataBaseName(name = "request_status_name")
+    @DataBaseInsert
+    private String status_name;
+    @DataBaseSearchable
+    @DataBaseName(name = "request_resolution_id")
+    @DataBaseInsert
+    private Integer resolution_id;
     @DataBaseSearchable
     @DataBaseName(name = "request_project_id")
     @DataBaseInsert
     private Integer project_id;
-    @DataBaseSearchable
-    @DataBaseName(name = "request_int_system")
-    @DataBaseInsert
-    private Integer int_system;
 
     @Override
     public int getProjectId() {

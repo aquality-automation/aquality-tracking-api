@@ -3,14 +3,10 @@ package main.controllers;
 import main.controllers.Administration.EmailSettingsController;
 import main.controllers.Administration.StepTypeController;
 import main.controllers.Administration.UserController;
-import main.controllers.integrations.ReferenceController;
-import main.controllers.integrations.SystemController;
-import main.controllers.integrations.SystemTypeController;
 import main.controllers.Project.*;
-import main.model.dto.integrations.SystemDto;
-import main.model.dto.integrations.references.ReferenceDto;
-import main.model.dto.integrations.references.ReferenceType;
-import main.model.dto.integrations.types.SystemTypeDto;
+import main.model.db.dao.DAO;
+import main.model.dto.BaseDto;
+import main.model.dto.interfaces.IProjectEntity;
 import main.model.dto.project.*;
 import main.model.dto.settings.EmailSettingsDto;
 import main.model.dto.settings.UserDto;
@@ -110,15 +106,11 @@ public class ControllerFactory {
         return new TestResultAttachmentController(user);
     }
 
-    public SystemTypeController getHandler(SystemTypeDto entity) {
-        return new SystemTypeController(user);
+    public <T extends BaseDto & IProjectEntity, D extends DAO<T>> ProjectEntityController<T, D> getProjectEntityHandler(ControllerType<T, D> controllerType) {
+        return new ProjectEntityController<>(user, controllerType.createDao());
     }
 
-    public SystemController getHandler(SystemDto entity) {
-        return new SystemController(user);
-    }
-
-    public <DTO extends ReferenceDto> ReferenceController<DTO> getHandler(ReferenceType<DTO> referenceType) {
-        return new ReferenceController<>(user, referenceType);
+    public <T extends BaseDto, D extends DAO<T>> ReadonlyController<T, D> getReadonlyHandler(ControllerType<T, D> controllerType) {
+        return new ReadonlyController<>(user, controllerType.createDao());
     }
 }

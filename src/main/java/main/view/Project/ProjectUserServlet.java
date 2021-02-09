@@ -2,6 +2,7 @@ package main.view.Project;
 
 
 import main.Session;
+import main.model.dto.DtoFields;
 import main.model.dto.project.ProjectUserDto;
 import main.view.BaseServlet;
 import main.view.IDelete;
@@ -23,9 +24,10 @@ public class ProjectUserServlet extends BaseServlet implements IGet, IPost, IDel
         try {
             Session session = createSession(req);
             String result;
-            if(req.getParameterMap().containsKey(PROJECT_ID_KEY)&& !req.getParameter(PROJECT_ID_KEY).isEmpty()){
+            if (req.getParameterMap().containsKey(DtoFields.PROJECT_ID.getFieldName())
+                    && !req.getParameter(DtoFields.PROJECT_ID.getFieldName()).isEmpty()) {
                 result = mapper.serialize(session.getProjectPermissions(getProjectId(req)));
-            }else{
+            } else {
                 result = mapper.serialize(session.getProjectPermissions());
             }
             setJSONContentType(resp);
@@ -45,7 +47,7 @@ public class ProjectUserServlet extends BaseServlet implements IGet, IPost, IDel
             projectUser = session.controllerFactory.getHandler(projectUser).create(projectUser);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(projectUser));
-        }catch (Exception e) {
+        } catch (Exception e) {
             handleException(resp, e);
         }
     }
@@ -61,7 +63,7 @@ public class ProjectUserServlet extends BaseServlet implements IGet, IPost, IDel
             projectUserDto.setUser_id(Integer.parseInt(req.getParameter("userId")));
             session.controllerFactory.getHandler(projectUserDto).delete(projectUserDto);
             setJSONContentType(resp);
-        }catch (Exception e) {
+        } catch (Exception e) {
             handleException(resp, e);
         }
     }

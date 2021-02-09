@@ -1,12 +1,14 @@
 package main.model.db.dao;
 
 import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import main.exceptions.AqualityException;
 import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualitySQLException;
-import main.exceptions.AqualityException;
 import main.model.db.RS_Converter;
 import main.model.dto.BaseDto;
+import main.model.dto.DtoFields;
 import main.model.dto.DtoMapper;
+import main.model.dto.interfaces.IProjectEntity;
 import org.json.JSONArray;
 
 import javax.naming.InitialContext;
@@ -16,11 +18,10 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static javax.swing.UIManager.get;
 
 public abstract class DAO<T extends BaseDto> {
     private Connection connection;
@@ -29,13 +30,15 @@ public abstract class DAO<T extends BaseDto> {
     protected String select;
     protected String insert;
     protected String remove;
+    protected String createTable;
 
 
     /**
      * Class that allows you to work with DB
+     *
      * @param type Dto type
      */
-    protected DAO(Class<T> type){
+    protected DAO(Class<T> type) {
         this.type = type;
         dtoMapper = new DtoMapper<>(type);
     }
@@ -43,12 +46,13 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Delete multiple entities
+     *
      * @param entities entities to remove
      * @return true if every entity was removed
      */
-    public boolean deleteMultiply(List<T> entities){
+    public boolean deleteMultiply(List<T> entities) {
         boolean success = true;
-        for (T entity: entities){
+        for (T entity : entities) {
             try {
                 delete(entity);
             } catch (AqualityException e) {
@@ -61,6 +65,7 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Get All entities in DB
+     *
      * @return List of entities
      */
     public List<T> getAll() throws AqualityException {
@@ -73,6 +78,7 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Get All entities in DB that have same fields as template object
+     *
      * @param entity search template (blank fields will be ignored)
      * @return List of entities
      */
@@ -83,7 +89,20 @@ public abstract class DAO<T extends BaseDto> {
     }
 
     /**
+     * will call procedure to create table dynamically based on project_id
+     *
+     * @param entity dto with project id
+     * @param dao    dao
+     * @throws AqualityException
+     */
+    public static <T extends BaseDto & IProjectEntity, D extends DAO<T>> void createTable(T entity, D dao) throws AqualityException {
+        List<Pair<String, String>> parameters = entity.getSearchParameter(DtoFields.PROJECT_ID);
+        dao.CallStoredProcedure(dao.createTable, parameters);
+    }
+
+    /**
      * Get single entity by id
+     *
      * @param id entity id
      * @return entity
      */
@@ -104,6 +123,7 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Get single entity by id and project_id
+     *
      * @param entity entity with id and project_id
      * @return entity
      */
@@ -117,12 +137,13 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Update entity
+     *
      * @param entity with fields that should be updated (id is required)
      * @return Updated entity
      */
     public T update(T entity) throws AqualityException {
         try {
-            if(entity.hasProjectId()){
+            if (entity.hasProjectId()) {
                 getEntityById(entity);
             } else {
                 getEntityById(entity.getIdOrOverrideId());
@@ -143,11 +164,26 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Delete entity
+     *
      * @param entity with id fields
      * @return true if was able to remove entity
      */
     public boolean delete(T entity) throws AqualityException {
-        List<Pair<String, String>> parameters = entity.getDataBaseIDParameters();
+        return delete(entity.getDataBaseIDParameters());
+    }
+
+    public boolean deleteInProject(T entity) throws AqualityException {
+        List<Pair<String, String>> parameters = new ArrayList<>();
+        entity.getIdAndProjectIdSearchParameters().stream()
+                .filter(
+                        param -> param.left.equalsIgnoreCase(DtoFields.PROJECT_ID.getDbRequestName()) ||
+                                param.left.equalsIgnoreCase(DtoFields.ID.getDbRequestName())
+                )
+                .forEach(parameters::add);
+        return delete(parameters);
+    }
+
+    private boolean delete(List<Pair<String, String>> parameters) throws AqualityException {
         checkRemoveProcedure();
         CallStoredProcedure(remove, parameters);
         return true;
@@ -155,6 +191,7 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Create Entity
+     *
      * @param entity entity to create
      * @return created entity
      */
@@ -166,15 +203,14 @@ public abstract class DAO<T extends BaseDto> {
             // entity has no id
         }
 
-        if(id == null){
+        if (id == null) {
             List<Pair<String, String>> parameters = entity.getParameters();
             checkInsertProcedure();
             List<T> results = dtoMapper.mapObjects(CallStoredProcedure(insert, parameters).toString());
-            if(!results.isEmpty()){
+            if (!results.isEmpty()) {
                 return results.get(0);
             }
-        }
-        else {
+        } else {
             return update(entity);
         }
 
@@ -183,11 +219,12 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Create multiple entities
+     *
      * @param entities entities to create
      * @return true if was able to create all entities
      */
     public boolean createMultiply(List<T> entities) throws AqualityException {
-        for (T entity: entities ) {
+        for (T entity : entities) {
             create(entity);
         }
         return true;
@@ -195,11 +232,12 @@ public abstract class DAO<T extends BaseDto> {
 
     /**
      * Update multiple entities
+     *
      * @param entities entities to update
      * @return true if was able to update all entities
      */
     public boolean updateMultiply(List<T> entities) throws AqualityException {
-        for (T entity: entities ) {
+        for (T entity : entities) {
             update(entity);
         }
         return true;
@@ -208,7 +246,7 @@ public abstract class DAO<T extends BaseDto> {
     protected JSONArray CallStoredProcedure(String sql, List<Pair<String, String>> parameters) throws AqualityException {
         JSONArray json = null;
         CallableStatement callableStatement = executeCallableStatement(sql, parameters, null);
-        try{
+        try {
             ResultSet rs = callableStatement.getResultSet();
             if (rs != null) {
                 json = RS_Converter.convertToJSON(rs);
@@ -223,10 +261,9 @@ public abstract class DAO<T extends BaseDto> {
     }
 
     private T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
-        if(!allResults.isEmpty()) {
+        if (!allResults.isEmpty()) {
             return allResults.get(0);
-        }
-        else{
+        } else {
             throw new AqualityException("No Entities was found by '%s' id", id);
         }
     }
@@ -249,15 +286,15 @@ public abstract class DAO<T extends BaseDto> {
     private CallableStatement executeCallableStatement(String sql, List<Pair<String, String>> parameters, List<Pair<String, Integer>> output) throws AqualityException {
         CallableStatement callableStatement = getCallableStatement(sql);
 
-        if(callableStatement == null){
+        if (callableStatement == null) {
             throw new AqualityException(String.format("Cannot create statement for '%s'", getSqlName(sql)));
         }
 
         if (parameters != null) {
             for (Pair<String, String> parameter : parameters) {
-                try{
+                try {
                     callableStatement.setString(parameter.left, parameter.right);
-                } catch (NullPointerException e){
+                } catch (NullPointerException e) {
                     throw new AqualityException(String.format("The %s parameter is not registered in stored procedure: '%s'", parameter.left, getSqlName(sql)));
                 } catch (SQLException e) {
                     throw new AqualityException(String.format("Cannot set %s parameter to stored procedure: %s", parameter.right, e.getMessage()));
@@ -281,7 +318,7 @@ public abstract class DAO<T extends BaseDto> {
     private CallableStatement tryExecute(CallableStatement callableStatement) throws AqualitySQLException {
         int counter = 0;
         SQLException lastException = null;
-        while(counter < 5) {
+        while (counter < 5) {
             try {
                 callableStatement.execute();
                 return callableStatement;
@@ -316,24 +353,14 @@ public abstract class DAO<T extends BaseDto> {
         }
     }
 
-    private String getSqlName(String storedProcedure){
+    private String getSqlName(String storedProcedure) {
         Pattern pattern = Pattern.compile(".*call (.*)\\(.*\\}");
         Matcher matcher = pattern.matcher(storedProcedure);
-        if(matcher.find()){
+        if (matcher.find()) {
             String match = matcher.group(1);
             return match.replaceAll("_", " ");
         }
         return "";
-    }
-
-    private boolean areParametersEmpty(List<Pair<String, String>> parameters) {
-        for (Pair<String, String> pair : parameters) {
-            if(!pair.right.equals("")){
-                return false;
-            }
-        }
-
-        return true;
     }
 
     protected void checkSelectProcedure() throws AqualityException {
@@ -349,7 +376,7 @@ public abstract class DAO<T extends BaseDto> {
     }
 
     private void checkProcedure(String sql, String sqlName) throws AqualityException {
-        if(sql == null){
+        if (sql == null) {
             throw new AqualityException(String.format("SQL procedure '%s' is not define for DAO '%s'", sqlName, getClass()));
         }
     }

@@ -1,16 +1,17 @@
 package main.view.integrations.references;
 
+import main.controllers.ControllerType;
+import main.model.db.dao.integrations.ReferenceDao;
 import main.model.dto.integrations.references.IssueReferenceDto;
-import main.model.dto.integrations.references.ReferenceType;
+import main.view.CrudServlet;
 
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/integration/references/issue")
-public class IssueReferenceServlet extends ReferenceServlet<IssueReferenceDto> {
+public class IssueReferenceServlet extends CrudServlet<IssueReferenceDto, ReferenceDao<IssueReferenceDto>> {
+
 
     public IssueReferenceServlet() {
-        super(ReferenceType.ISSUE);
+        super(ControllerType.REF_ISSUE_CONTROLLER);
     }
 }

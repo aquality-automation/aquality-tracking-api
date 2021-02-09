@@ -1,4 +1,4 @@
-package main.model.dto.integrations.types;
+package main.model.dto.integrations.systems;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;

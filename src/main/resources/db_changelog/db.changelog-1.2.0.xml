@@ -152,6 +152,26 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="CREATE PROCEDURE REMOVE_INT_SYSTEMS" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEMS`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_INT_SYSTEMS` (
+            In request_id varchar(11)
+            )
+            BEGIN
+            DELETE FROM int_systems
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEMS`;
+        </rollback>
+    </changeSet>
+
     <changeSet id="CREATE FUNCTION NULLABLE" author="d.bogatko">
         <sql endDelimiter="#">
             DROP FUNCTION IF EXISTS `nullable`;
@@ -327,6 +347,188 @@
         </sql>
         <rollback>
             DROP procedure IF EXISTS `REMOVE_INT_REFERENCE`;
+        </rollback>
+    </changeSet>
+
+    <!-- xray -->
+    <changeSet id="CREATE TABLE INT_TTS_TYPES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_tts_types` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `int_tts_types`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="INSERT XRAY INTO INT_TTS_TYPES" author="d.bogatko">
+        <sql endDelimiter="#">
+            INSERT INTO `int_tts_types` (`name`) VALUES ('Xray');
+        </sql>
+        <rollback>
+            DELETE FROM union_reporting.int_tts_types where id = 1;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_TTS_TYPE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_INT_TTS_TYPE`;
+
+            #
+            CREATE PROCEDURE `SELECT_INT_TTS_TYPE`()
+            BEGIN
+            SELECT * FROM int_tts_types;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_TTS_TYPE`;
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="CREATE PROCEDURE CREATE_TTS_STATUSES_TABLE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `CREATE_TTS_STATUSES_TABLE`;
+
+            #
+            CREATE PROCEDURE `CREATE_TTS_STATUSES_TABLE` (IN request_project_id VARCHAR(3))
+            BEGIN
+            SET @create_command = CONCAT(
+            'CREATE TABLE `int_tts_statuses_', request_project_id,'` (',
+            '`id` INT NOT NULL AUTO_INCREMENT,',
+            '`tts_type` INT NOT NULL,',
+            '`status_id` INT NOT NULL,',
+            '`status_name` VARCHAR(50) NOT NULL,',
+            '`resolution_id` INT NOT NULL,',
+            'PRIMARY KEY (`id`),'
+            'UNIQUE INDEX `id_UNIQUE` (`id` ASC));'
+            );
+
+            PREPARE create_statement FROM @create_command;
+            EXECUTE create_statement;
+            DEALLOCATE PREPARE create_statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `CREATE_TTS_STATUSES_TABLE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE INSERT_TTS_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `INSERT_TTS_STATUS`;
+
+            #
+            CREATE PROCEDURE `INSERT_TTS_STATUS`(
+            IN request_id VARCHAR(20),
+            IN request_tts_type VARCHAR(2),
+            IN request_status_id VARCHAR(2),
+            IN request_status_name VARCHAR(50),
+            IN request_resolution_id VARCHAR(10),
+            IN request_project_id VARCHAR(3)
+            )
+            BEGIN
+            SET @insert_command = CONCAT(
+            'INSERT INTO int_tts_statuses_', request_project_id ,'(',
+            'id,',
+            '`tts_type`,',
+            'status_id,',
+            'status_name,',
+            'resolution_id'
+            ') ',
+            'VALUES (',
+            'nullable(\'', request_id ,'\'),',
+            'nullable(\'', request_tts_type ,'\'),',
+            'nullable(\'', request_status_id ,'\'),',
+            'nullable(\'', request_status_name ,'\'),',
+            'nullable(\'', request_resolution_id ,'\')',
+            ') ',
+            'ON DUPLICATE KEY UPDATE ',
+            '`tts_type` = nullable(\'', request_tts_type ,'\'),',
+            'status_id = nullable(\'', request_status_id ,'\'),',
+            'status_name = nullable(\'', request_status_name ,'\'),',
+            'resolution_id = nullable(\'', request_resolution_id ,'\');'
+            );
+
+            PREPARE insert_statement FROM @insert_command;
+            EXECUTE insert_statement;
+            DEALLOCATE PREPARE insert_statement;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+
+            SET @select_command = CONCAT('SELECT * from int_tts_statuses_', request_project_id, ' where id = ', @insert_id ,';');
+
+            PREPARE select_statement FROM @select_command;
+            EXECUTE select_statement;
+            DEALLOCATE PREPARE select_statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_TTS_STATUS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_TTS_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_TTS_STATUS`;
+
+            #
+            CREATE PROCEDURE `SELECT_TTS_STATUS`(
+            IN request_id VARCHAR(20),
+            IN request_tts_type VARCHAR(2),
+            IN request_status_id VARCHAR(2),
+            IN request_status_name VARCHAR(50),
+            IN request_resolution_id VARCHAR(10),
+            IN request_project_id VARCHAR(3)
+            )
+            BEGIN
+            SET @select_command = CONCAT(
+            'SELECT * FROM int_tts_statuses_', request_project_id ,' ',
+            'WHERE empty_or_equal(\'', request_id ,'\', id) ',
+            'AND empty_or_equal(\'', request_tts_type ,'\', `tts_type`) ',
+            'AND empty_or_equal(\'', request_status_id ,'\', status_id) ',
+            'AND empty_or_equal(\'', request_status_name ,'\', status_name) ',
+            'AND empty_or_equal(\'', request_resolution_id ,'\', resolution_id);'
+            );
+
+            PREPARE select_statement FROM @select_command;
+            EXECUTE select_statement;
+            DEALLOCATE PREPARE select_statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_TTS_STATUS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE REMOVE_TTS_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_TTS_STATUS`;
+
+            #
+            CREATE PROCEDURE `REMOVE_TTS_STATUS`(
+            IN request_id VARCHAR(20),
+            IN request_project_id VARCHAR(3)
+            )
+            BEGIN
+            SET @remove_command = CONCAT('DELETE FROM int_tts_statuses_', request_project_id ,' WHERE id=', request_id ,';');
+
+            PREPARE remove_statement FROM @remove_command;
+            EXECUTE remove_statement;
+            DEALLOCATE PREPARE remove_statement;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_TTS_STATUS`;
         </rollback>
     </changeSet>
 
