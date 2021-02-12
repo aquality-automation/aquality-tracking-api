@@ -27,7 +27,8 @@ public class CrudServlet<T extends BaseDto & IProjectEntity, D extends DAO<T>> e
         setEncoding(resp);
         try {
             Session session = createSession(req);
-            T entity = createAndInit(req);
+            T entity = controllerType.createDto();
+            entity.getSearchTemplateFromRequestParameters(req);
             List<T> data = session.controllerFactory.getReadonlyHandler(controllerType).get(entity);
             resp.getWriter().write(mapper.serialize(data));
             setJSONContentType(resp);

@@ -2,8 +2,10 @@ package main.controllers;
 
 import main.model.db.dao.DAO;
 import main.model.db.dao.integrations.ReferenceDao;
-import main.model.db.dao.integrations.SystemDao;
-import main.model.db.dao.integrations.SystemTypeDao;
+import main.model.db.dao.integrations.systems.SystemDao;
+import main.model.db.dao.integrations.systems.SystemTypeDao;
+import main.model.db.dao.integrations.systems.workflow.SystemWorkflowStatusDao;
+import main.model.db.dao.integrations.systems.workflow.SystemWorkflowStatusTypeDao;
 import main.model.db.dao.integrations.tts.TestTrackingStatusDao;
 import main.model.db.dao.integrations.tts.TestTrackingTypeDao;
 import main.model.dto.BaseDto;
@@ -13,6 +15,8 @@ import main.model.dto.integrations.references.TestReferenceDto;
 import main.model.dto.integrations.references.TestRunReferenceDto;
 import main.model.dto.integrations.systems.SystemDto;
 import main.model.dto.integrations.systems.SystemTypeDto;
+import main.model.dto.integrations.systems.workflow.SystemWorkflowStatusDto;
+import main.model.dto.integrations.systems.workflow.SystemWorkflowStatusTypeDto;
 import main.model.dto.integrations.tts.TestTrackingStatusDto;
 import main.model.dto.integrations.tts.TestTrackingTypeDto;
 
@@ -26,6 +30,9 @@ public class ControllerType<T extends BaseDto, D extends DAO<T>> {
     public static final ControllerType<TestTrackingStatusDto, TestTrackingStatusDao> TTS_STATUS_CONTROLLER = new ControllerType<>(TestTrackingStatusDto::new, TestTrackingStatusDao::new, TestTrackingStatusDto.class);
     public static final ControllerType<SystemDto, SystemDao> SYSTEM_CONTROLLER = new ControllerType<>(SystemDto::new, SystemDao::new, SystemDto.class);
     public static final ControllerType<SystemTypeDto, SystemTypeDao> SYSTEM_TYPE_CONTROLLER = new ControllerType<>(SystemTypeDto::new, SystemTypeDao::new, SystemTypeDto.class);
+    public static final ControllerType<SystemWorkflowStatusTypeDto, SystemWorkflowStatusTypeDao> SYSTEM_WORKFLOW_STATUS_TYPE_CONTROLLER = new ControllerType<>(SystemWorkflowStatusTypeDto::new, SystemWorkflowStatusTypeDao::new, SystemWorkflowStatusTypeDto.class);
+    public static final ControllerType<SystemWorkflowStatusDto, SystemWorkflowStatusDao> SYSTEM_WORKFLOW_STATUS_CONTROLLER = new ControllerType<>(SystemWorkflowStatusDto::new, SystemWorkflowStatusDao::new, SystemWorkflowStatusDto.class);
+
     public static final ControllerType<TestTrackingTypeDto, TestTrackingTypeDao> TTS_TYPE_CONTROLLER = new ControllerType<>(TestTrackingTypeDto::new, TestTrackingTypeDao::new, TestTrackingTypeDto.class);
 
     private final Supplier<T> dtoSupplier;

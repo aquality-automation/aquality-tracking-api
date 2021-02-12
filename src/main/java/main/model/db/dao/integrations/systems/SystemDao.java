@@ -1,4 +1,4 @@
-package main.model.db.dao.integrations;
+package main.model.db.dao.integrations.systems;
 
 import main.model.db.dao.DAO;
 import main.model.dto.integrations.systems.SystemDto;

@@ -39,19 +39,6 @@ public class ProjectEntityController<DTO extends BaseDto & IProjectEntity, D ext
         return dao.delete(entity);
     }
 
-    public boolean deleteInProject(DTO entity) throws AqualityException {
-        validateRoles(entity, getRolesPermittedToDelete());
-        //TODO: return 404 if not found, then check subscribe in angular part
-        return dao.deleteInProject(entity);
-    }
-
-    public void createTable(DTO entity) throws AqualityException {
-        // TODO: revert back then to use MANAGER instead of EDITOR
-        validateRoles(entity, getRolesPermittedToCreateTable());
-        DAO.createTable(entity, dao);
-    }
-
-
     protected RolePair getRolesPermittedToGet() {
         return new RolePair(GlobalRole.ADMIN, ProjectRole.VIEWER);
     }
@@ -69,6 +56,7 @@ public class ProjectEntityController<DTO extends BaseDto & IProjectEntity, D ext
         return new RolePair(GlobalRole.ADMIN, ProjectRole.ENGINEER);
     }
 
+    //TODO: might be needed to add validation on project and requested value
     private void validateRoles(DTO entity, RolePair roles) throws AqualityException {
         GlobalRole globalRole = roles.getGlobal();
         ProjectRole projectRole = roles.getProject();

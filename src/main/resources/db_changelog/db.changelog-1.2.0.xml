@@ -350,7 +350,6 @@
         </rollback>
     </changeSet>
 
-    <!-- xray -->
     <changeSet id="CREATE TABLE INT_TTS_TYPES" author="d.bogatko">
         <sql>
             CREATE TABLE `int_tts_types` (
@@ -390,145 +389,270 @@
         </rollback>
     </changeSet>
 
-
-    <changeSet id="CREATE PROCEDURE CREATE_TTS_STATUSES_TABLE" author="d.bogatko">
+    <changeSet id="CREATE TABLE INT_SYSTEM_WORKFLOW_STATUS_TYPES" author="d.bogatko">
         <sql endDelimiter="#">
+            CREATE TABLE `int_system_workflow_status_types` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
 
-            DROP procedure IF EXISTS `CREATE_TTS_STATUSES_TABLE`;
-
-            #
-            CREATE PROCEDURE `CREATE_TTS_STATUSES_TABLE` (IN request_project_id VARCHAR(3))
-            BEGIN
-            SET @create_command = CONCAT(
-            'CREATE TABLE `int_tts_statuses_', request_project_id,'` (',
-            '`id` INT NOT NULL AUTO_INCREMENT,',
-            '`tts_type` INT NOT NULL,',
-            '`status_id` INT NOT NULL,',
-            '`status_name` VARCHAR(50) NOT NULL,',
-            '`resolution_id` INT NOT NULL,',
-            'PRIMARY KEY (`id`),'
-            'UNIQUE INDEX `id_UNIQUE` (`id` ASC));'
-            );
-
-            PREPARE create_statement FROM @create_command;
-            EXECUTE create_statement;
-            DEALLOCATE PREPARE create_statement;
-            END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `CREATE_TTS_STATUSES_TABLE`;
+            DROP TABLE `int_system_workflow_status_types`;
         </rollback>
     </changeSet>
 
-    <changeSet id="CREATE PROCEDURE INSERT_TTS_STATUS" author="d.bogatko">
+    <changeSet id="INSERT CLOSED INTO INT_SYSTEM_WORKFLOW_STATUS_TYPES" author="d.bogatko">
+        <sql endDelimiter="#">
+            INSERT INTO `int_system_workflow_status_types` (`name`) VALUES ('Closed');
+        </sql>
+        <rollback>
+            DELETE FROM `int_system_workflow_status_types` where id = 1;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_SYSTEM_WORKFLOW_STATUS_TYPES" author="d.bogatko">
         <sql endDelimiter="#">
 
-            DROP procedure IF EXISTS `INSERT_TTS_STATUS`;
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_WORKFLOW_STATUS_TYPES`;
 
             #
-            CREATE PROCEDURE `INSERT_TTS_STATUS`(
+            CREATE PROCEDURE `SELECT_INT_SYSTEM_WORKFLOW_STATUS_TYPES`()
+            BEGIN
+            SELECT * FROM int_system_workflow_status_types;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_WORKFLOW_STATUS_TYPES`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE INT_SYSTEM_WORKFLOW_STATUSES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_system_workflow_statuses` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `project_id` INT NOT NULL,
+            `int_system_id` INT NOT NULL,
+            `wf_sts_type_id` INT NOT NULL,
+            `name` VARCHAR(20) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `int_system_workflow_statuses`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE INSERT_INT_SYSTEM_WORKFLOW_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEM_WORKFLOW_STATUS`;
+
+            #
+            CREATE PROCEDURE `INSERT_INT_SYSTEM_WORKFLOW_STATUS`(
             IN request_id VARCHAR(20),
-            IN request_tts_type VARCHAR(2),
-            IN request_status_id VARCHAR(2),
-            IN request_status_name VARCHAR(50),
-            IN request_resolution_id VARCHAR(10),
-            IN request_project_id VARCHAR(3)
+            IN request_project_id VARCHAR(10),
+            IN request_int_system_id VARCHAR(10),
+            IN request_wf_sts_type_id VARCHAR(10),
+            IN request_name VARCHAR(20)
             )
             BEGIN
-            SET @insert_command = CONCAT(
-            'INSERT INTO int_tts_statuses_', request_project_id ,'(',
-            'id,',
-            '`tts_type`,',
-            'status_id,',
-            'status_name,',
-            'resolution_id'
-            ') ',
-            'VALUES (',
-            'nullable(\'', request_id ,'\'),',
-            'nullable(\'', request_tts_type ,'\'),',
-            'nullable(\'', request_status_id ,'\'),',
-            'nullable(\'', request_status_name ,'\'),',
-            'nullable(\'', request_resolution_id ,'\')',
-            ') ',
-            'ON DUPLICATE KEY UPDATE ',
-            '`tts_type` = nullable(\'', request_tts_type ,'\'),',
-            'status_id = nullable(\'', request_status_id ,'\'),',
-            'status_name = nullable(\'', request_status_name ,'\'),',
-            'resolution_id = nullable(\'', request_resolution_id ,'\');'
-            );
+            INSERT INTO `int_system_workflow_statuses`(
+            id,
+            project_id,
+            int_system_id,
+            wf_sts_type_id,
+            `name`
+            )
 
-            PREPARE insert_statement FROM @insert_command;
-            EXECUTE insert_statement;
-            DEALLOCATE PREPARE insert_statement;
+            VALUES (
+            IF(request_id = '', null, request_id),
+            IF(request_project_id = '', null, request_project_id),
+            IF(request_int_system_id = '', null, request_int_system_id),
+            IF(request_wf_sts_type_id = '', null, request_wf_sts_type_id),
+            IF(request_name = '', null, request_name)
+            )
+            ON DUPLICATE KEY UPDATE
+            project_id = IF(request_project_id = '' OR null, project_id, request_project_id),
+            int_system_id = IF(request_int_system_id = '' OR null, int_system_id, request_int_system_id),
+            wf_sts_type_id = IF(request_wf_sts_type_id = '' OR null, wf_sts_type_id, request_wf_sts_type_id),
+            `name` = IF(request_name = '' OR null, `name`, request_name)
+            ;
 
             SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
-
-            SET @select_command = CONCAT('SELECT * from int_tts_statuses_', request_project_id, ' where id = ', @insert_id ,';');
-
-            PREPARE select_statement FROM @select_command;
-            EXECUTE select_statement;
-            DEALLOCATE PREPARE select_statement;
+            SELECT * from int_system_workflow_statuses where id = @insert_id;
             END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `INSERT_TTS_STATUS`;
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEM_WORKFLOW_STATUS`;
         </rollback>
     </changeSet>
 
-    <changeSet id="CREATE PROCEDURE SELECT_TTS_STATUS" author="d.bogatko">
+    <changeSet id="CREATE PROCEDURE SELECT_INT_SYSTEM_WORKFLOW_STATUS" author="d.bogatko">
         <sql endDelimiter="#">
-
-            DROP procedure IF EXISTS `SELECT_TTS_STATUS`;
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_WORKFLOW_STATUS`;
 
             #
-            CREATE PROCEDURE `SELECT_TTS_STATUS`(
+            CREATE PROCEDURE `SELECT_INT_SYSTEM_WORKFLOW_STATUS` (
             IN request_id VARCHAR(20),
-            IN request_tts_type VARCHAR(2),
-            IN request_status_id VARCHAR(2),
-            IN request_status_name VARCHAR(50),
-            IN request_resolution_id VARCHAR(10),
-            IN request_project_id VARCHAR(3)
+            IN request_project_id VARCHAR(10),
+            IN request_int_system_id VARCHAR(10),
+            IN request_wf_sts_type_id VARCHAR(10),
+            IN request_name VARCHAR(20)
             )
             BEGIN
-            SET @select_command = CONCAT(
-            'SELECT * FROM int_tts_statuses_', request_project_id ,' ',
-            'WHERE empty_or_equal(\'', request_id ,'\', id) ',
-            'AND empty_or_equal(\'', request_tts_type ,'\', `tts_type`) ',
-            'AND empty_or_equal(\'', request_status_id ,'\', status_id) ',
-            'AND empty_or_equal(\'', request_status_name ,'\', status_name) ',
-            'AND empty_or_equal(\'', request_resolution_id ,'\', resolution_id);'
-            );
-
-            PREPARE select_statement FROM @select_command;
-            EXECUTE select_statement;
-            DEALLOCATE PREPARE select_statement;
+            SELECT * FROM int_system_workflow_statuses
+            WHERE
+            empty_or_equal(request_id, id)
+            AND empty_or_equal(request_project_id, `project_id`)
+            AND empty_or_equal(request_int_system_id, `int_system_id`)
+            AND empty_or_equal(request_wf_sts_type_id, `wf_sts_type_id`)
+            AND empty_or_equal(request_name, `name`);
             END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `SELECT_TTS_STATUS`;
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_WORKFLOW_STATUS`;
         </rollback>
     </changeSet>
 
-    <changeSet id="CREATE PROCEDURE REMOVE_TTS_STATUS" author="d.bogatko">
+    <changeSet id="CREATE PROCEDURE REMOVE_INT_SYSTEM_WORKFLOW_STATUS" author="d.bogatko">
         <sql endDelimiter="#">
 
-            DROP procedure IF EXISTS `REMOVE_TTS_STATUS`;
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_WORKFLOW_STATUS`;
 
             #
-            CREATE PROCEDURE `REMOVE_TTS_STATUS`(
-            IN request_id VARCHAR(20),
-            IN request_project_id VARCHAR(3)
+
+            CREATE PROCEDURE `REMOVE_INT_SYSTEM_WORKFLOW_STATUS` (
+            In request_id varchar(20)
             )
             BEGIN
-            SET @remove_command = CONCAT('DELETE FROM int_tts_statuses_', request_project_id ,' WHERE id=', request_id ,';');
-
-            PREPARE remove_statement FROM @remove_command;
-            EXECUTE remove_statement;
-            DEALLOCATE PREPARE remove_statement;
+            DELETE FROM int_system_workflow_statuses
+            WHERE id=request_id;
             END
         </sql>
         <rollback>
-            DROP procedure IF EXISTS `REMOVE_TTS_STATUS`;
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_WORKFLOW_STATUS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE INT_SYSTEM_TTS_STATUSES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_system_tts_statuses` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `project_id` INT NOT NULL,
+            `int_system_id` INT NOT NULL,
+            `tts_type_id` INT NOT NULL,
+            `status_name` VARCHAR(20) NOT NULL,
+            `status_id` INT NOT NULL,
+            `resolution_id` INT NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `int_system_tts_statuses`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE INSERT_INT_SYSTEM_TTS_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEM_TTS_STATUS`;
+
+            #
+            CREATE PROCEDURE `INSERT_INT_SYSTEM_TTS_STATUS`(
+            IN request_id VARCHAR(20),
+            IN request_project_id VARCHAR(10),
+            IN request_int_system_id VARCHAR(10),
+            IN request_tts_type_id VARCHAR(10),
+            IN request_status_name VARCHAR(20),
+            IN request_status_id VARCHAR(20),
+            IN request_resolution_id VARCHAR(20)
+            )
+            BEGIN
+            INSERT INTO `int_system_tts_statuses`(
+            id,
+            project_id,
+            int_system_id,
+            tts_type_id,
+            status_name,
+            status_id,
+            resolution_id
+            )
+
+            VALUES (
+            IF(request_id = '', null, request_id),
+            IF(request_project_id = '', null, request_project_id),
+            IF(request_int_system_id = '', null, request_int_system_id),
+            IF(request_tts_type_id = '', null, request_tts_type_id),
+            IF(request_status_name = '', null, request_status_name),
+            IF(request_status_id = '', null, request_status_id),
+            IF(request_resolution_id = '', null, request_resolution_id)
+            )
+            ON DUPLICATE KEY UPDATE
+            project_id = IF(request_project_id = '' OR null, project_id, request_project_id),
+            int_system_id = IF(request_int_system_id = '' OR null, int_system_id, request_int_system_id),
+            tts_type_id = IF(request_tts_type_id = '' OR null, tts_type_id, request_tts_type_id),
+            status_name = IF(request_status_name = '' OR null, status_name, request_status_name),
+            status_id = IF(request_status_id = '' OR null, status_id, request_status_id),
+            resolution_id = IF(request_resolution_id = '' OR null, resolution_id, request_resolution_id)
+            ;
+
+            SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
+            SELECT * from int_system_tts_statuses where id = @insert_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEM_TTS_STATUS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_SYSTEM_TTS_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_TTS_STATUS`;
+
+            #
+            CREATE PROCEDURE `SELECT_INT_SYSTEM_TTS_STATUS` (
+            IN request_id VARCHAR(20),
+            IN request_project_id VARCHAR(10),
+            IN request_int_system_id VARCHAR(10),
+            IN request_tts_type_id VARCHAR(10),
+            IN request_status_name VARCHAR(20),
+            IN request_status_id VARCHAR(20),
+            IN request_resolution_id VARCHAR(20)
+            )
+            BEGIN
+            SELECT * FROM int_system_tts_statuses
+            WHERE
+            empty_or_equal(request_id, id)
+            AND empty_or_equal(request_project_id, `project_id`)
+            AND empty_or_equal(request_int_system_id, `int_system_id`)
+            AND empty_or_equal(request_tts_type_id, `tts_type_id`)
+            AND empty_or_equal(request_status_name, `status_name`)
+            AND empty_or_equal(request_status_id, `status_id`)
+            AND empty_or_equal(request_resolution_id, `resolution_id`);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_TTS_STATUS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE REMOVE_INT_SYSTEM_TTS_STATUS" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_TTS_STATUS`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_INT_SYSTEM_TTS_STATUS` (
+            In request_id varchar(20)
+            )
+            BEGIN
+            DELETE FROM int_system_tts_statuses
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_TTS_STATUS`;
         </rollback>
     </changeSet>
 

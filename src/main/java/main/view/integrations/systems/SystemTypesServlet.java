@@ -1,7 +1,7 @@
-package main.view.integrations;
+package main.view.integrations.systems;
 
 import main.controllers.ControllerType;
-import main.model.db.dao.integrations.SystemTypeDao;
+import main.model.db.dao.integrations.systems.SystemTypeDao;
 import main.model.dto.integrations.systems.SystemTypeDto;
 import main.view.GetOnlyServlet;
 

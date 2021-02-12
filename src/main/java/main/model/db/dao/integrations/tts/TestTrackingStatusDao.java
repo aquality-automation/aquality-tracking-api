@@ -7,9 +7,8 @@ public class TestTrackingStatusDao extends DAO<TestTrackingStatusDto> {
 
     public TestTrackingStatusDao() {
         super(TestTrackingStatusDto.class);
-        select = "{call SELECT_TTS_STATUS(?,?,?,?,?,?)}";
-        insert = "{call INSERT_TTS_STATUS(?,?,?,?,?,?)}";
-        remove = "{call REMOVE_TTS_STATUS(?,?)}";
-        createTable = "{call CREATE_TTS_STATUSES_TABLE(?)}";
+        select = "{call SELECT_INT_SYSTEM_TTS_STATUS(?,?,?,?,?,?,?)}";
+        insert = "{call INSERT_INT_SYSTEM_TTS_STATUS(?,?,?,?,?,?,?)}";
+        remove = "{call REMOVE_INT_SYSTEM_TTS_STATUS(?)}";
     }
 }

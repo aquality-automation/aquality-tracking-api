@@ -6,9 +6,7 @@ import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualitySQLException;
 import main.model.db.RS_Converter;
 import main.model.dto.BaseDto;
-import main.model.dto.DtoFields;
 import main.model.dto.DtoMapper;
-import main.model.dto.interfaces.IProjectEntity;
 import org.json.JSONArray;
 
 import javax.naming.InitialContext;
@@ -18,7 +16,6 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,8 +27,6 @@ public abstract class DAO<T extends BaseDto> {
     protected String select;
     protected String insert;
     protected String remove;
-    protected String createTable;
-
 
     /**
      * Class that allows you to work with DB
@@ -86,18 +81,6 @@ public abstract class DAO<T extends BaseDto> {
         List<Pair<String, String>> parameters = entity.getSearchParameters();
         checkSelectProcedure();
         return dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
-    }
-
-    /**
-     * will call procedure to create table dynamically based on project_id
-     *
-     * @param entity dto with project id
-     * @param dao    dao
-     * @throws AqualityException
-     */
-    public static <T extends BaseDto & IProjectEntity, D extends DAO<T>> void createTable(T entity, D dao) throws AqualityException {
-        List<Pair<String, String>> parameters = entity.getSearchParameter(DtoFields.PROJECT_ID);
-        dao.CallStoredProcedure(dao.createTable, parameters);
     }
 
     /**
@@ -169,23 +152,8 @@ public abstract class DAO<T extends BaseDto> {
      * @return true if was able to remove entity
      */
     public boolean delete(T entity) throws AqualityException {
-        return delete(entity.getDataBaseIDParameters());
-    }
-
-    public boolean deleteInProject(T entity) throws AqualityException {
-        List<Pair<String, String>> parameters = new ArrayList<>();
-        entity.getIdAndProjectIdSearchParameters().stream()
-                .filter(
-                        param -> param.left.equalsIgnoreCase(DtoFields.PROJECT_ID.getDbRequestName()) ||
-                                param.left.equalsIgnoreCase(DtoFields.ID.getDbRequestName())
-                )
-                .forEach(parameters::add);
-        return delete(parameters);
-    }
-
-    private boolean delete(List<Pair<String, String>> parameters) throws AqualityException {
         checkRemoveProcedure();
-        CallStoredProcedure(remove, parameters);
+        CallStoredProcedure(remove, entity.getDataBaseIDParameters());
         return true;
     }
 
