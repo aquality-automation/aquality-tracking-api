@@ -7,8 +7,8 @@ public class SystemDao extends DAO<SystemDto> {
 
     public SystemDao() {
         super(SystemDto.class);
-        select = "{call SELECT_INT_SYSTEMS(?,?,?,?,?,?,?,?)}";
-        insert = "{call INSERT_INT_SYSTEMS(?,?,?,?,?,?,?,?)}";
-        remove = "{call REMOVE_INT_SYSTEMS(?)}";
+        select = "{call SELECT_INT_SYSTEMS(?,?,?,?,?,?,?,?,?)}";
+        insert = "{call INSERT_INT_SYSTEMS(?,?,?,?,?,?,?,?,?)}";
+        remove = "{call REMOVE_INT_SYSTEMS(?,?)}";
     }
 }

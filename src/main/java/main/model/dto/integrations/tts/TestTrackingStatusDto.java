@@ -40,6 +40,11 @@ public class TestTrackingStatusDto extends BaseDto implements IProjectEntity {
     private Integer status_id;
 
     @DataBaseSearchable
+    @DataBaseName(name = "request_final_result_id")
+    @DataBaseInsert
+    private Integer final_result_id;
+
+    @DataBaseSearchable
     @DataBaseName(name = "request_resolution_id")
     @DataBaseInsert
     private Integer resolution_id;

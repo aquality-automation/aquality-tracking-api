@@ -2,6 +2,7 @@ package main.controllers;
 
 import main.model.db.dao.DAO;
 import main.model.db.dao.integrations.ReferenceDao;
+import main.model.db.dao.integrations.PubItemDao;
 import main.model.db.dao.integrations.systems.SystemDao;
 import main.model.db.dao.integrations.systems.SystemTypeDao;
 import main.model.db.dao.integrations.systems.workflow.SystemWorkflowStatusDao;
@@ -9,6 +10,7 @@ import main.model.db.dao.integrations.systems.workflow.SystemWorkflowStatusTypeD
 import main.model.db.dao.integrations.tts.TestTrackingStatusDao;
 import main.model.db.dao.integrations.tts.TestTrackingTypeDao;
 import main.model.dto.BaseDto;
+import main.model.dto.integrations.publishing.PubItemDto;
 import main.model.dto.integrations.references.IssueReferenceDto;
 import main.model.dto.integrations.references.ReferenceType;
 import main.model.dto.integrations.references.TestReferenceDto;
@@ -32,8 +34,8 @@ public class ControllerType<T extends BaseDto, D extends DAO<T>> {
     public static final ControllerType<SystemTypeDto, SystemTypeDao> SYSTEM_TYPE_CONTROLLER = new ControllerType<>(SystemTypeDto::new, SystemTypeDao::new, SystemTypeDto.class);
     public static final ControllerType<SystemWorkflowStatusTypeDto, SystemWorkflowStatusTypeDao> SYSTEM_WORKFLOW_STATUS_TYPE_CONTROLLER = new ControllerType<>(SystemWorkflowStatusTypeDto::new, SystemWorkflowStatusTypeDao::new, SystemWorkflowStatusTypeDto.class);
     public static final ControllerType<SystemWorkflowStatusDto, SystemWorkflowStatusDao> SYSTEM_WORKFLOW_STATUS_CONTROLLER = new ControllerType<>(SystemWorkflowStatusDto::new, SystemWorkflowStatusDao::new, SystemWorkflowStatusDto.class);
-
     public static final ControllerType<TestTrackingTypeDto, TestTrackingTypeDao> TTS_TYPE_CONTROLLER = new ControllerType<>(TestTrackingTypeDto::new, TestTrackingTypeDao::new, TestTrackingTypeDto.class);
+    public static final ControllerType<PubItemDto, PubItemDao> PUBLISHING_CONTROLLER = new ControllerType<>(PubItemDto::new, PubItemDao::new, PubItemDto.class);
 
     private final Supplier<T> dtoSupplier;
     private final Supplier<D> daoSupplier;

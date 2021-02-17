@@ -44,6 +44,46 @@
         </rollback>
     </changeSet>
 
+
+    <changeSet id="CREATE TABLE INT_TTS_TYPES" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_tts_types` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(45) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+        </sql>
+        <rollback>
+            DROP TABLE `int_tts_types`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="INSERT XRAY INTO INT_TTS_TYPES" author="d.bogatko">
+        <sql endDelimiter="#">
+            INSERT INTO `int_tts_types` (`name`) VALUES ('Xray');
+        </sql>
+        <rollback>
+            DELETE FROM union_reporting.int_tts_types where id = 1;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_TTS_TYPE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `SELECT_INT_TTS_TYPE`;
+
+            #
+            CREATE PROCEDURE `SELECT_INT_TTS_TYPE`()
+            BEGIN
+            SELECT * FROM int_tts_types;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_TTS_TYPE`;
+        </rollback>
+    </changeSet>
+
     <changeSet id="CREATE TABLE INT_SYSTEMS" author="d.bogatko">
         <sql>
             CREATE TABLE `int_systems` (
@@ -54,6 +94,7 @@
             `password` VARCHAR(20) NOT NULL,
             `api_token` VARCHAR(20) NOT NULL,
             `int_system_type` INT NOT NULL,
+            `int_tts_type` INT NOT NULL,
             `project_id` INT NOT NULL,
             PRIMARY KEY (`id`),
             UNIQUE INDEX `id_UNIQUE` (`id` ASC));
@@ -76,6 +117,7 @@
             IN request_password VARCHAR(20),
             IN request_api_token VARCHAR(20),
             IN request_int_system_type VARCHAR(2),
+            IN request_int_tts_type VARCHAR(2),
             IN request_project_id VARCHAR(10)
             )
             BEGIN
@@ -87,6 +129,7 @@
             `password`,
             `api_token`,
             int_system_type,
+            int_tts_type,
             project_id
             )
 
@@ -98,6 +141,7 @@
             IF(request_password = '', null, request_password),
             IF(request_api_token = '', null, request_api_token),
             IF(request_int_system_type = '', null, request_int_system_type),
+            IF(request_int_tts_type = '', null, request_int_tts_type),
             IF(request_project_id ='',null,request_project_id)
             )
             ON DUPLICATE KEY UPDATE
@@ -107,6 +151,7 @@
             `password` = IF(request_password = '' OR null, `name`, request_password),
             `api_token` = IF(request_api_token = '' OR null, `name`, request_api_token),
             int_system_type = IF(request_int_system_type = '' OR null, int_system_type, request_int_system_type),
+            int_tts_type = IF(request_int_system_type = '' OR null, int_system_type, request_int_tts_type),
             project_id = IF(request_project_id = '' OR null, project_id, request_project_id)
             ;
 
@@ -132,6 +177,7 @@
             IN request_password VARCHAR(20),
             IN request_api_token VARCHAR(20),
             IN request_int_system_type VARCHAR(2),
+            IN request_int_tts_type VARCHAR(2),
             IN request_project_id VARCHAR(10)
             )
             BEGIN
@@ -144,6 +190,7 @@
             AND empty_or_equal(request_password, `password`)
             AND empty_or_equal(request_api_token, `api_token`)
             AND empty_or_equal(request_int_system_type, int_system_type)
+            AND empty_or_equal(request_int_tts_type, int_tts_type)
             AND empty_or_equal(request_project_id, project_id);
             END
         </sql>
@@ -350,45 +397,6 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="CREATE TABLE INT_TTS_TYPES" author="d.bogatko">
-        <sql>
-            CREATE TABLE `int_tts_types` (
-            `id` INT NOT NULL AUTO_INCREMENT,
-            `name` VARCHAR(45) NOT NULL,
-            PRIMARY KEY (`id`),
-            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
-
-        </sql>
-        <rollback>
-            DROP TABLE `int_tts_types`;
-        </rollback>
-    </changeSet>
-
-    <changeSet id="INSERT XRAY INTO INT_TTS_TYPES" author="d.bogatko">
-        <sql endDelimiter="#">
-            INSERT INTO `int_tts_types` (`name`) VALUES ('Xray');
-        </sql>
-        <rollback>
-            DELETE FROM union_reporting.int_tts_types where id = 1;
-        </rollback>
-    </changeSet>
-
-    <changeSet id="CREATE PROCEDURE SELECT_INT_TTS_TYPE" author="d.bogatko">
-        <sql endDelimiter="#">
-
-            DROP procedure IF EXISTS `SELECT_INT_TTS_TYPE`;
-
-            #
-            CREATE PROCEDURE `SELECT_INT_TTS_TYPE`()
-            BEGIN
-            SELECT * FROM int_tts_types;
-            END
-        </sql>
-        <rollback>
-            DROP procedure IF EXISTS `SELECT_INT_TTS_TYPE`;
-        </rollback>
-    </changeSet>
-
     <changeSet id="CREATE TABLE INT_SYSTEM_WORKFLOW_STATUS_TYPES" author="d.bogatko">
         <sql endDelimiter="#">
             CREATE TABLE `int_system_workflow_status_types` (
@@ -544,7 +552,8 @@
             `tts_type_id` INT NOT NULL,
             `status_name` VARCHAR(20) NOT NULL,
             `status_id` INT NOT NULL,
-            `resolution_id` INT NOT NULL,
+            `final_result_id` INT,
+            `resolution_id` INT,
             PRIMARY KEY (`id`),
             UNIQUE INDEX `id_UNIQUE` (`id` ASC));
         </sql>
@@ -565,6 +574,7 @@
             IN request_tts_type_id VARCHAR(10),
             IN request_status_name VARCHAR(20),
             IN request_status_id VARCHAR(20),
+            IN request_final_result_id VARCHAR(20),
             IN request_resolution_id VARCHAR(20)
             )
             BEGIN
@@ -575,6 +585,7 @@
             tts_type_id,
             status_name,
             status_id,
+            final_result_id,
             resolution_id
             )
 
@@ -585,6 +596,7 @@
             IF(request_tts_type_id = '', null, request_tts_type_id),
             IF(request_status_name = '', null, request_status_name),
             IF(request_status_id = '', null, request_status_id),
+            IF(request_final_result_id = '', null, request_final_result_id),
             IF(request_resolution_id = '', null, request_resolution_id)
             )
             ON DUPLICATE KEY UPDATE
@@ -593,6 +605,7 @@
             tts_type_id = IF(request_tts_type_id = '' OR null, tts_type_id, request_tts_type_id),
             status_name = IF(request_status_name = '' OR null, status_name, request_status_name),
             status_id = IF(request_status_id = '' OR null, status_id, request_status_id),
+            resolution_id = IF(request_final_result_id = '' OR null, resolution_id, request_final_result_id),
             resolution_id = IF(request_resolution_id = '' OR null, resolution_id, request_resolution_id)
             ;
 
@@ -617,6 +630,7 @@
             IN request_tts_type_id VARCHAR(10),
             IN request_status_name VARCHAR(20),
             IN request_status_id VARCHAR(20),
+            IN request_final_result_id VARCHAR(20),
             IN request_resolution_id VARCHAR(20)
             )
             BEGIN
@@ -627,6 +641,7 @@
             AND empty_or_equal(request_int_system_id, `int_system_id`)
             AND empty_or_equal(request_tts_type_id, `tts_type_id`)
             AND empty_or_equal(request_status_name, `status_name`)
+            AND empty_or_equal(request_final_result_id, `final_result_id`)
             AND empty_or_equal(request_status_id, `status_id`)
             AND empty_or_equal(request_resolution_id, `resolution_id`);
             END
@@ -653,6 +668,139 @@
         </sql>
         <rollback>
             DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_TTS_STATUS`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TABLE INT_SYSTEM_LOG_PUBLISH" author="d.bogatko">
+        <sql>
+            CREATE TABLE `int_system_log_publish` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `time` VARCHAR(50) NOT NULL,
+            `project_id` INT NOT NULL,
+            `int_system_id` INT NOT NULL,
+            `run_id` INT NOT NULL,
+            `run_ref` VARCHAR(50) NOT NULL,
+            `result_id` INT NOT NULL,
+            `test_ref` VARCHAR(50) NOT NULL,
+            `status` INT NOT NULL,
+            `issue_ref` VARCHAR(50),
+            `submission_result` VARCHAR(100) NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+        </sql>
+        <rollback>
+            DROP TABLE `int_system_log_publish`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE INSERT_INT_SYSTEM_LOG_PUBLISH" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEM_LOG_PUBLISH`;
+
+            #
+            CREATE PROCEDURE `INSERT_INT_SYSTEM_LOG_PUBLISH`(
+            IN request_time VARCHAR(50),
+            IN request_project_id VARCHAR(10),
+            IN request_int_system_id VARCHAR(10),
+            IN request_run_id VARCHAR(10),
+            IN request_run_ref VARCHAR(50),
+            IN request_result_id VARCHAR(10),
+            IN request_test_ref VARCHAR(50),
+            IN request_status VARCHAR(10),
+            IN request_issue_ref VARCHAR(50),
+            IN request_submission_result VARCHAR(100)
+            )
+            BEGIN
+            INSERT INTO `int_system_log_publish`(
+            time,
+            project_id,
+            int_system_id,
+            run_id,
+            run_ref,
+            result_id,
+            test_ref,
+            status,
+            issue_ref,
+            submission_result
+            )
+
+            VALUES (
+            IF(request_time = '', null, request_time),
+            IF(request_project_id = '', null, request_project_id),
+            IF(request_int_system_id = '', null, request_int_system_id),
+            IF(request_run_id = '', null, request_run_id),
+            IF(request_run_ref = '', null, request_run_ref),
+            IF(request_result_id = '', null, request_result_id),
+            IF(request_test_ref = '', null, request_test_ref),
+            IF(request_status = '', null, request_status),
+            IF(request_issue_ref = '', null, request_issue_ref),
+            IF(request_submission_result = '', null, request_submission_result)
+            )
+            ;
+
+            SELECT * from int_system_log_publish where id = last_insert_id();
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `INSERT_INT_SYSTEM_LOG_PUBLISH`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE SELECT_INT_SYSTEM_LOG_PUBLISH" author="d.bogatko">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_LOG_PUBLISH`;
+
+            #
+            CREATE PROCEDURE `SELECT_INT_SYSTEM_LOG_PUBLISH` (
+            IN request_id VARCHAR(20),
+            IN request_time VARCHAR(50),
+            IN request_project_id VARCHAR(10),
+            IN request_int_system_id VARCHAR(10),
+            IN request_run_id VARCHAR(10),
+            IN request_run_ref VARCHAR(50),
+            IN request_result_id VARCHAR(10),
+            IN request_test_ref VARCHAR(50),
+            IN request_status VARCHAR(10),
+            IN request_issue_ref VARCHAR(50),
+            IN request_submission_result VARCHAR(100)
+            )
+            BEGIN
+            SELECT * FROM int_system_log_publish
+            WHERE
+            empty_or_equal(request_id, id)
+            AND empty_or_equal(request_time, `time`)
+            AND empty_or_equal(request_project_id, `project_id`)
+            AND empty_or_equal(request_int_system_id, `int_system_id`)
+            AND empty_or_equal(request_run_id, `run_id`)
+            AND empty_or_equal(request_result_id, `result_id`)
+            AND empty_or_equal(request_test_ref, `test_ref`)
+            AND empty_or_equal(request_status, `status`)
+            AND empty_or_equal(request_issue_ref, `issue_ref`)
+            AND empty_or_equal(request_submission_result, `submission_result`);
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `SELECT_INT_SYSTEM_LOG_PUBLISH`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE PROCEDURE REMOVE_INT_SYSTEM_LOG_PUBLISH" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_LOG_PUBLISH`;
+
+            #
+
+            CREATE PROCEDURE `REMOVE_INT_SYSTEM_LOG_PUBLISH` (
+            In request_id varchar(20)
+            )
+            BEGIN
+            DELETE FROM int_system_log_publish
+            WHERE id=request_id;
+            END
+        </sql>
+        <rollback>
+            DROP procedure IF EXISTS `REMOVE_INT_SYSTEM_LOG_PUBLISH`;
         </rollback>
     </changeSet>
 

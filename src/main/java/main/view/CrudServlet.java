@@ -15,7 +15,7 @@ import java.util.List;
 
 public class CrudServlet<T extends BaseDto & IProjectEntity, D extends DAO<T>> extends BaseServlet implements IGet, IPost, IDelete {
 
-    final ControllerType<T, D> controllerType;
+    protected final ControllerType<T, D> controllerType;
 
     public CrudServlet(ControllerType<T, D> controllerType) {
         this.controllerType = controllerType;

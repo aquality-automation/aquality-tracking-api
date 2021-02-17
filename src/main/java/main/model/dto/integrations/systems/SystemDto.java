@@ -40,6 +40,10 @@ public class SystemDto extends BaseDto implements IProjectEntity {
     @DataBaseInsert
     private Integer int_system_type;
     @DataBaseSearchable
+    @DataBaseName(name = "request_int_tts_type")
+    @DataBaseInsert
+    private Integer int_tts_type;
+    @DataBaseSearchable
     @DataBaseName(name = "request_project_id")
     @DataBaseInsert
     private Integer project_id;
