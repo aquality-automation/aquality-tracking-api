@@ -804,4 +804,63 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="CREATE TRIGGER tests_BEFORE_DELETE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `tests_BEFORE_DELETE`;
+
+            #
+
+            CREATE DEFINER=CURRENT_USER TRIGGER `tests_BEFORE_DELETE` BEFORE DELETE ON `tests` FOR EACH ROW
+            BEGIN
+            IF OLD.id IS NOT NULL THEN
+            DELETE FROM `int_test_references`
+            WHERE id IN (SELECT * FROM (SELECT id FROM `int_test_references` WHERE entity_id = OLD.id) as ref_id);
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS `tests_BEFORE_DELETE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TRIGGER test_runs_BEFORE_DELETE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `test_runs_BEFORE_DELETE`;
+
+            #
+
+            CREATE DEFINER=CURRENT_USER TRIGGER `test_runs_BEFORE_DELETE` BEFORE DELETE ON `test_runs` FOR EACH ROW
+            BEGIN
+            IF OLD.id IS NOT NULL THEN
+            DELETE FROM `int_testrun_references`
+            WHERE id IN (SELECT * FROM (SELECT id FROM `int_testrun_references` WHERE entity_id = OLD.id) as ref_id);
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS `test_runs_BEFORE_DELETE`;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="CREATE TRIGGER issues_BEFORE_DELETE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `issues_BEFORE_DELETE`;
+
+            #
+
+            CREATE DEFINER=CURRENT_USER TRIGGER `issues_BEFORE_DELETE` BEFORE DELETE ON `issues` FOR EACH ROW
+            BEGIN
+            IF OLD.id IS NOT NULL THEN
+            DELETE FROM `int_issue_references`
+            WHERE id IN (SELECT * FROM (SELECT id FROM `int_issue_references` WHERE entity_id = OLD.id) as ref_id);
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS `issues_BEFORE_DELETE`;
+        </rollback>
+    </changeSet>
 </databaseChangeLog>
