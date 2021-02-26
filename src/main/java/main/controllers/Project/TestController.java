@@ -155,7 +155,6 @@ public class TestController extends BaseController<TestDto> {
         return resultsToMove;
     }
 
-    //TODO Refactoring
     private List<TestDto> fillTests(List<TestDto> tests) throws AqualityException {
         List<TestDto> filledTests = new ArrayList<>();
         if (tests.size() > 0) {
@@ -186,7 +185,6 @@ public class TestController extends BaseController<TestDto> {
         return filledTests;
     }
 
-    //TODO Refactoring
     private void updateSuites(TestDto test) throws AqualityException {
         Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
         test2SuiteDto.setTest_id(test.getId());

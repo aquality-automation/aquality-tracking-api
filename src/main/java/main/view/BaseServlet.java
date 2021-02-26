@@ -4,6 +4,7 @@ import main.Session;
 import main.World;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityQueryParameterException;
+import main.model.dto.DtoFields;
 import main.model.dto.DtoMapperGeneral;
 import main.model.dto.ErrorDto;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -27,7 +29,6 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public class BaseServlet extends HttpServlet {
     protected static Logger log = Logger.getLogger(BaseServlet.class.getName());
     protected DtoMapperGeneral mapper = new DtoMapperGeneral();
-    protected static final String PROJECT_ID_KEY = "project_id";
 
 
     protected Session createSession(HttpServletRequest req) throws AqualityException, AuthenticationException {
@@ -73,8 +74,15 @@ public class BaseServlet extends HttpServlet {
                 : null;
     }
 
+    protected Optional<Integer> getIntegerParameter(@NotNull HttpServletRequest req, DtoFields field) {
+        String name = field.getFieldName();
+        return req.getParameterMap().containsKey(name) && !req.getParameter(name).equals("") ?
+                Optional.of(Integer.parseInt(req.getParameter(name))) :
+                Optional.empty();
+    }
+
     protected Integer getProjectId(@NotNull HttpServletRequest req) {
-        return getIntegerQueryParameter(req, PROJECT_ID_KEY);
+        return getIntegerQueryParameter(req, DtoFields.PROJECT_ID.getFieldName());
     }
 
     protected Boolean getBooleanQueryParameter(@NotNull HttpServletRequest req, String name) {

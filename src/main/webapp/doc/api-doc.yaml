@@ -58,6 +58,8 @@ tags:
     description: 'Get Auth info'
   - name: 'audit'
     description: 'Operations with audits'
+  - name: 'integrations'
+    description: 'Operations to connfigure integrations with 3rdParty systems (only Jira currently supported)'
 
 paths:
   /public/suite/create-or-update:
@@ -1912,6 +1914,39 @@ paths:
         200:
           description: 'User was removed'
 
+
+  /integration/systems:
+    get:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'integrations'
+      summary: 'Getting the list of systems that are available to integrate with'
+      description: 'Getting the list of systems that are available to integrate with'
+      parameters:
+      produces:
+        - 'application/json'
+      responses:
+        200:
+          description: 'Valid response'
+          schema:
+            schema:
+              type: array
+            items:
+              $ref: '#definitions/IntegrationSystem'
+          examples:
+            application/json: |
+              [
+                {
+                  "name": "Jira",
+                  "id": 1
+                },
+                {
+                  "name": "Another System",
+                  "id": 2
+                }
+              ]
+
 definitions:
   Error:
     type: object
@@ -2259,3 +2294,11 @@ definitions:
         type: integer
         example: 1
         description: 'Total results number with not assigned resolutions'
+
+  IntegrationSystem:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
