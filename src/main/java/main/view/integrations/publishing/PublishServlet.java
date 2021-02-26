@@ -9,8 +9,9 @@ import main.model.dto.integrations.publishing.PubEntry;
 import main.model.dto.integrations.publishing.PubItemDto;
 import main.model.dto.integrations.systems.SystemDto;
 import main.utils.integrations.ITestTrackingApi;
-import main.utils.integrations.atlassian.xray.XrayApi;
+import main.utils.integrations.providers.TestTrackingFactory;
 import main.view.CrudServlet;
+import main.view.integrations.SystemProvider;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,7 +37,8 @@ public class PublishServlet extends CrudServlet<PubItemDto, PubItemDao> {
         try {
             Session session = createSession(req);
             PubEntry entry = mapper.mapObject(PubEntry.class, getRequestJson(req));
-            ITestTrackingApi trackingApi = connect(session, entry.getProject_id(), entry.getInt_system_id());
+            SystemDto system = SystemProvider.getSystem(session, entry.getProject_id(), entry.getInt_system_id());
+            ITestTrackingApi trackingApi = TestTrackingFactory.getTestTracking(system);
             ProjectEntityController<PubItemDto, PubItemDao> controller = session.controllerFactory.getProjectEntityHandler(controllerType);
             List<PubItemDto> logEntries = submit(entry, trackingApi, controller);
             resp.getWriter().write(mapper.serialize(logEntries));
@@ -73,18 +75,5 @@ public class PublishServlet extends CrudServlet<PubItemDto, PubItemDao> {
             }
         }
         return log;
-    }
-
-    private ITestTrackingApi connect(Session session, int projectId, int intSystemId) throws AqualityException {
-        SystemDto systemDto = new SystemDto();
-        systemDto.setProject_id(projectId);
-        systemDto.setId(intSystemId);
-        List<SystemDto> systems = session.controllerFactory.getProjectEntityHandler(ControllerType.SYSTEM_CONTROLLER).get(systemDto);
-        SystemDto system = systems.get(0);
-        String url = system.getUrl();
-        String username = system.getUsername();
-        String password = system.getPassword();
-        //TODO: implement factory to support different implementations of tts
-        return new XrayApi(url, username, password);
     }
 }

@@ -863,4 +863,58 @@
             DROP TRIGGER IF EXISTS `issues_BEFORE_DELETE`;
         </rollback>
     </changeSet>
+
+    <changeSet id="CREATE TRIGGER int_systems_BEFORE_DELETE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `int_systems_BEFORE_DELETE`;
+
+            #
+
+            CREATE DEFINER=CURRENT_USER TRIGGER `int_systems_BEFORE_DELETE` BEFORE DELETE ON `int_systems` FOR EACH ROW
+            BEGIN
+            IF OLD.id IS NOT NULL THEN
+            DELETE FROM `int_test_references` WHERE id IN (SELECT * FROM (SELECT id FROM `int_test_references` WHERE int_system = OLD.id) as ref_id);
+            DELETE FROM `int_testrun_references` WHERE id IN (SELECT * FROM (SELECT id FROM `int_testrun_references` WHERE int_system = OLD.id) as ref_id);
+            DELETE FROM `int_issue_references` WHERE id IN (SELECT * FROM (SELECT id FROM `int_issue_references` WHERE int_system = OLD.id) as ref_id);
+
+            DELETE FROM `int_system_workflow_statuses` WHERE id IN (SELECT * FROM (SELECT id FROM `int_system_workflow_statuses` WHERE int_system_id = OLD.id) as ref_id);
+            DELETE FROM `int_system_tts_statuses` WHERE id IN (SELECT * FROM (SELECT id FROM `int_system_tts_statuses` WHERE int_system_id = OLD.id) as ref_id);
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS `int_systems_BEFORE_DELETE`;
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="UPDATE TRIGGER result_resolution_BEFORE_DELETE" author="d.bogatko">
+        <sql endDelimiter="#">
+
+            DROP TRIGGER IF EXISTS `result_resolution_BEFORE_DELETE`;
+
+            #
+            CREATE DEFINER=CURRENT_USER TRIGGER `result_resolution_BEFORE_DELETE` BEFORE DELETE ON `result_resolution` FOR EACH ROW
+            BEGIN
+                IF OLD.id &lt; 6 THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'This resolution is not editable!';
+                ELSE
+                    IF OLD.id IS NOT NULL THEN
+                        DELETE FROM `int_system_tts_statuses`
+                        WHERE id IN (SELECT * FROM (SELECT id FROM `int_system_tts_statuses` WHERE resolution_id = OLD.id) as ref_id);
+                END IF;
+            END IF;
+            END
+        </sql>
+        <rollback>
+            DROP TRIGGER IF EXISTS `int_systems_BEFORE_DELETE`;
+        </rollback>
+    </changeSet>
+
+
+
+
+
 </databaseChangeLog>

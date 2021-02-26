@@ -1,14 +1,13 @@
 package main.view.integrations.references;
 
 import main.Session;
-import main.controllers.ControllerType;
-import main.exceptions.AqualityException;
 import main.model.dto.integrations.references.RefStatus;
 import main.model.dto.integrations.references.ReferencesList;
 import main.model.dto.integrations.systems.SystemDto;
 import main.utils.integrations.IIssueProviderApi;
-import main.utils.integrations.atlassian.jira.JiraHttpClient;
+import main.utils.integrations.providers.IntSystemIssueFactory;
 import main.view.BaseServlet;
+import main.view.integrations.SystemProvider;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,25 +24,13 @@ public class RefStatusServlet extends BaseServlet {
         try {
             Session session = createSession(req);
             ReferencesList entry = mapper.mapObject(ReferencesList.class, getRequestJson(req));
-            IIssueProviderApi issueProviderApi = connect(session, entry.getProject_id(), entry.getInt_system_id());
+            SystemDto system = SystemProvider.getSystem(session, entry.getProject_id(), entry.getInt_system_id());
+            IIssueProviderApi issueProviderApi = IntSystemIssueFactory.getIssueProvider(system);
             List<RefStatus> refStatuses = issueProviderApi.getIssues(entry.getRefs());
             resp.getWriter().write(mapper.serialize(refStatuses));
             setJSONContentType(resp);
         } catch (Exception e) {
             handleException(resp, e);
         }
-    }
-
-    private IIssueProviderApi connect(Session session, int projectId, int intSystemId) throws AqualityException {
-        SystemDto systemDto = new SystemDto();
-        systemDto.setProject_id(projectId);
-        systemDto.setId(intSystemId);
-        List<SystemDto> systems = session.controllerFactory.getProjectEntityHandler(ControllerType.SYSTEM_CONTROLLER).get(systemDto);
-        SystemDto system = systems.get(0);
-        String url = system.getUrl();
-        String username = system.getUsername();
-        String password = system.getPassword();
-        //TODO: implement factory to support different implementations of providers
-        return new JiraHttpClient(url, username, password);
     }
 }

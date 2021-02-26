@@ -1,15 +1,19 @@
 package main.model.dto.integrations.tts;
 
-public enum TestTrackingType {
-    XRAY(1);
+import main.model.dto.integrations.FixedType;
+import main.model.dto.integrations.IFixedType;
 
-    private final int id;
+public enum TestTrackingType implements IFixedType {
+    XRAY(1, "XRAY");
 
-    TestTrackingType(int id) {
-        this.id = id;
+    private final FixedType type;
+
+    TestTrackingType(int id, String name) {
+        this.type = new FixedType(id, name);
     }
 
-    public int getId() {
-        return id;
+    @Override
+    public FixedType getType() {
+        return type;
     }
 }
