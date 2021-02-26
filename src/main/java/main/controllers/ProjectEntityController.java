@@ -35,28 +35,21 @@ public class ProjectEntityController<DTO extends BaseDto & IProjectEntity, D ext
     @Override
     public boolean delete(DTO entity) throws AqualityException {
         validateRoles(entity, getRolesPermittedToDelete());
-        //TODO: return 404 if not found, then check subscribe in angular part
         return dao.delete(entity);
     }
 
-    protected RolePair getRolesPermittedToGet() {
+    private RolePair getRolesPermittedToGet() {
         return new RolePair(GlobalRole.ADMIN, ProjectRole.VIEWER);
     }
 
-    protected RolePair getRolesPermittedToCreate() {
+    private RolePair getRolesPermittedToCreate() {
         return new RolePair(GlobalRole.ADMIN, ProjectRole.ENGINEER);
     }
 
     protected RolePair getRolesPermittedToDelete() {
-        //TODO: project role should be changed to MANAGER after refactoring References
         return new RolePair(GlobalRole.ADMIN, ProjectRole.ENGINEER);
     }
 
-    protected RolePair getRolesPermittedToCreateTable() {
-        return new RolePair(GlobalRole.ADMIN, ProjectRole.ENGINEER);
-    }
-
-    //TODO: might be needed to add validation on project and requested value
     private void validateRoles(DTO entity, RolePair roles) throws AqualityException {
         GlobalRole globalRole = roles.getGlobal();
         ProjectRole projectRole = roles.getProject();
