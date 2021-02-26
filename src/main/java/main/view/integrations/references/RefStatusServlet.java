@@ -18,7 +18,7 @@ import java.util.List;
 public class RefStatusServlet extends BaseServlet {
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         setEncoding(resp);
         try {
@@ -32,5 +32,10 @@ public class RefStatusServlet extends BaseServlet {
         } catch (Exception e) {
             handleException(resp, e);
         }
+    }
+
+    @Override
+    public void doOptions(HttpServletRequest req, HttpServletResponse resp) {
+        setOptionsResponseHeaders(resp);
     }
 }
