@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.0 (2021-02-26)
+ - Added feature that allows to link aquality entities (tests, issues and test runs) with 3rd party systems like Jira, Xray, TestRail and etc.
+ In this version only Jira and Xray support has been added.
+ - Improved and generified work with controllers
+
 ## 1.1.1 (2020-12-15)
 Bugfixes:
 - Added handling of non utf-8 body in the request

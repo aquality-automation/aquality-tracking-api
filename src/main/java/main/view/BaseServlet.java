@@ -1,6 +1,7 @@
 package main.view;
 
 import main.Session;
+import main.World;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityQueryParameterException;
 import main.model.dto.DtoFields;
@@ -125,7 +126,7 @@ public class BaseServlet extends HttpServlet {
     }
 
     private String getOrigin() {
-        return /*World.getInstance().getBaseURL() != null ? World.getInstance().getBaseURL() :*/ "*";
+        return World.getInstance().getBaseURL() != null ? World.getInstance().getBaseURL() : "*";
     }
 
     private void setAuthorizationProblem(@NotNull HttpServletResponse resp, @NotNull Exception e) throws AqualityException {
