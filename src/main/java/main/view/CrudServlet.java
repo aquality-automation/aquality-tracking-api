@@ -12,6 +12,7 @@ import main.model.dto.interfaces.IProjectEntity;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Optional;
 
 public class CrudServlet<T extends BaseDto & IProjectEntity, D extends DAO<T>> extends BaseServlet implements IGet, IPost, IDelete {
 
@@ -73,8 +74,15 @@ public class CrudServlet<T extends BaseDto & IProjectEntity, D extends DAO<T>> e
 
     private T createAndInit(HttpServletRequest req) {
         T entity = controllerType.createDto();
-        getIntegerParameter(req, DtoFields.ID).ifPresent(entity::setId);
-        getIntegerParameter(req, DtoFields.PROJECT_ID).ifPresent(entity::setProjectId);
+        Optional<Integer> optId = getIntegerParameter(req, DtoFields.ID);
+        if(optId.isPresent()){
+            entity.setId(optId.get());
+        }
+
+        Optional<Integer> optPrId = getIntegerParameter(req, DtoFields.PROJECT_ID);
+        if(optPrId.isPresent()){
+            entity.setProjectId(optPrId.get());
+        }
         return entity;
     }
 
