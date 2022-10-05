@@ -2,6 +2,7 @@ package main.model.db.imports;
 
 import main.exceptions.AqualityException;
 import main.model.dto.project.ImportDto;
+import main.model.dto.project.IssueDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.settings.UserDto;
 
@@ -34,10 +35,12 @@ public class Importer extends BaseImporter {
 
     public List<ImportDto> executeImport() throws AqualityException {
         if(testRunTemplate.getId() == null && !singleTestRun){
-            return executeMultiTestRunImport();
+            List<ImportDto> multiTestRun = executeMultiTestRunImport();
+            return multiTestRun;
         }
+        List<ImportDto> singleTestRun = Collections.singletonList(executeSingleTestRunImport());
 
-        return Collections.singletonList(executeSingleTestRunImport());
+        return singleTestRun;
     }
 
     private ImportDto executeSingleTestRunImport() throws AqualityException {
@@ -75,6 +78,22 @@ public class Importer extends BaseImporter {
         this.testRun = new TestRunDto();
         this.testResults = new ArrayList<>();
         this.tests = new ArrayList<>();
+    }
+
+
+    public void sendResultsToAI(){
+
+    }
+
+    public void createIssuesFromAI(){
+        IssueDto issueDto = new IssueDto();
+
+
+        try {
+            issueController.create(issueDto);
+        } catch (AqualityException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void readData(List<String> filePaths) throws AqualityException {

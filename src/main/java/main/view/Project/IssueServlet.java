@@ -38,10 +38,14 @@ public class IssueServlet extends BaseServlet implements IGet, IPost, IDelete {
             Session session = createSession(req);
             String requestedJson = getRequestJson(req);
             Boolean update = getBooleanQueryParameter(req, "assign");
+            Boolean unassign = getBooleanQueryParameter(req, "unassign");
             IssueDto issue = mapper.mapObject(IssueDto.class, requestedJson);
             issue = session.controllerFactory.getHandler(issue).create(issue);
             if(update){
                 session.controllerFactory.getHandler(issue).updateResultsWithIssue(issue);
+            }
+            if(unassign){
+                session.controllerFactory.getHandler(issue).removeResultsWithIssues(issue);
             }
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(issue));

@@ -16,7 +16,7 @@ import java.util.regex.PatternSyntaxException;
 
 class BaseImporter {
     private ControllerFactory controllerFactory;
-    private IssueController issueController;
+    protected IssueController issueController;
     private String pattern;
     protected File file;
     private List<IssueDto> issues;

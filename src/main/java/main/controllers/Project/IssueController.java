@@ -30,6 +30,7 @@ public class IssueController extends BaseController<IssueDto> {
         testResultDao = new TestResultDao();
         resultResolutionController = new ResultResolutionController(user);
     }
+
     @Override
     public List<IssueDto> get(IssueDto entity) throws AqualityException {
         if (baseUser.isManager() || baseUser.isAuditAdmin() || baseUser.isAuditor() || baseUser.getProjectUser(entity.getProject_id()).isViewer()) {
@@ -72,8 +73,19 @@ public class IssueController extends BaseController<IssueDto> {
         }
     }
 
+    public void removeResultsWithIssues(IssueDto issue) throws AqualityException {
+        TestResultDto resultSearchTemplate = new TestResultDto();
+        resultSearchTemplate.setProject_id(issue.getProject_id());
+        List<TestResultDto> results = testResultDao.searchAll(resultSearchTemplate);
+        results = results.stream().filter(x -> x.getIssue_id() == issue.getId()).collect(Collectors.toList());
+        for (TestResultDto result : results) {
+            result.setIssue_id(0);
+            testResultDao.create(result);
+        }
+    }
+
     private List<IssueDto> fillIssues(List<IssueDto> issues) throws AqualityException {
-        if(issues.isEmpty()) {
+        if (issues.isEmpty()) {
             return issues;
         }
 
@@ -92,7 +104,7 @@ public class IssueController extends BaseController<IssueDto> {
         return filledIssues;
     }
 
-    private IssueDto fillIssue(IssueDto issue, List<UserDto> users, List<IssueStatusDto> issueStatuses, List<ResultResolutionDto> resultResolutions){
+    private IssueDto fillIssue(IssueDto issue, List<UserDto> users, List<IssueStatusDto> issueStatuses, List<ResultResolutionDto> resultResolutions) {
         UserDto assignee = users.stream().filter(x -> x.getId().equals(issue.getAssignee_id())).findFirst().orElse(null);
         UserDto creator = users.stream().filter(x -> x.getId().equals(issue.getCreator_id())).findFirst().orElse(null);
         if (assignee != null) {
