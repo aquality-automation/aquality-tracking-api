@@ -1,6 +1,6 @@
 package main.model.db.dao.project;
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
 import main.model.dto.project.TestDto;
@@ -18,8 +18,8 @@ public class TestDao extends DAO<TestDto> {
     private String testsAffectedByIssueQuery = "{call SELECT_ISSUE_TESTS(?)}";
 
     public List<TestDto> getTestsAffectedByIssue(Integer issueId) throws AqualityException {
-        List<ConnectionUrlParser.Pair<String, String>> parameters = new ArrayList<>();
-        parameters.add(new ConnectionUrlParser.Pair<>("request_issue_id", issueId.toString()));
+        List<Pair<String, String>> parameters = new ArrayList<>();
+        parameters.add(new Pair<>("request_issue_id", issueId.toString()));
         return dtoMapper.mapObjects(CallStoredProcedure(testsAffectedByIssueQuery, parameters).toString());
     }
 }
