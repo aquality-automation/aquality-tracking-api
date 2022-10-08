@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
@@ -22,10 +23,8 @@ public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date> {
         String str = paramJsonParser.getText().trim();
         try {
             if (str.contains("T")) {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_DATE_TIME;
-                TemporalAccessor accessor = timeFormatter.parse(str);
-
-                return Date.from(Instant.from(accessor));
+                LocalDateTime dateTime = LocalDateTime.parse(str);
+                return java.sql.Timestamp.valueOf(dateTime);
             }
             else if (str.contains(":")) {
                 return dateFormat.parse(str);
