@@ -38,7 +38,7 @@ public class DtoMapper<T extends BaseDto> {
         try {
             return mapper.readValue(arrayJsonString, listType);
         } catch (IOException e) {
-            throw new AqualityException("Cannot map Object to " + type.getName() + e.getMessage());
+            throw new AqualityException("qwe Cannot map Object to " + type.getName() + e.getMessage());
         }
     }
 }
