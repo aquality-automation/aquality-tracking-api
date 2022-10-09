@@ -22,9 +22,12 @@ public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date> {
     public Date deserialize(JsonParser paramJsonParser,  DeserializationContext paramDeserializationContext) throws IOException {
         String str = paramJsonParser.getText().trim();
         try {
-            if (str.contains("T")) {
+            if (str.contains("T") && !str.contains("Z")) {
                 LocalDateTime dateTime = LocalDateTime.parse(str);
                 return java.sql.Timestamp.valueOf(dateTime);
+            }
+            if (str.contains("Z")) {
+                return Date.from(Instant.parse(str));
             }
             else if (str.contains(":")) {
                 return dateFormat.parse(str);
