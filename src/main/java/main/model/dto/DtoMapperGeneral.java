@@ -36,7 +36,7 @@ public class DtoMapperGeneral{
         try {
             return mapper.readValue(objectJsonString, clazz);
         } catch (IOException e) {
-            throw new AqualityParametersException("qwe Cannot map Object to " + clazz.getName());
+            throw new AqualityParametersException("debug1 Cannot map Object to " + clazz.getName());
         }
     }
 
@@ -45,7 +45,7 @@ public class DtoMapperGeneral{
         try {
             return mapper.readValue(arrayJsonString, listType);
         } catch (IOException e) {
-            throw new AqualityParametersException("qwe Cannot map Object to " + clazz.getName());
+            throw new AqualityParametersException("debug1 Cannot map Object to " + clazz.getName());
         }
     }
 }
