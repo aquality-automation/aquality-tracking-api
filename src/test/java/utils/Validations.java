@@ -1,6 +1,6 @@
 package utils;
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 
 import java.util.List;
 

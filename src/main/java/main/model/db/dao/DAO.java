@@ -1,6 +1,6 @@
 package main.model.db.dao;
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualitySQLException;

@@ -1,6 +1,6 @@
 package main.controllers.Administration;
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser;
+import com.mysql.cj.conf.ConnectionUrlParser;
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
