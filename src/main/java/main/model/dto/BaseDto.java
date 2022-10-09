@@ -1,6 +1,6 @@
 package main.model.dto;
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 import main.annotations.*;
 import main.exceptions.AqualityException;
 import org.jetbrains.annotations.NotNull;

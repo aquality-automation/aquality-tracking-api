@@ -1,7 +1,7 @@
 package main.model.db.dao.project;
 
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.DAO;
 import main.model.dto.project.APITokenDto;
