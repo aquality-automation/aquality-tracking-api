@@ -7,12 +7,14 @@ import main.model.db.dao.project.*;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 import main.utils.RegexpUtil;
+import main.utils.integrations.ai.AiApi;
 
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 class BaseImporter {
     private ControllerFactory controllerFactory;
@@ -49,6 +51,26 @@ class BaseImporter {
         createTests();
         createTestRun();
         createResults(update);
+        List<TestResultDto> testResultsFailedWithoutIssues = getFailedWithoutIssueTests();
+        new AiApi().postResult(testResultsFailedWithoutIssues);
+    }
+
+    public List<TestResultDto> getFailedWithoutIssueTests() {
+        return testResults.stream().filter(testResultDto -> (testResultDto.getFinal_result_id() == 1 || testResultDto.getFinal_result_id() == 3) && testResultDto.getIssue_id() == null).collect(Collectors.toList());
+    }
+
+    public void sendResultsToAI(List<TestResultDto> testResults){
+
+    }
+
+    public void createIssuesFromAI(){
+        IssueDto issueDto = new IssueDto();
+
+        try {
+            issueController.create(issueDto);
+        } catch (AqualityException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void createResults(boolean update) throws AqualityException {

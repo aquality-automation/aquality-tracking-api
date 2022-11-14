@@ -1,11 +1,14 @@
 package main.utils.integrations.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import main.model.dto.project.TestResultDto;
 import main.utils.integrations.ai.models.AdditionalProp;
 import main.utils.integrations.ai.models.AiIssues;
+import main.utils.integrations.ai.models.Result;
+import main.utils.integrations.ai.models.Test;
 import main.utils.integrations.atlassian.RestClientResponse;
 import main.utils.integrations.atlassian.jira.JiraHttpClient;
-import main.utils.integrations.atlassian.xray.models.AddTestResultResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -27,9 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * https://confluence.xpand-addons.com/display/XRAY/REST+API
- */
+
 public class AiApi {
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,7 +39,7 @@ public class AiApi {
     private CloseableHttpClient client;
 
     public AiApi() {
-        url = null;
+        url = "http://localhost:5000/api";
         client = HttpClients.createDefault();
 
     }
@@ -67,14 +68,39 @@ public class AiApi {
         return response.getStatusCode() == HttpStatus.SC_OK ? objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp() : Collections.emptyList();
     }
 
-    public List<AdditionalProp> deleteIssue(List<Integer> listIds) throws IOException, URISyntaxException {
-        HttpDeleteWithBody httpDeleteWithBody = new HttpDeleteWithBody(getUrl("/issues"));
-        URI uri = new URIBuilder(httpDeleteWithBody.getURI())
-                .build();
-        httpDeleteWithBody.setURI(uri);
-        httpDeleteWithBody.setEntity(new StringEntity(objectMapper.writeValueAsString(listIds)));
-        RestClientResponse response = executeDelete(httpDeleteWithBody);
-        return objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp();
+    @SneakyThrows
+    public List<AdditionalProp> postResult(List<TestResultDto> testResultDtos) {
+        HttpPost httpPost = new HttpPost(getUrl("/test_result_history"));
+        URI uri = null;
+        try {
+            uri = new URIBuilder(httpPost.getURI())
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        httpPost.setURI(uri);
+        List<Result> resultList = getResults(testResultDtos);
+        httpPost.setEntity(new StringEntity(objectMapper.writeValueAsString(resultList)));
+        RestClientResponse response = executePost(httpPost);
+        return response.getStatusCode() == HttpStatus.SC_OK ? objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp() : Collections.emptyList();
+    }
+
+    private List<Result> getResults(List<TestResultDto> testResultDtos){
+        List<Result> resultList = new ArrayList<>();
+        for (TestResultDto testResultDto : testResultDtos) {
+            Result result = new Result();
+            result.setID(testResultDto.getId());
+            result.setProjectID(1L);
+            Test test  = new Test();
+            test.setID( testResultDto.getTest().getId());
+            test.setName(testResultDto.getTest().getName());
+            result.setTest(test);
+            result.setLog(testResultDto.getLog() == null ? "" : testResultDto.getLog());
+            result.setFailReason(testResultDto.getFail_reason());
+            result.setFinishDate(testResultDto.getFinish_date());
+            resultList.add(result);
+        }
+        return resultList;
     }
 
     private RestClientResponse executeDelete(HttpDeleteWithBody httpDeleteWithBody) throws IOException {

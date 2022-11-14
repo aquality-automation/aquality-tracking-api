@@ -338,7 +338,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="Execute results migration" author="v.kostyukevich">
+    <changeSet id="Execute result migration" author="v.kostyukevich">
         <sql endDelimiter="#">
             call migrate_results_to_issues();
         </sql>
@@ -817,10 +817,10 @@
             select
             request_test_id,
             GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
-            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result SEPARATOR ',') as result_colors,
             GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
             FROM (
-            select request_test_id, CASE WHEN result_resolution.color is NULL THEN 3 ELSE result_resolution.color END as resolutions, final_results.color as results, test_results.id as result_id
+            select request_test_id, CASE WHEN result_resolution.color is NULL THEN 3 ELSE result_resolution.color END as resolutions, final_results.color as result, test_results.id as result_id
             from test_results
             left join issues on issue_id=issues.id
             left join result_resolution on issues.resolution_id = result_resolution.id
@@ -828,7 +828,7 @@
 
             where test_id = request_test_id AND test_results.debug = 0
             order by finish_date DESC
-            limit request_limit) as results;
+            limit request_limit) as result;
             END
 
         </sql>

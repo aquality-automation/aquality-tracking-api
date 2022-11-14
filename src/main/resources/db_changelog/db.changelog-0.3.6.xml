@@ -104,16 +104,16 @@
             BEGIN
             select
             GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
-            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result SEPARATOR ',') as result_colors,
             GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
             FROM (
-            select result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            select result_resolution.color as resolutions, final_results.color as result, test_results.id as result_id
             from test_results left join result_resolution on test_resolution_id = result_resolution.id
             left join final_results on final_result_id = final_results.id
 
             where test_id = request_test_id
             order by finish_date DESC
-            limit request_limit) as results;
+            limit request_limit) as result;
             END
         </sql>
         <rollback>
