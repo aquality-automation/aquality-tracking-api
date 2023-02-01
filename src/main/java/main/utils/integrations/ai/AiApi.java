@@ -3,10 +3,7 @@ package main.utils.integrations.ai;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import main.model.dto.project.TestResultDto;
-import main.utils.integrations.ai.models.AdditionalProp;
-import main.utils.integrations.ai.models.AiIssues;
-import main.utils.integrations.ai.models.Result;
-import main.utils.integrations.ai.models.Test;
+import main.utils.integrations.ai.models.*;
 import main.utils.integrations.atlassian.RestClientResponse;
 import main.utils.integrations.atlassian.jira.JiraHttpClient;
 import org.apache.http.Header;
@@ -48,14 +45,13 @@ public class AiApi {
         return url;
     }
 
-    public List<AdditionalProp> getIssues(String projectId) throws IOException, URISyntaxException {
-        HttpGet httpGet = new HttpGet(getUrl("/issues"));
+    public ProjectAiIssues getIssues(Integer projectId) throws IOException, URISyntaxException {
+        HttpGet httpGet = new HttpGet(getUrl("/issues/"+projectId));
         URI uri = new URIBuilder(httpGet.getURI())
-                .addParameter("id", projectId)
                 .build();
         httpGet.setURI(uri);
         RestClientResponse response = executeGet(httpGet);
-        return objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp();
+        return objectMapper.readValue(response.getBody(), ProjectAiIssues.class);
     }
 
     public List<AdditionalProp> postIssues(AiIssues aiIssues) throws IOException, URISyntaxException {
@@ -68,6 +64,7 @@ public class AiApi {
         return response.getStatusCode() == HttpStatus.SC_OK ? objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp() : Collections.emptyList();
     }
 
+
     @SneakyThrows
     public List<AdditionalProp> postResult(List<TestResultDto> testResultDtos) {
         HttpPost httpPost = new HttpPost(getUrl("/test_result_history"));
@@ -79,18 +76,18 @@ public class AiApi {
             throw new RuntimeException(e);
         }
         httpPost.setURI(uri);
-        List<Result> resultList = getResults(testResultDtos);
+        List<Result> resultList = prepareResults(testResultDtos);//TODO: Posting duplicate test ids will throw an error  (happens when tests has same names)
         httpPost.setEntity(new StringEntity(objectMapper.writeValueAsString(resultList)));
         RestClientResponse response = executePost(httpPost);
         return response.getStatusCode() == HttpStatus.SC_OK ? objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp() : Collections.emptyList();
     }
 
-    private List<Result> getResults(List<TestResultDto> testResultDtos){
+    private List<Result> prepareResults(List<TestResultDto> testResultDtos){
         List<Result> resultList = new ArrayList<>();
         for (TestResultDto testResultDto : testResultDtos) {
             Result result = new Result();
             result.setID(testResultDto.getId());
-            result.setProjectID(1L);
+            result.setProjectID(Long.valueOf(testResultDto.getProject_id()));
             Test test  = new Test();
             test.setID( testResultDto.getTest().getId());
             test.setName(testResultDto.getTest().getName());

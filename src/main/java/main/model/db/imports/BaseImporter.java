@@ -59,20 +59,6 @@ class BaseImporter {
         return testResults.stream().filter(testResultDto -> (testResultDto.getFinal_result_id() == 1 || testResultDto.getFinal_result_id() == 3) && testResultDto.getIssue_id() == null).collect(Collectors.toList());
     }
 
-    public void sendResultsToAI(List<TestResultDto> testResults){
-
-    }
-
-    public void createIssuesFromAI(){
-        IssueDto issueDto = new IssueDto();
-
-        try {
-            issueController.create(issueDto);
-        } catch (AqualityException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void createResults(boolean update) throws AqualityException {
         existingResults = getExistingResults();
 
