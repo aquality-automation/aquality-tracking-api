@@ -3,6 +3,7 @@ package main.utils.integrations.ai;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import main.model.dto.project.TestResultDto;
+import main.utils.AppProperties;
 import main.utils.integrations.ai.models.*;
 import main.utils.integrations.atlassian.RestClientResponse;
 import main.utils.integrations.atlassian.jira.JiraHttpClient;
@@ -35,8 +36,10 @@ public class AiApi {
     private final String url;
     private CloseableHttpClient client;
 
+    private AppProperties appProperties = new AppProperties();
+
     public AiApi() {
-        url = "http://localhost:5000/api";
+        url = appProperties.getAiUrl();
         client = HttpClients.createDefault();
 
     }
@@ -68,7 +71,7 @@ public class AiApi {
     @SneakyThrows
     public List<AdditionalProp> postResult(List<TestResultDto> testResultDtos) {
         HttpPost httpPost = new HttpPost(getUrl("/test_result_history"));
-        URI uri = null;
+        URI uri;
         try {
             uri = new URIBuilder(httpPost.getURI())
                     .build();
