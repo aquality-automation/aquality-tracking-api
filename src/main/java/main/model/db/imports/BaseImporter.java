@@ -17,11 +17,11 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 class BaseImporter {
-    private ControllerFactory controllerFactory;
+    private final ControllerFactory controllerFactory;
     protected IssueController issueController;
-    private String pattern;
+    private final String pattern;
     protected File file;
-    private List<IssueDto> issues;
+    private final List<IssueDto> issues;
 
     BaseImporter(int projectId, String pattern, UserDto user) throws AqualityException {
         this.projectId = projectId;
@@ -34,10 +34,10 @@ class BaseImporter {
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
-    private ProjectDao projectDao = new ProjectDao();
-    private TestResultDao testResultDao = new TestResultDao();
-    private TestDao testDao = new TestDao();
-    private IssueDao issueDao = new IssueDao();
+    private final ProjectDao projectDao = new ProjectDao();
+    private final TestResultDao testResultDao = new TestResultDao();
+    private final TestDao testDao = new TestDao();
+    private final IssueDao issueDao = new IssueDao();
     protected int projectId;
     TestRunDto testRun;
     TestSuiteDto testSuite;
@@ -290,7 +290,7 @@ class BaseImporter {
                     try {
                         issueController.create(issue);
                     } catch (AqualityException controllerException) {
-                        System.out.println(String.format("Was not able to fix invalid issue expression: id: %s", issue.getId()));
+                        System.out.printf("Was not able to fix invalid issue expression: id: %s%n", issue.getId());
                     }
                 }
             }

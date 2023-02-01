@@ -34,14 +34,12 @@ public class AiApi {
     protected final ObjectMapper objectMapper = new ObjectMapper();
     private final Logger logger = Logger.getLogger(JiraHttpClient.class.getName());
     private final String url;
-    private CloseableHttpClient client;
-
-    private AppProperties appProperties = new AppProperties();
+    private final CloseableHttpClient client;
 
     public AiApi() {
+        AppProperties appProperties = new AppProperties();
         url = appProperties.getAiUrl();
         client = HttpClients.createDefault();
-
     }
 
     protected String getUrl() {
@@ -56,17 +54,6 @@ public class AiApi {
         RestClientResponse response = executeGet(httpGet);
         return objectMapper.readValue(response.getBody(), ProjectAiIssues.class);
     }
-
-    public List<AdditionalProp> postIssues(AiIssues aiIssues) throws IOException, URISyntaxException {
-        HttpPost httpPost = new HttpPost(getUrl("/issues"));
-        URI uri = new URIBuilder(httpPost.getURI())
-                .build();
-        httpPost.setURI(uri);
-        httpPost.setEntity(new StringEntity(objectMapper.writeValueAsString(aiIssues)));
-        RestClientResponse response = executePost(httpPost);
-        return response.getStatusCode() == HttpStatus.SC_OK ? objectMapper.readValue(response.getBody(), AiIssues.class).getAdditionalProp() : Collections.emptyList();
-    }
-
 
     @SneakyThrows
     public List<AdditionalProp> postResult(List<TestResultDto> testResultDtos) {
