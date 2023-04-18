@@ -379,7 +379,7 @@
             FROM union_reporting.test_results tr
             INNER JOIN union_reporting.result_resolution AS rr ON test_resolution_id = rr.id
             GROUP BY test_id)
-            AS results ON tests.id = results.test_id
+            AS result ON tests.id = result.test_id
             Where (test_test_suite_id = ''
             OR id IN (select test_id from suite_tests where suite_id = test_test_suite_id));
             END

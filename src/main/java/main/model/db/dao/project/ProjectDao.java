@@ -7,7 +7,7 @@ public class ProjectDao extends DAO<ProjectDto> {
     public ProjectDao(){
         super(ProjectDto.class);
         select = "{call SELECT_PROJECT(?,?,?,?)}";
-        insert = "{call INSERT_PROJECT(?,?,?,?,?,?)}";
+        insert = "{call INSERT_PROJECT(?,?,?,?,?,?,?)}";
         remove = "{call REMOVE_PROJECT(?)}";
     }
 }

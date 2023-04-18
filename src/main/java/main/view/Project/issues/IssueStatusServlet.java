@@ -1,4 +1,4 @@
-package main.view.Project;
+package main.view.Project.issues;
 
 import main.Session;
 import main.model.dto.project.IssueDto;
