@@ -159,7 +159,7 @@
             INSERT INTO `customer` (`name`, `coordinator_id`, `accounting`) VALUES ('-', '2', '0');
         </sql>
     </changeSet>
-    <changeSet id="add update results after resolution removed" author="v.kostyukevich">
+    <changeSet id="add update result after resolution removed" author="v.kostyukevich">
         <sql endDelimiter="#">
             DROP procedure IF EXISTS `REMOVE_RESULT_RESOLUTION`;
 
@@ -179,7 +179,7 @@
         </sql>
     </changeSet>
 
-    <changeSet id="add FOREIGN key to test results" author="v.kostyukevich">
+    <changeSet id="add FOREIGN key to test result" author="v.kostyukevich">
         <sql endDelimiter="#">
             CREATE TEMPORARY TABLE removed_resolutions SELECT tr.id FROM test_results AS tr
             LEFT JOIN result_resolution AS rr
@@ -217,7 +217,7 @@
             DROP TEMPORARY TABLE removed_resolutions;
         </sql>
     </changeSet>
-    <changeSet id="add update results after resolution removed fix for id" author="v.kostyukevich">
+    <changeSet id="add update result after resolution removed fix for id" author="v.kostyukevich">
         <sql endDelimiter="#">
             DROP procedure IF EXISTS `REMOVE_RESULT_RESOLUTION`;
 

@@ -239,7 +239,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="start_date_idx for test results" author="v.kostyukevich">
+    <changeSet id="start_date_idx for test result" author="v.kostyukevich">
         <sql>
             ALTER TABLE `test_results`
             ADD INDEX `start_date_idx` (`start_date` ASC);

@@ -27,16 +27,16 @@
             select
             request_test_id,
             GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
-            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result SEPARATOR ',') as result_colors,
             GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
             FROM (
-            select request_test_id, result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            select request_test_id, result_resolution.color as resolutions, final_results.color as result, test_results.id as result_id
             from test_results left join result_resolution on test_resolution_id = result_resolution.id
             left join final_results on final_result_id = final_results.id
 
             where test_id = request_test_id AND test_results.debug = 0
             order by finish_date DESC
-            limit request_limit) as results;
+            limit request_limit) as result;
             END
         </sql>
         <rollback>
@@ -49,21 +49,21 @@
             BEGIN
             select
             GROUP_CONCAT(resolutions SEPARATOR ',') as resolution_colors,
-            GROUP_CONCAT(results SEPARATOR ',') as result_colors,
+            GROUP_CONCAT(result SEPARATOR ',') as result_colors,
             GROUP_CONCAT(result_id SEPARATOR ',') as result_ids
             FROM (
-            select result_resolution.color as resolutions, final_results.color as results, test_results.id as result_id
+            select result_resolution.color as resolutions, final_results.color as result, test_results.id as result_id
             from test_results left join result_resolution on test_resolution_id = result_resolution.id
             left join final_results on final_result_id = final_results.id
 
             where test_id = request_test_id
             order by finish_date DESC
-            limit request_limit) as results;
+            limit request_limit) as result;
             END
         </rollback>
     </changeSet>
 
-    <changeSet id="Mark debug test results as debug" author="v.kostyukevich">
+    <changeSet id="Mark debug test result as debug" author="v.kostyukevich">
         <sql endDelimiter="#">
             UPDATE test_results
             JOIN test_runs ON test_results.test_run_id = test_runs.id

@@ -1,11 +1,15 @@
 package main.model.db.imports;
 
+import lombok.SneakyThrows;
 import main.exceptions.AqualityException;
 import main.model.dto.project.ImportDto;
+import main.model.dto.project.IssueDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.settings.UserDto;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -34,12 +38,15 @@ public class Importer extends BaseImporter {
 
     public List<ImportDto> executeImport() throws AqualityException {
         if(testRunTemplate.getId() == null && !singleTestRun){
-            return executeMultiTestRunImport();
+            List<ImportDto> multiTestRun = executeMultiTestRunImport();
+            return multiTestRun;
         }
+        List<ImportDto> singleTestRun = Collections.singletonList(executeSingleTestRunImport());
 
-        return Collections.singletonList(executeSingleTestRunImport());
+        return singleTestRun;
     }
 
+    @SneakyThrows
     private ImportDto executeSingleTestRunImport() throws AqualityException {
         try {
             createImport("Import into One Test Run was started!");
@@ -52,6 +59,7 @@ public class Importer extends BaseImporter {
         }
     }
 
+    @SneakyThrows
     private List<ImportDto> executeMultiTestRunImport() throws AqualityException {
         List<ImportDto> imports = new ArrayList<>();
         for (String pathToFile : this.files) {
@@ -70,12 +78,13 @@ public class Importer extends BaseImporter {
         return imports;
     }
 
-    private void executeResultsCreation() throws AqualityException {
+    private void executeResultsCreation() throws AqualityException, IOException, URISyntaxException {
         this.processImport(testRunTemplate.getId() != null);
         this.testRun = new TestRunDto();
         this.testResults = new ArrayList<>();
         this.tests = new ArrayList<>();
     }
+
 
     private void readData(List<String> filePaths) throws AqualityException {
         for (String pathToFile : filePaths) {

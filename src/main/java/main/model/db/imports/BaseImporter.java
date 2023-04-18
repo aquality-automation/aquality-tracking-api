@@ -7,19 +7,21 @@ import main.model.db.dao.project.*;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 import main.utils.RegexpUtil;
+import main.utils.integrations.ai.AiApi;
 
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 class BaseImporter {
-    private ControllerFactory controllerFactory;
-    private IssueController issueController;
-    private String pattern;
+    private final ControllerFactory controllerFactory;
+    protected IssueController issueController;
+    private final String pattern;
     protected File file;
-    private List<IssueDto> issues;
+    private final List<IssueDto> issues;
 
     BaseImporter(int projectId, String pattern, UserDto user) throws AqualityException {
         this.projectId = projectId;
@@ -32,10 +34,10 @@ class BaseImporter {
     }
 
     private List<TestResultDto> existingResults = new ArrayList<>();
-    private ProjectDao projectDao = new ProjectDao();
-    private TestResultDao testResultDao = new TestResultDao();
-    private TestDao testDao = new TestDao();
-    private IssueDao issueDao = new IssueDao();
+    private final ProjectDao projectDao = new ProjectDao();
+    private final TestResultDao testResultDao = new TestResultDao();
+    private final TestDao testDao = new TestDao();
+    private final IssueDao issueDao = new IssueDao();
     protected int projectId;
     TestRunDto testRun;
     TestSuiteDto testSuite;
@@ -49,6 +51,12 @@ class BaseImporter {
         createTests();
         createTestRun();
         createResults(update);
+        List<TestResultDto> testResultsFailedWithoutIssues = getFailedWithoutIssueTests();
+        new AiApi().postResult(testResultsFailedWithoutIssues);
+    }
+
+    public List<TestResultDto> getFailedWithoutIssueTests() {
+        return testResults.stream().filter(testResultDto -> (testResultDto.getFinal_result_id() == 1 || testResultDto.getFinal_result_id() == 3) && testResultDto.getIssue_id() == null).collect(Collectors.toList());
     }
 
     private void createResults(boolean update) throws AqualityException {
@@ -282,7 +290,7 @@ class BaseImporter {
                     try {
                         issueController.create(issue);
                     } catch (AqualityException controllerException) {
-                        System.out.println(String.format("Was not able to fix invalid issue expression: id: %s", issue.getId()));
+                        System.out.printf("Was not able to fix invalid issue expression: id: %s%n", issue.getId());
                     }
                 }
             }

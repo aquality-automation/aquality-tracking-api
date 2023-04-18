@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<!--This file represents the results of running a test suite-->
-<test-results name="D:\bin\Debug\Core.dll" total="1" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2020-03-18" time="07:16:58">
+<!--This file represents the result of running a test suite-->
+<test-result name="D:\bin\Debug\Core.dll" total="1" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2020-03-18" time="07:16:58">
   <environment nunit-version="3.6.0.0" clr-version="4.0.30319.42000" os-version="Microsoft Windows NT 10.0.18363.0" platform="Win32NT" cwd="D:\bin\Debug" machine-name="user" user="user" user-domain="domain" />
   <culture-info current-culture="ru-RU" current-uiculture="en-US" />
   <test-suite type="Assembly" name="D:\bin\Debug\Core.dll" executed="True" result="Success" success="True" time="34" asserts="0">
@@ -8,28 +8,28 @@
       <property name="_PID" value="22312" />
       <property name="_APPDOMAIN" value="domain-" />
     </properties>
-    <results>
+    <result>
       <test-suite type="TestSuite" name="SUITENAME" executed="True" result="Success" success="True" time="33" asserts="0">
-        <results>
+        <result>
           <test-suite type="TestSuite" name="Gherkin" executed="True" result="Success" success="True" time="33" asserts="0">
-            <results>
+            <result>
               <test-suite type="TestSuite" name="Features" executed="True" result="Success" success="True" time="33" asserts="0">
-                <results>
+                <result>
                   <test-suite type="TestSuite" name="Core" executed="True" result="Success" success="True" time="33" asserts="0">
-                    <results>
+                    <result>
                       <test-suite type="TestSuite" name="CORE" executed="True" result="Success" success="True" time="33" asserts="0">
-                        <results>
+                        <result>
                           <test-suite type="TestSuite" name="Administration" executed="True" result="Success" success="True" time="33" asserts="0">
-                            <results>
+                            <result>
                               <test-suite type="TestSuite" name="AdministrationMenu" executed="True" result="Success" success="True" time="33" asserts="0">
-                                <results>
+                                <result>
                                   <test-suite type="TestSuite" name="ApplicationSettings" executed="True" result="Success" success="True" time="33" asserts="0">
-                                    <results>
+                                    <result>
                                       <test-suite type="TestFixture" name="CORETC_1540Feature" description="CORETC-1540" executed="True" result="Success" success="True" time="33" asserts="0">
                                         <properties>
                                           <property name="Description" value="CORETC-1540" />
                                         </properties>
-                                        <results>
+                                        <result>
                                           <test-case name="SUITENAME.Gherkin.Features.Core.CORE.Administration.AdministrationMenu.ApplicationSettings.CORETC_1540Feature.CORETC_1540_Administration" description="CORETC-1540_Administration_section can be opened" executed="True" result="Success" success="True" time="32" asserts="0">
                                             <categories>
                                               <category name="PRODUCT_MAT" />
@@ -38,24 +38,24 @@
                                               <property name="Description" value="CORETC-1540_Administration_section can be opened" />
                                             </properties>
                                           </test-case>
-                                        </results>
+                                        </result>
                                       </test-suite>
-                                    </results>
+                                    </result>
                                   </test-suite>
-                                </results>
+                                </result>
                               </test-suite>
-                            </results>
+                            </result>
                           </test-suite>
-                        </results>
+                        </result>
                       </test-suite>
-                    </results>
+                    </result>
                   </test-suite>
-                </results>
+                </result>
               </test-suite>
-            </results>
+            </result>
           </test-suite>
-        </results>
+        </result>
       </test-suite>
-    </results>
+    </result>
   </test-suite>
-</test-results>
+</test-result>

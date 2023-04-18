@@ -8,4 +8,7 @@ public class AppProperties extends PropertyUtils{
     public String getName(){
        return prop.getProperty("name");
     }
+    public String getAiUrl(){
+        return prop.getProperty("aiModuleUrl");
+    }
 }
