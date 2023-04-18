@@ -4,16 +4,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
-    <changeSet id="Rename Import token column" author="k.runets">
-        <sql endDelimiter="#">
-            ALTER TABLE `projects`
-            CHANGE COLUMN `import_token` `api_token` VARCHAR(500) NULL DEFAULT NULL ;
-        </sql>
-        <rollback>
-            ALTER TABLE `projects`
-            CHANGE COLUMN `api_token` `import_token` VARCHAR(500) NULL DEFAULT NULL ;
-        </rollback>
-    </changeSet>
 
     <changeSet id="add step setting to project" author="k.runets">
         <sql endDelimiter="#">
