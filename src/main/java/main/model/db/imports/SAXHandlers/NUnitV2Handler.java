@@ -47,7 +47,7 @@ public class NUnitV2Handler extends Handler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         currentElement = qName;
-        if (qName.equals("test-results")) {
+        if (qName.equals("test-result")) {
             try {
                 testRun.setFinish_time(convertToDate(attributes.getValue("date"), attributes.getValue("time")));
             } catch (ParseException e) {
