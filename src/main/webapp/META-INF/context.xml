@@ -11,8 +11,8 @@
               initialSize="10"
               removeAbandonedOnMaintenance="true"
               minEvictableIdleTimeMillis="30000"
-              username="root"
-              password="MyNewRP"
+              username="${db.username}"
+              password="${db.password}"
               driverClassName="com.mysql.cj.jdbc.Driver"
-              url="jdbc:mysql://localhost:3333/union_reporting?useUnicode=yes&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC"/>
+              url="jdbc:mysql://${db.host}:${db.port}/${db.name}?useUnicode=yes&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC"/>
 </Context>
