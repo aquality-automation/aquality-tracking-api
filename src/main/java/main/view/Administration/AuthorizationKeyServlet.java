@@ -1,7 +1,7 @@
 package main.view.Administration;
 
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 import main.view.BaseServlet;
 import main.view.IGet;
 import main.utils.RSA.RSAUtil;

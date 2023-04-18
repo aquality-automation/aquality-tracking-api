@@ -1,6 +1,6 @@
 package main.utils.RSA;
 
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;

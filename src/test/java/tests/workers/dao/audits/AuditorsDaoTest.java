@@ -1,7 +1,7 @@
 package tests.workers.dao.audits;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.mysql.cj.core.conf.url.ConnectionUrlParser.Pair;
+import com.mysql.cj.conf.ConnectionUrlParser.Pair;
 import main.exceptions.AqualityException;
 import main.model.db.dao.audit.AuditorsDao;
 import main.model.dto.audit.AuditorDto;

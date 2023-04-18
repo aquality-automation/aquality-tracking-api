@@ -8,10 +8,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.TimeZone;
 
 public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date> {
 
@@ -21,11 +19,12 @@ public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date> {
     public Date deserialize(JsonParser paramJsonParser,  DeserializationContext paramDeserializationContext) throws IOException {
         String str = paramJsonParser.getText().trim();
         try {
-            if (str.contains("T")) {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_DATE_TIME;
-                TemporalAccessor accessor = timeFormatter.parse(str);
-
-                return Date.from(Instant.from(accessor));
+            if (str.contains("T") && !str.contains("Z")) {
+                LocalDateTime dateTime = LocalDateTime.parse(str);
+                return java.sql.Timestamp.valueOf(dateTime);
+            }
+            if (str.contains("Z")) {
+                return Date.from(Instant.parse(str));
             }
             else if (str.contains(":")) {
                 return dateFormat.parse(str);
