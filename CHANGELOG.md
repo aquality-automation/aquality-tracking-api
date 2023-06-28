@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.4.1 (2023-06-27)
+Bugfixes:
+- Fixed an issue with the 'SELECT_TEST_STATS' procedure referencing nonexisting column
+
 ## 1.3.0 (2021-02-26)
  - Added feature that allows to link aquality entities (tests, issues and test runs) with 3rd party systems like Jira, Xray, TestRail and etc.
  In this version only Jira and Xray support has been added.
