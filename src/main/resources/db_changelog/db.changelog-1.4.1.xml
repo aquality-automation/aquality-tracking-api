@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+
+    <changeSet id="SELECT_TEST_STATS resolution fix" author="i.kulak">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_TEST_STATS`;
+
+            #
+
+            CREATE PROCEDURE `SELECT_TEST_STATS`(IN request_id VARCHAR(10) )
+            BEGIN
+            SELECT id, name, developer_id, total_runs, passed, failed, app_issue, autotest_issue, resolution_na
+            FROM
+            tests
+            LEFT JOIN
+            (SELECT
+            tr.test_id,
+            SUM(IF(final_result_id != 3, 1, 0)) AS total_runs,
+            SUM(IF(final_result_id = 1, 1, 0)) AS failed,
+            SUM(IF(final_result_id = 2, 1, 0)) AS passed,
+            SUM(IF(color = 1, 1, 0)) AS app_issue,
+            SUM(IF(color = 2, 1, 0)) AS autotest_issue,
+            SUM(IF(color = 3 AND final_result_id != 2, 1, 0)) AS resolution_na
+            FROM test_results tr
+            LEFT JOIN issues AS i on issue_id = i.id 
+            INNER JOIN result_resolution AS rr ON i.resolution_id = rr.id
+            GROUP BY test_id)
+            AS result ON tests.id = result.test_id
+            Where (request_id = ''
+            OR id IN (select test_id from suite_tests where suite_id = request_id));
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+
