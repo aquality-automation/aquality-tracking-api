@@ -51,8 +51,15 @@ class BaseImporter {
         createTests();
         createTestRun();
         createResults(update);
-        List<TestResultDto> testResultsFailedWithoutIssues = getFailedWithoutIssueTests();
-        new AiApi().postResult(testResultsFailedWithoutIssues);
+        postResultsToAi();
+    }
+
+    void postResultsToAi() throws AqualityException {
+        ProjectDto project = projectDao.getEntityById(projectId);
+        if(project.getAi_resolutions() == 1){
+            List<TestResultDto> testResultsFailedWithoutIssues = getFailedWithoutIssueTests();
+            new AiApi().postResult(testResultsFailedWithoutIssues);
+        }
     }
 
     public List<TestResultDto> getFailedWithoutIssueTests() {
