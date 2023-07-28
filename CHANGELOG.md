@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.5.0 (2023-07-28)
+- Added `/issues/assign` endpoint, which allows to check previously created Test Runs and Test Results and assign Issues to them if there's a RegEx match
+
 ## 1.4.1 (2023-06-27)
 Bugfixes:
 - Fixed an issue with the 'SELECT_TEST_STATS' procedure referencing nonexisting column
