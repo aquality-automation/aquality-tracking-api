@@ -2,18 +2,17 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestRunDao;
 import main.model.db.dao.project.TestRunLabelDao;
 import main.model.db.dao.project.TestRunStatisticDao;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
-import main.utils.RegexpUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class TestRunController extends BaseController<TestRunDto> {
     private TestRunDao testRunDao;
@@ -176,29 +175,19 @@ public class TestRunController extends BaseController<TestRunDto> {
         testRunTemplate.setId(testRunId);
         List<TestRunDto> testRuns = this.get(testRunTemplate);
         if (testRuns.isEmpty()) {
-            throw new AqualityException("No test run found to update. Wrong ID might be provided.");
+            throw new AqualityParametersException("No test run found to update. Wrong ID might be provided.");
         }
         TestResultDto testResultTemplate = new TestResultDto();
         testResultTemplate.setTest_run_id(testRuns.get(0).getId());
         testResultTemplate.setProject_id(testRuns.get(0).getProject_id());
-        List<TestResultDto> testResults = resultController.get(testResultTemplate);
-        testResults = testResults.stream().filter(x -> x.getFinal_result_id() != 2 && x.getFail_reason() != null && x.getIssue_id() == null).collect(Collectors.toList());
+        List<TestResultDto> testResults = resultController.getOnlyFailedResults(testResultTemplate);
         if (testResults.isEmpty()) {
-            throw new AqualityException("No results found to update.");
+            throw new AqualityParametersException("No results found to update.");
         }
         IssueDto issueTemplate = new IssueDto();
         issueTemplate.setProject_id(testRuns.get(0).getProject_id());
         List<IssueDto> issues = issueController.get(issueTemplate);
-        Integer count = 0;
-        for (TestResultDto testResult : testResults) {
-            for (IssueDto issue : issues) {
-                if (issue.getExpression() != null && RegexpUtil.match(testResult.getFail_reason(), issue.getExpression())) {
-                    testResult.setIssue_id(issue.getId());
-                    resultController.create(testResult);
-                    count++;
-                }
-            }
-        }
+        Integer count = resultController.assignIssuesToResults(issues, testResults);
         Map<String, Integer> results = new HashMap<>();
         results.put("Issues assigned", count);
         return results;
