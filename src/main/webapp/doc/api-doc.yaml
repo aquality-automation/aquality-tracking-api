@@ -60,6 +60,8 @@ tags:
     description: 'Operations with audits'
   - name: 'integrations'
     description: 'Operations to connfigure integrations with 3rdParty systems (only Jira currently supported)'
+  - name: 'assign'
+    description: "Check a test run/test result to assign issues to it if there's a RegEx match"
 
 paths:
   /public/suite/create-or-update:
@@ -663,7 +665,7 @@ paths:
             type: strings
         - in: query
           name: suite
-          description: 'Test Suite name (required only when format = MSTest and singleTestRun = true)'
+          description: 'Test Suite name (required only when format = MSTest or Cucumber and singleTestRun = true)'
           schema:
             type: string
         - in: query
@@ -1946,6 +1948,31 @@ paths:
                   "id": 2
                 }
               ]
+
+  /issues/assign:
+    post:
+      security:
+        - BasicAuth: []
+      tags:
+        - 'assign'
+      summary: "Check a test run/test result to assign issues to it if there's a RegEx match"
+      description: "Check a test run/test result to assign issues to it if there's a RegEx match\nUser can provide either Run ID or Result ID."
+      produces:
+        - 'application/json'
+      parameters:
+      - in: query
+        name: testRunId
+        description: 'ID of the Run to look into'
+        schema:
+          type: integer
+      - in: query
+        name: testResultId
+        description: 'ID of the Result to look into'
+        schema:
+          type: integer
+      responses:
+        200:
+          description: 'Issues assigned were assigned'
 
 definitions:
   Error:

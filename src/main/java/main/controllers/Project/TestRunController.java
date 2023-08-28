@@ -2,6 +2,7 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestRunDao;
 import main.model.db.dao.project.TestRunLabelDao;
@@ -9,7 +10,9 @@ import main.model.db.dao.project.TestRunStatisticDao;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TestRunController extends BaseController<TestRunDto> {
     private TestRunDao testRunDao;
@@ -19,6 +22,7 @@ public class TestRunController extends BaseController<TestRunDto> {
     private ResultController resultController;
     private SuiteController suiteController;
     private MilestoneController milestoneController;
+    private IssueController issueController;
 
     public TestRunController(UserDto user) {
         super(user);
@@ -29,6 +33,7 @@ public class TestRunController extends BaseController<TestRunDto> {
         resultController = new ResultController(user);
         suiteController = new SuiteController(user);
         milestoneController = new MilestoneController(user);
+        issueController = new IssueController(user);
     }
 
     @Override
@@ -66,8 +71,8 @@ public class TestRunController extends BaseController<TestRunDto> {
         TestRunDto testRunDto = new TestRunDto();
         testRunDto.setId(template.getId());
         Integer projectId = template.getId() != null
-            ? testRunDto.getProjectIdById()
-            : template.getProject_id();
+                ? testRunDto.getProjectIdById()
+                : template.getProject_id();
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
             return testRunStatisticDao.searchAll(template);
         } else {
@@ -126,7 +131,6 @@ public class TestRunController extends BaseController<TestRunDto> {
 
         if (testRuns.size() > 0) {
             testRuns = fillMilestonesAndSuites(testRuns);
-
             if (withChildren) {
                 testRuns = fillTestRunResults(testRuns);
             }
@@ -156,10 +160,36 @@ public class TestRunController extends BaseController<TestRunDto> {
         List<MilestoneDto> milestones = milestoneController.get(milestoneTemplate);
 
         for (TestRunDto testRun : testRuns) {
-            testRun.setMilestone(milestones.stream().filter(x -> x.getId().equals(testRun.getMilestone_id())).findFirst().orElse(null));
-            testRun.setTest_suite(suites.stream().filter(x -> x.getId().equals(testRun.getTest_suite_id())).findFirst().orElse(null));
-            testRun.setLabel(labels.stream().filter(x -> x.getId().equals(testRun.getLabel_id())).findFirst().orElse(null));
+            testRun.setMilestone(milestones.stream().filter(x -> x.getId().equals(testRun.getMilestone_id()))
+                    .findFirst().orElse(null));
+            testRun.setTest_suite(
+                    suites.stream().filter(x -> x.getId().equals(testRun.getTest_suite_id())).findFirst().orElse(null));
+            testRun.setLabel(
+                    labels.stream().filter(x -> x.getId().equals(testRun.getLabel_id())).findFirst().orElse(null));
         }
         return testRuns;
+    }
+
+    public Map<String, Integer> matchIssues(Integer testRunId) throws AqualityException {
+        TestRunDto testRunTemplate = new TestRunDto();
+        testRunTemplate.setId(testRunId);
+        List<TestRunDto> testRuns = this.get(testRunTemplate);
+        if (testRuns.isEmpty()) {
+            throw new AqualityParametersException("No test run found to update. Wrong ID might be provided.");
+        }
+        TestResultDto testResultTemplate = new TestResultDto();
+        testResultTemplate.setTest_run_id(testRuns.get(0).getId());
+        testResultTemplate.setProject_id(testRuns.get(0).getProject_id());
+        List<TestResultDto> testResults = resultController.getOnlyFailedResults(testResultTemplate);
+        if (testResults.isEmpty()) {
+            throw new AqualityParametersException("No results found to update.");
+        }
+        IssueDto issueTemplate = new IssueDto();
+        issueTemplate.setProject_id(testRuns.get(0).getProject_id());
+        List<IssueDto> issues = issueController.get(issueTemplate);
+        Integer count = resultController.assignIssuesToResults(issues, testResults);
+        Map<String, Integer> results = new HashMap<>();
+        results.put("Issues assigned", count);
+        return results;
     }
 }
