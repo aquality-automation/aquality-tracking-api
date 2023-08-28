@@ -2,14 +2,18 @@ package main.controllers.Project;
 
 import main.controllers.BaseController;
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestResultAttachmentDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.db.dao.project.TestResultStatDao;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
+import main.utils.RegexpUtil;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ResultController extends BaseController<TestResultDto> {
@@ -23,11 +27,12 @@ public class ResultController extends BaseController<TestResultDto> {
     private final StepResultController stepResultController;
     private final IssueController issueController;
     private final TestResultAttachmentController testResultAttachmentController;
+    private final Integer FAILED_STATUS_ID = 2;
 
     public ResultController(UserDto user) {
         super(user);
         testResultDao = new TestResultDao();
-        testResultStatDao = new TestResultStatDao();;
+        testResultStatDao = new TestResultStatDao();
         testResultAttachmentDao = new TestResultAttachmentDao();
         testController = new TestController(user);
         finalResultController = new FinalResultController(user);
@@ -69,6 +74,12 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
+    public List<TestResultDto> getOnlyFailedResults(TestResultDto testResultTemplate) throws AqualityException {
+        List<TestResultDto> testResults = this.get(testResultTemplate);
+        return testResults.stream().filter(x -> x.getFinal_result_id() != FAILED_STATUS_ID && x.getFail_reason() != null
+                && x.getIssue_id() == null).collect(Collectors.toList());
+    }
+
     public boolean createMultiple(List<TestResultAttachmentDto> listOfAttachments) throws AqualityException {
         if (baseUser.isManager() || baseUser.getProjectUser(listOfAttachments.get(0).getProject_id()).isEditor()) {
             return testResultAttachmentDao.createMultiply(listOfAttachments);
@@ -77,7 +88,8 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
-    public List<TestResultDto> getLatestResultsByMilestone(Integer projectId, Integer milestoneId) throws AqualityException {
+    public List<TestResultDto> getLatestResultsByMilestone(Integer projectId, Integer milestoneId)
+            throws AqualityException {
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
             return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId));
         } else {
@@ -86,7 +98,8 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     public boolean updateMultipleTestResults(List<TestResultDto> entities) throws AqualityException {
-        if (entities.size() > 0 && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())) {
+        if (entities.size() > 0
+                && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())) {
             return testResultDao.updateMultiply(entities);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to update Test Result", baseUser);
@@ -133,7 +146,8 @@ public class ResultController extends BaseController<TestResultDto> {
 
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
-            List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController.get(testResultAttachmentTemplate);
+            List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
+                    .get(testResultAttachmentTemplate);
 
             ProjectUserDto projectUserDto = new ProjectUserDto();
             projectUserDto.setProject_id(projectId);
@@ -148,17 +162,22 @@ public class ResultController extends BaseController<TestResultDto> {
         return results;
     }
 
-    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests, List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled) throws AqualityException {
+    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests,
+            List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
+            throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
         }
 
-        result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id())).findFirst().orElse(null));
+        result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id()))
+                .findFirst().orElse(null));
         result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
-        if(result.getIssue_id() != null) {
-            result.setIssue(issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
+        if (result.getIssue_id() != null) {
+            result.setIssue(
+                    issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
         }
-        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId())).collect(Collectors.toList()));
+        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
+                .collect(Collectors.toList()));
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {
@@ -166,5 +185,37 @@ public class ResultController extends BaseController<TestResultDto> {
         stepResultTemplate.setResult_id(result.getId());
         stepResultTemplate.setProject_id(result.getProject_id());
         result.setSteps(stepResultController.get(stepResultTemplate));
+    }
+
+    public Map<String, Integer> matchIssues(Integer testResultId) throws AqualityException {
+        TestResultDto testResultTemplate = new TestResultDto();
+        testResultTemplate.setId(testResultId);
+        List<TestResultDto> testResults = this.getOnlyFailedResults(testResultTemplate);
+        if (testResults.isEmpty()) {
+            throw new AqualityParametersException("No test result found to update. Wrong ID might be provided.");
+        }
+        IssueDto issueTemplate = new IssueDto();
+        issueTemplate.setProject_id(testResults.get(0).getProject_id());
+        List<IssueDto> issues = issueController.get(issueTemplate);
+        Integer count = assignIssuesToResults(issues, testResults);
+        Map<String, Integer> results = new HashMap<>();
+        results.put("Issues assigned", count);
+        return results;
+    }
+
+    public Integer assignIssuesToResults(List<IssueDto> issues, List<TestResultDto> testResults)
+            throws AqualityException {
+        Integer count = 0;
+        for (TestResultDto testResult : testResults) {
+            for (IssueDto issue : issues) {
+                if (issue.getExpression() != null
+                        && RegexpUtil.match(testResult.getFail_reason(), issue.getExpression())) {
+                            testResult.setIssue_id(issue.getId());
+                    this.create(testResult);
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 }
