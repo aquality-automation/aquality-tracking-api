@@ -1,3 +1,4 @@
+[![Build Status](https://dev.azure.com/apavar/tracking_api/_apis/build/status%2FaPavar.aq_tracking_api?branchName=switch_azure)](https://dev.azure.com/apavar/tracking_api/_build/latest?definitionId=4&branchName=switch_azure)
 # Aquality Tracking API
 
 ## Getting started
