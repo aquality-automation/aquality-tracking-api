@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.5.1 (2023-11-15)
+Bugfixes:
+- Fixed an issue Invalid authorisation returns 500 status code 
+
 ## 1.5.0 (2023-07-28)
 - Added `/issues/assign` endpoint, which allows to check previously created Test Runs and Test Results and assign Issues to them if there's a RegEx match
 
