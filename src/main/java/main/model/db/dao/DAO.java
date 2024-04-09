@@ -229,7 +229,7 @@ public abstract class DAO<T extends BaseDto> {
         return json;
     }
 
-    private T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
+    protected T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
         if (!allResults.isEmpty()) {
             return allResults.get(0);
         } else {
