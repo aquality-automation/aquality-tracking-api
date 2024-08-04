@@ -84,7 +84,7 @@ public abstract class DAO<T extends BaseDto> {
 
         List<T> result = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
         long start2 = System.currentTimeMillis();
-        System.out.println("Search all by entity = " + (start2-start1));
+        System.out.println("Search all by entity " + entity.getClass().getName() +  "="  + (start2-start1));
         return  result;
     }
 
