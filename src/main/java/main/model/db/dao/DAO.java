@@ -78,9 +78,14 @@ public abstract class DAO<T extends BaseDto> {
      * @return List of entities
      */
     public List<T> searchAll(T entity) throws AqualityException {
+        long start1 = System.currentTimeMillis();
         List<Pair<String, String>> parameters = entity.getSearchParameters();
         checkSelectProcedure();
-        return dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
+
+        List<T> result = dtoMapper.mapObjects(CallStoredProcedure(select, parameters).toString());
+        long start2 = System.currentTimeMillis();
+        System.out.println("Search all by entity = " + (start2-start1));
+        return  result;
     }
 
     /**
