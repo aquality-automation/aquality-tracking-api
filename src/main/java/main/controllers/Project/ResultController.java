@@ -247,7 +247,7 @@ public class ResultController extends BaseController<TestResultDto> {
 
             long start5 = System.currentTimeMillis();
             for (TestResultDto result : results) {
-                fillResult(result, finalResultsMap, testsMap, issuesMap, attachmentsMap, isStepsEnabled);
+                fillResult(result, finalResultsMap, testsMap, issuesMap, testResultAttachments, isStepsEnabled);
             }
             long start6 = System.currentTimeMillis();
             System.out.println("Exact filling results " + (start6-start5));
@@ -258,7 +258,7 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     private void fillResult(TestResultDto result, Map<Integer, FinalResultDto> finalResults, Map<Integer, TestDto> tests,
-                            Map<Integer, IssueDto> issues, Map<Integer,List<TestResultAttachmentDto>> attachments, boolean isStepsEnabled)
+                            Map<Integer, IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
@@ -276,9 +276,9 @@ public class ResultController extends BaseController<TestResultDto> {
              //       issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
             result.setIssue(issues.get(result.getIssue_id()));
         }
-       // result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
-        //        .collect(Collectors.toList()));
-        result.setAttachments(attachments.get(result.getId()));
+        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
+                .collect(Collectors.toList()));
+        //result.setAttachments(attachments.get(result.getId()));
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {
