@@ -186,6 +186,8 @@ public class ResultController extends BaseController<TestResultDto> {
             int projectId = results.get(0).getProject_id();
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());
 
+            System.out.println("Final results count = " + (long) finalResults.size());
+
             Map<Integer, FinalResultDto> finalResultsMap = new HashMap<>();
             for(FinalResultDto resultDto : finalResults) {
                finalResultsMap.put(resultDto.getId(), resultDto);
@@ -194,6 +196,8 @@ public class ResultController extends BaseController<TestResultDto> {
             IssueDto issueDto = new IssueDto();
             issueDto.setProject_id(projectId);
             List<IssueDto> issues = issueController.get(issueDto);
+
+            System.out.println("Count issues = "+ (long) issues.size());
 
             Map<Integer, IssueDto> issuesMap = new HashMap<>();
             for(IssueDto issueDto2 : issues) {
@@ -206,6 +210,8 @@ public class ResultController extends BaseController<TestResultDto> {
             TestDto testTemplate = new TestDto();
             testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
+
+            System.out.println("Count tests = " + (long) tests.size());
 
             Map<Integer, TestDto> testsMap = new HashMap<>();
             for(TestDto testDto : tests) {
@@ -221,22 +227,23 @@ public class ResultController extends BaseController<TestResultDto> {
             List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
                     .get(testResultAttachmentTemplate);
 
+            System.out.println("Test result attachments = " + testResultAttachments.size());
 
             Map<Integer, List<TestResultAttachmentDto>> attachmentsMap = new HashMap<>();
 
 
-            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
-                if(!attachmentsMap.containsKey(attachmentDto.getTest_result_id())) {
-                    List<TestResultAttachmentDto> res = new ArrayList<>();
-                    res.add(attachmentDto);
-                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
-                }
-                else {
-                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
-                }
-
-
-            }
+//            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
+//                if(!attachmentsMap.containsKey(attachmentDto.getTest_result_id())) {
+//                    List<TestResultAttachmentDto> res = new ArrayList<>();
+//                    res.add(attachmentDto);
+//                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
+//                }
+//                else {
+//                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
+//                }
+//
+//
+//            }
 
             long start4 = System.currentTimeMillis();
             System.out.println("get test attachments = " + (start4-start3));
@@ -246,8 +253,9 @@ public class ResultController extends BaseController<TestResultDto> {
             boolean isStepsEnabled = projectController.isStepsEnabled(projectId);
 
             long start5 = System.currentTimeMillis();
+            System.out.println("Count results = "+ (long) results.size());
             for (TestResultDto result : results) {
-                fillResult(result, finalResultsMap, testsMap, issuesMap, attachmentsMap, isStepsEnabled);
+                fillResult(result, finalResultsMap, testsMap, issuesMap, testResultAttachments, isStepsEnabled);
             }
             long start6 = System.currentTimeMillis();
             System.out.println("Exact filling results " + (start6-start5));
@@ -258,7 +266,7 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     private void fillResult(TestResultDto result, Map<Integer, FinalResultDto> finalResults, Map<Integer, TestDto> tests,
-                            Map<Integer, IssueDto> issues, Map<Integer,List<TestResultAttachmentDto>> attachments, boolean isStepsEnabled)
+                            Map<Integer, IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
@@ -276,9 +284,9 @@ public class ResultController extends BaseController<TestResultDto> {
              //       issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
             result.setIssue(issues.get(result.getIssue_id()));
         }
-//        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
-//                .collect(Collectors.toList()));
-        result.setAttachments(attachments.get(result.getId()));
+        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
+                .collect(Collectors.toList()));
+       // result.setAttachments(attachments.get(result.getId()));
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {
