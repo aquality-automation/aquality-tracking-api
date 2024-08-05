@@ -225,18 +225,18 @@ public class ResultController extends BaseController<TestResultDto> {
             Map<Integer, List<TestResultAttachmentDto>> attachmentsMap = new HashMap<>();
 
 
-//            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
-//                if(!attachmentsMap.containsKey(attachmentDto.getId())) {
-//                    List<TestResultAttachmentDto> res = new ArrayList<>();
-//                    res.add(attachmentDto);
-//                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
-//                }
-//                else {
-//                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
-//                }
-//
-//
-//            }
+            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
+                if(!attachmentsMap.containsKey(attachmentDto.getTest_result_id())) {
+                    List<TestResultAttachmentDto> res = new ArrayList<>();
+                    res.add(attachmentDto);
+                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
+                }
+                else {
+                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
+                }
+
+
+            }
 
             long start4 = System.currentTimeMillis();
             System.out.println("get test attachments = " + (start4-start3));
@@ -247,7 +247,7 @@ public class ResultController extends BaseController<TestResultDto> {
 
             long start5 = System.currentTimeMillis();
             for (TestResultDto result : results) {
-                fillResult(result, finalResultsMap, testsMap, issuesMap, testResultAttachments, isStepsEnabled);
+                fillResult(result, finalResultsMap, testsMap, issuesMap, attachmentsMap, isStepsEnabled);
             }
             long start6 = System.currentTimeMillis();
             System.out.println("Exact filling results " + (start6-start5));
@@ -258,7 +258,7 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     private void fillResult(TestResultDto result, Map<Integer, FinalResultDto> finalResults, Map<Integer, TestDto> tests,
-                            Map<Integer, IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
+                            Map<Integer, IssueDto> issues, Map<Integer,List<TestResultAttachmentDto>> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
@@ -276,9 +276,9 @@ public class ResultController extends BaseController<TestResultDto> {
              //       issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
             result.setIssue(issues.get(result.getIssue_id()));
         }
-        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
-                .collect(Collectors.toList()));
-        //result.setAttachments(attachments.get(result.getId()));
+//        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
+//                .collect(Collectors.toList()));
+        result.setAttachments(attachments.get(result.getId()));
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {
