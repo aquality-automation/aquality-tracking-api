@@ -225,18 +225,18 @@ public class ResultController extends BaseController<TestResultDto> {
             Map<Integer, List<TestResultAttachmentDto>> attachmentsMap = new HashMap<>();
 
 
-            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
-                if(!attachmentsMap.containsKey(attachmentDto.getId())) {
-                    List<TestResultAttachmentDto> res = new ArrayList<>();
-                    res.add(attachmentDto);
-                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
-                }
-                else {
-                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
-                }
-
-
-            }
+//            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
+//                if(!attachmentsMap.containsKey(attachmentDto.getId())) {
+//                    List<TestResultAttachmentDto> res = new ArrayList<>();
+//                    res.add(attachmentDto);
+//                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
+//                }
+//                else {
+//                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
+//                }
+//
+//
+//            }
 
             long start4 = System.currentTimeMillis();
             System.out.println("get test attachments = " + (start4-start3));
