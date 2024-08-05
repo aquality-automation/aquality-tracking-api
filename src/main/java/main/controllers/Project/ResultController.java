@@ -7,14 +7,12 @@ import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.TestResultAttachmentDao;
 import main.model.db.dao.project.TestResultDao;
 import main.model.db.dao.project.TestResultStatDao;
+import main.model.dto.AttachmentDto;
 import main.model.dto.project.*;
 import main.model.dto.settings.UserDto;
 import main.utils.RegexpUtil;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ResultController extends BaseController<TestResultDto> {
@@ -187,20 +185,59 @@ public class ResultController extends BaseController<TestResultDto> {
             long start1 = System.currentTimeMillis();
             int projectId = results.get(0).getProject_id();
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());
+
+            Map<Integer, FinalResultDto> finalResultsMap = new HashMap<>();
+            for(FinalResultDto resultDto : finalResults) {
+               finalResultsMap.put(resultDto.getId(), resultDto);
+            }
+
             IssueDto issueDto = new IssueDto();
             issueDto.setProject_id(projectId);
             List<IssueDto> issues = issueController.get(issueDto);
+
+            Map<Integer, IssueDto> issuesMap = new HashMap<>();
+            for(IssueDto issueDto2 : issues) {
+                issuesMap.put(issueDto2.getId(), issueDto2);
+            }
+
+
             long start2 = System.currentTimeMillis();
             System.out.println("get issue = " + (start2-start1));
             TestDto testTemplate = new TestDto();
             testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
+
+            Map<Integer, TestDto> testsMap = new HashMap<>();
+            for(TestDto testDto : tests) {
+                testsMap.put(testDto.getId(), testDto);
+            }
+
+
+
             long start3 = System.currentTimeMillis();
             System.out.println("get test template(project_id) = " + (start3-start2));
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
             List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
                     .get(testResultAttachmentTemplate);
+
+
+            Map<Integer, List<TestResultAttachmentDto>> attachmentsMap = new HashMap<>();
+
+
+            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
+                if(!attachmentsMap.containsKey(attachmentDto.getId())) {
+                    List<TestResultAttachmentDto> res = new ArrayList<>();
+                    res.add(attachmentDto);
+                    attachmentsMap.put(attachmentDto.getTest_result_id(), res);
+                }
+                else {
+                    attachmentsMap.get(attachmentDto.getTest_result_id()).add(attachmentDto);
+                }
+
+
+            }
+
             long start4 = System.currentTimeMillis();
             System.out.println("get test attachments = " + (start4-start3));
             ProjectUserDto projectUserDto = new ProjectUserDto();
@@ -210,7 +247,7 @@ public class ResultController extends BaseController<TestResultDto> {
 
             long start5 = System.currentTimeMillis();
             for (TestResultDto result : results) {
-                fillResult(result, finalResults, tests, issues, testResultAttachments, isStepsEnabled);
+                fillResult(result, finalResultsMap, testsMap, issuesMap, attachmentsMap, isStepsEnabled);
             }
             long start6 = System.currentTimeMillis();
             System.out.println("Exact filling results " + (start6-start5));
@@ -220,22 +257,28 @@ public class ResultController extends BaseController<TestResultDto> {
         return results;
     }
 
-    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests,
-                            List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
+    private void fillResult(TestResultDto result, Map<Integer, FinalResultDto> finalResults, Map<Integer, TestDto> tests,
+                            Map<Integer, IssueDto> issues, Map<Integer,List<TestResultAttachmentDto>> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
         }
 
-        result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id()))
-                .findFirst().orElse(null));
-        result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
+      //  result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id()))
+      //          .findFirst().orElse(null));
+        result.setFinal_result(finalResults.get(result.getFinal_result_id()));
+
+       // result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
+        result.setTest(tests.get(result.getTest_id()));
+
         if (result.getIssue_id() != null) {
-            result.setIssue(
-                    issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
+            //result.setIssue(
+             //       issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
+            result.setIssue(issues.get(result.getIssue_id()));
         }
-        result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
-                .collect(Collectors.toList()));
+       // result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
+        //        .collect(Collectors.toList()));
+        result.setAttachments(attachments.get(result.getId()));
     }
 
     private void fillResultSteps(TestResultDto result) throws AqualityException {
