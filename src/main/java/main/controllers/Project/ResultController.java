@@ -215,7 +215,7 @@ public class ResultController extends BaseController<TestResultDto> {
         return results;
     }
 
-    private void fillResult(TestResultDto result, List< FinalResultDto> finalResults, List<TestDto> tests,
+    private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests,
                             List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
@@ -224,9 +224,7 @@ public class ResultController extends BaseController<TestResultDto> {
 
         result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id()))
                 .findFirst().orElse(null));
-
         result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
-
         if (result.getIssue_id() != null) {
             result.setIssue(
                     issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
