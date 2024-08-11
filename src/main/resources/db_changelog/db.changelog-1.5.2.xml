@@ -11,7 +11,7 @@
 
             #
 
-            create procedure SELECT_TEST_RESULT_ATTACH2(
+            create procedure SELECT_TEST_RESULT_ATTACH(
             In request_id varchar(11),
             In request_test_result_id varchar(11),
             In request_test_run_id varchar(11),
