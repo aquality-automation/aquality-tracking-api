@@ -70,7 +70,7 @@ public class ResultController extends BaseController<TestResultDto> {
     @Override
     public List<TestResultDto> get(TestResultDto template) throws AqualityException {
         checkReadPermissions(template.getProject_id());
-        return fillResults(testResultDao.searchAll(template));
+        return fillResults(testResultDao.searchAll(template), template);
     }
 
     public List<TestResultDto> getRaw(TestResultDto template) throws AqualityException {
@@ -107,7 +107,7 @@ public class ResultController extends BaseController<TestResultDto> {
     public List<TestResultDto> getLatestResultsByMilestone(Integer projectId, Integer milestoneId)
             throws AqualityException {
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
-            return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId));
+            return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId), null);
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
         }
@@ -179,7 +179,7 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
-    private List<TestResultDto> fillResults(List<TestResultDto> results) throws AqualityException {
+    private List<TestResultDto> fillResults(List<TestResultDto> results, TestResultDto searchTemplate) throws AqualityException {
 
         if (!results.isEmpty()) {
             long start1 = System.currentTimeMillis();
@@ -188,10 +188,10 @@ public class ResultController extends BaseController<TestResultDto> {
 
             System.out.println("Final results count = " + (long) finalResults.size());
 
-            Map<Integer, FinalResultDto> finalResultsMap = new HashMap<>();
-            for(FinalResultDto resultDto : finalResults) {
-               finalResultsMap.put(resultDto.getId(), resultDto);
-            }
+//            Map<Integer, FinalResultDto> finalResultsMap = new HashMap<>();
+//            for(FinalResultDto resultDto : finalResults) {
+//               finalResultsMap.put(resultDto.getId(), resultDto);
+//            }
 
             IssueDto issueDto = new IssueDto();
             issueDto.setProject_id(projectId);
@@ -199,10 +199,10 @@ public class ResultController extends BaseController<TestResultDto> {
 
             System.out.println("Count issues = "+ (long) issues.size());
 
-            Map<Integer, IssueDto> issuesMap = new HashMap<>();
-            for(IssueDto issueDto2 : issues) {
-                issuesMap.put(issueDto2.getId(), issueDto2);
-            }
+//            Map<Integer, IssueDto> issuesMap = new HashMap<>();
+//            for(IssueDto issueDto2 : issues) {
+//                issuesMap.put(issueDto2.getId(), issueDto2);
+//            }
 
 
             long start2 = System.currentTimeMillis();
@@ -213,10 +213,10 @@ public class ResultController extends BaseController<TestResultDto> {
 
             System.out.println("Count tests = " + (long) tests.size());
 
-            Map<Integer, TestDto> testsMap = new HashMap<>();
-            for(TestDto testDto : tests) {
-                testsMap.put(testDto.getId(), testDto);
-            }
+//            Map<Integer, TestDto> testsMap = new HashMap<>();
+//            for(TestDto testDto : tests) {
+//                testsMap.put(testDto.getId(), testDto);
+//            }
 
 
 
@@ -224,12 +224,17 @@ public class ResultController extends BaseController<TestResultDto> {
             System.out.println("get test template(project_id) = " + (start3-start2));
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
+            if(searchTemplate != null) {
+                testResultAttachmentTemplate.setTest_run_id(searchTemplate.getTest_run_id());
+                testResultAttachmentTemplate.setTest_id(searchTemplate.getTest_id());
+            }
+            //    testResultAttachmentTemplate.set
             List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
                     .get(testResultAttachmentTemplate);
 
             System.out.println("Test result attachments = " + testResultAttachments.size());
 
-            Map<Integer, List<TestResultAttachmentDto>> attachmentsMap = new HashMap<>();
+           // Map<Integer, List<TestResultAttachmentDto>> attachmentsMap = new HashMap<>();
 
 
 //            for(TestResultAttachmentDto attachmentDto : testResultAttachments) {
@@ -255,7 +260,7 @@ public class ResultController extends BaseController<TestResultDto> {
             long start5 = System.currentTimeMillis();
             System.out.println("Count results = "+ (long) results.size());
             for (TestResultDto result : results) {
-                fillResult(result, finalResultsMap, testsMap, issuesMap, testResultAttachments, isStepsEnabled);
+                fillResult(result, finalResults, tests, issues, testResultAttachments, isStepsEnabled);
             }
             long start6 = System.currentTimeMillis();
             System.out.println("Exact filling results " + (start6-start5));
@@ -265,24 +270,24 @@ public class ResultController extends BaseController<TestResultDto> {
         return results;
     }
 
-    private void fillResult(TestResultDto result, Map<Integer, FinalResultDto> finalResults, Map<Integer, TestDto> tests,
-                            Map<Integer, IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
+    private void fillResult(TestResultDto result, List< FinalResultDto> finalResults, List<TestDto> tests,
+                            List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
         }
 
-      //  result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id()))
-      //          .findFirst().orElse(null));
-        result.setFinal_result(finalResults.get(result.getFinal_result_id()));
+        result.setFinal_result(finalResults.stream().filter(x -> x.getId().equals(result.getFinal_result_id()))
+                .findFirst().orElse(null));
+        //result.setFinal_result(finalResults.get(result.getFinal_result_id()));
 
-       // result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
-        result.setTest(tests.get(result.getTest_id()));
+        result.setTest(tests.stream().filter(x -> x.getId().equals(result.getTest_id())).findFirst().orElse(null));
+       // result.setTest(tests.get(result.getTest_id()));
 
         if (result.getIssue_id() != null) {
-            //result.setIssue(
-             //       issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
-            result.setIssue(issues.get(result.getIssue_id()));
+            result.setIssue(
+                    issues.stream().filter(x -> x.getId().equals(result.getIssue_id())).findFirst().orElse(null));
+           // result.setIssue(issues.get(result.getIssue_id()));
         }
         result.setAttachments(attachments.stream().filter(x -> x.getTest_result_id().equals(result.getId()))
                 .collect(Collectors.toList()));

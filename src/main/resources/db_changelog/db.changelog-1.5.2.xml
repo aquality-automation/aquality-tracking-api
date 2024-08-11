@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+    <changeSet id="update procedure SELECT_TEST_RESULT_ATTACH to find by test_id" author="a2.pavar">
+        <sql endDelimiter="#">
+            DROP procedure IF EXISTS `SELECT_TEST_RESULT_ATTACH`;
+
+            #
+
+            create procedure SELECT_TEST_RESULT_ATTACH2(
+            In request_id varchar(11),
+            In request_test_result_id varchar(11),
+            In request_test_run_id varchar(11),
+            In request_project_id varchar(11),
+            In request_test_id varchar(11)
+            )
+            BEGIN
+            SELECT * from test_result_attachments
+            WHERE (request_test_result_id = '' OR test_result_id=request_test_result_id)
+            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+            AND (request_id = '' OR id=request_id)
+            AND (request_project_id = '' OR project_id=request_project_id)
+            AND (request_test_id = '' OR test_result_attachments.test_result_id in (select id from test_results where test_results.test_id=request_test_id));
+            END
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

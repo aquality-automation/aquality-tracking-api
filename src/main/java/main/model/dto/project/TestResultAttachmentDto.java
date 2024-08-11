@@ -24,6 +24,10 @@ public class TestResultAttachmentDto extends AttachmentDto {
     @DataBaseSearchable
     private Integer test_run_id;
 
+    @DataBaseName(name = "request_test_id")
+    @DataBaseSearchable
+    private Integer test_id;
+
     private String url;
 
     private byte[] attachment;
