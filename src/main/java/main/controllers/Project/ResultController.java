@@ -225,6 +225,9 @@ public class ResultController extends BaseController<TestResultDto> {
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
             if(searchTemplate != null) {
+                System.out.println("Test run id = " + searchTemplate.getTest_run_id());
+                System.out.println("Test id = " + searchTemplate.getTest_id());
+               // System.out.println("type = " + );
                 testResultAttachmentTemplate.setTest_run_id(searchTemplate.getTest_run_id());
                 testResultAttachmentTemplate.setTest_id(searchTemplate.getTest_id());
             }
