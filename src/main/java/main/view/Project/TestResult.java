@@ -37,11 +37,6 @@ public class TestResult extends BaseServlet implements IPost, IGet, IDelete {
         setPostResponseHeaders(resp);
         setEncoding(resp);
         try {
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            System.out.println("request = " + req.getRequestURL());
-            System.out.println("query = " + req.getQueryString());
             Session session = createSession(req);
             TestResultDto testResultTemplate = new TestResultDto();
             testResultTemplate.getSearchTemplateFromRequestParameters(req);

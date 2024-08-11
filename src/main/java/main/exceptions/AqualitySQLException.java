@@ -9,10 +9,7 @@ public class AqualitySQLException extends AqualityException {
         this.responseCode = getErrorCode(exception.getSQLState());
     }
 
-
     private static String getErrorMessage(SQLException exception){
-        System.out.println(exception.getMessage());
-        System.out.println(exception);
         switch (exception.getSQLState()){
             case "45000":
                 return exception.getMessage();

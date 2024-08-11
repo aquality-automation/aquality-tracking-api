@@ -181,57 +181,35 @@ public class ResultController extends BaseController<TestResultDto> {
     private List<TestResultDto> fillResults(List<TestResultDto> results, TestResultDto searchTemplate) throws AqualityException {
 
         if (!results.isEmpty()) {
-            long start1 = System.currentTimeMillis();
             int projectId = results.get(0).getProject_id();
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());
-
-            System.out.println("Final results count = " + (long) finalResults.size());
-
-
             IssueDto issueDto = new IssueDto();
             issueDto.setProject_id(projectId);
             List<IssueDto> issues = issueController.get(issueDto);
-
-            System.out.println("Count issues = "+ (long) issues.size());
-
-
-            long start2 = System.currentTimeMillis();
-            System.out.println("get issue = " + (start2-start1));
             TestDto testTemplate = new TestDto();
             testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
 
-            System.out.println("Count tests = " + (long) tests.size());
-
-            long start3 = System.currentTimeMillis();
-            System.out.println("get test template(project_id) = " + (start3-start2));
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
+
             if(searchTemplate != null) {
                 testResultAttachmentTemplate.setTest_run_id(searchTemplate.getTest_run_id());
                 testResultAttachmentTemplate.setTest_id(searchTemplate.getTest_id());
                 testResultAttachmentTemplate.setTest_result_id(searchTemplate.getId());
             }
+
             List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
                     .get(testResultAttachmentTemplate);
 
-            System.out.println("Test result attachments = " + testResultAttachments.size());
-
-            long start4 = System.currentTimeMillis();
-            System.out.println("get test attachments = " + (start4-start3));
             ProjectUserDto projectUserDto = new ProjectUserDto();
             projectUserDto.setProject_id(projectId);
 
             boolean isStepsEnabled = projectController.isStepsEnabled(projectId);
 
-            long start5 = System.currentTimeMillis();
-            System.out.println("Count results = "+ (long) results.size());
             for (TestResultDto result : results) {
                 fillResult(result, finalResults, tests, issues, testResultAttachments, isStepsEnabled);
             }
-            long start6 = System.currentTimeMillis();
-            System.out.println("Exact filling results " + (start6-start5));
-            System.out.println("Whole filling function " + (start6-start1));
         }
 
         return results;
