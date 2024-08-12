@@ -106,7 +106,7 @@ public class ResultController extends BaseController<TestResultDto> {
     public List<TestResultDto> getLatestResultsByMilestone(Integer projectId, Integer milestoneId)
             throws AqualityException {
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
-            return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId), null);
+            return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId), new TestResultDto());
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
         }
@@ -192,12 +192,9 @@ public class ResultController extends BaseController<TestResultDto> {
 
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
-
-            if(searchTemplate != null) {
-                testResultAttachmentTemplate.setTest_run_id(searchTemplate.getTest_run_id());
-                testResultAttachmentTemplate.setTest_id(searchTemplate.getTest_id());
-                testResultAttachmentTemplate.setTest_result_id(searchTemplate.getId());
-            }
+            testResultAttachmentTemplate.setTest_run_id(searchTemplate.getTest_run_id());
+            testResultAttachmentTemplate.setTest_id(searchTemplate.getTest_id());
+            testResultAttachmentTemplate.setTest_result_id(searchTemplate.getId());
 
             List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
                     .get(testResultAttachmentTemplate);
