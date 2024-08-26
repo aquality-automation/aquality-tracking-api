@@ -12,19 +12,19 @@
             #
 
             create procedure SELECT_TEST_RESULT_ATTACH(
-            In request_id varchar(11),
-            In request_test_result_id varchar(11),
-            In request_test_run_id varchar(11),
-            In request_project_id varchar(11),
-            In request_test_id varchar(11)
+                IN request_id varchar(11),
+                IN request_test_result_id varchar(11),
+                IN request_test_run_id varchar(11),
+                IN request_project_id varchar(11),
+                IN request_test_id varchar(11)
             )
             BEGIN
-            SELECT * from test_result_attachments
-            WHERE (request_test_result_id = '' OR test_result_id=request_test_result_id)
-            AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
-            AND (request_id = '' OR id=request_id)
-            AND (request_project_id = '' OR project_id=request_project_id)
-            AND (request_test_id = '' OR test_result_attachments.test_result_id in (select id from test_results where test_results.test_id=request_test_id));
+                SELECT * from test_result_attachments
+                WHERE (request_test_result_id = '' OR test_result_id=request_test_result_id)
+                    AND (request_test_run_id = '' OR test_run_id=request_test_run_id)
+                    AND (request_id = '' OR id=request_id)
+                    AND (request_project_id = '' OR project_id=request_project_id)
+                    AND (request_test_id = '' OR test_result_attachments.test_result_id IN (SELECT id FROM test_results WHERE test_results.test_id=request_test_id));
             END
         </sql>
         <rollback>
