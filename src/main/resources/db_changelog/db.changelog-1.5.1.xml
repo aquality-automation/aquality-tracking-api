@@ -106,7 +106,7 @@
 
             SET @insert_id = IF(request_id = '', (SELECT LAST_INSERT_ID()), request_id);
 
-            SELECT * from test_results where id = @insert_id;
+            SELECT * FROM test_results WHERE id = @insert_id;
             END
         </sql>
         <rollback>
