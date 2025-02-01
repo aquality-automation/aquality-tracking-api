@@ -1,3 +1,5 @@
+[![Build Status](https://dev.azure.com/aquality-automation/aquality-automation/_apis/build/status%2Faquality-automation.aquality-tracking-api?branchName=master)](https://dev.azure.com/aquality-automation/aquality-automation/_build/latest?definitionId=16&branchName=master)
+
 # Aquality Tracking API
 
 ## Getting started

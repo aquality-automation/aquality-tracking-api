@@ -218,6 +218,7 @@ public class BaseServlet extends HttpServlet {
                 case "InvalidFormatException":
                 case "AqualityQueryParameterException":
                 case "AqualitySQLException":
+                case "AqualityAuthenticationException":
                     AqualityException exception = (AqualityException) e;
                     resp.setStatus(exception.getResponseCode());
                     setResponseBody(resp, new ErrorDto(exception.getMessage()));
