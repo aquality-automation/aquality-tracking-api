@@ -30,45 +30,20 @@ public class TestController extends BaseController<TestDto> {
     }
 
     public TestDto create(TestDto template, boolean updateSuites) throws AqualityException {
-        if (baseUser.isManager() || baseUser.getProjectUser(template.getProject_id()).isEditor()) {
-            TestDto test = testDao.create(template);
-            if (updateSuites) {
-                test.setSuites(template.getSuites());
-                updateSuites(test);
-                test = get(test).get(0);
-            }
-            return test;
-        } else {
-            throw new AqualityPermissionsException("Account is not allowed to create Test", baseUser);
+        checkCreatePermissions(template.getProject_id());
+        TestDto test = testDao.create(template);
+        if (updateSuites) {
+            test.setSuites(template.getSuites());
+            updateSuites(test);
+            test = get(test).get(0);
         }
+        return test;
     }
 
     public TestDto createOrUpdate(TestDto test) throws AqualityException {
-        TestDto searchTemplate = new TestDto();
-        searchTemplate.setId(test.getId());
-        searchTemplate.setProject_id(test.getProject_id());
-        searchTemplate.setName(test.getName());
-
-        List<TestDto> existingTests = get(searchTemplate);
-
-        if(!existingTests.isEmpty()) {
-            TestDto existingTest = existingTests.get(0);
-            if(existingTest.getSuites() != null) {
-                TestSuiteDto existingSuite = existingTest.getSuites().stream()
-                        .filter(suite -> suite.getId().equals(test.getSuites().get(0).getId()))
-                        .findFirst().orElse(null);
-                if(existingSuite == null) {
-                    List<TestSuiteDto> listOfSuites = existingTest.getSuites();
-                    listOfSuites.add(test.getSuites().get(0));
-                    existingTest.setSuites(listOfSuites);
-                }
-            }else {
-                existingTest.setSuites(test.getSuites());
-            }
-            return create(existingTest, true);
-        } else {
-            return create(test, true);
-        }
+        checkCreatePermissions(test.getProject_id());
+        TestDto rawTest = getOrCreateRawTest(test);
+        return updateTestSuites(rawTest, test.getSuites().get(0).getId());
     }
 
     @Override
@@ -77,21 +52,14 @@ public class TestController extends BaseController<TestDto> {
     }
 
     public List<TestDto> get(TestDto template) throws AqualityException {
-        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()) {
-            return fillTests(testDao.searchAll(template));
-        } else {
-            throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
-        }
+        checkReadPermissions(template.getProject_id());
+        return fillTests(testDao.searchAll(template));
     }
 
     public List<TestDto> get(Integer issueId, Integer projectId) throws AqualityException {
-        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
-            return fillTests(testDao.getTestsAffectedByIssue(issueId));
-        } else {
-            throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
-        }
+        checkReadPermissions(projectId);
+        return fillTests(testDao.getTestsAffectedByIssue(issueId));
     }
-
 
     @Override
     public boolean delete(TestDto template) throws AqualityException {
@@ -103,7 +71,7 @@ public class TestController extends BaseController<TestDto> {
     }
 
     public void updateMultipleTests(List<TestDto> entities) throws AqualityException {
-        if (entities.size() > 0 && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())) {
+        if (!entities.isEmpty() && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())) {
             for (TestDto test : entities) {
                 updateSuites(test);
             }
@@ -157,14 +125,12 @@ public class TestController extends BaseController<TestDto> {
 
     private List<TestDto> fillTests(List<TestDto> tests) throws AqualityException {
         List<TestDto> filledTests = new ArrayList<>();
-        if (tests.size() > 0) {
+        if (!tests.isEmpty()) {
             Integer projectId = tests.get(0).getProject_id();
             ProjectUserDto projectUserDto = new ProjectUserDto();
             projectUserDto.setProject_id(tests.get(0).getProject_id());
             List<ProjectUserDto> projectUsers = projectUserController.get(projectUserDto);
-            TestSuiteDto testSuiteDto = new TestSuiteDto();
-            testSuiteDto.setProject_id(projectId);
-            List<TestSuiteDto> testSuites = suiteDao.searchAll(testSuiteDto);
+            List<TestSuiteDto> testSuites = getProjectTestSuites(projectId);
             ProjectDto projectDto = new ProjectDto();
             projectDto.setId(tests.get(0).getProject_id());
 
@@ -189,7 +155,7 @@ public class TestController extends BaseController<TestDto> {
         Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
         test2SuiteDto.setTest_id(test.getId());
         List<Test2SuiteDto> oldSuites = test2SuiteController.get(test2SuiteDto);
-        if (test.getSuites() != null && test.getSuites().size() > 0) {
+        if (test.getSuites() != null && !test.getSuites().isEmpty()) {
             List<TestSuiteDto> suites = test.getSuites();
             for (TestSuiteDto newSuite : suites) {
                 Test2SuiteDto alreadyExists = oldSuites.stream().filter(x -> Objects.equals(x.getSuite_id(), newSuite.getId())).findAny().orElse(null);
@@ -204,10 +170,58 @@ public class TestController extends BaseController<TestDto> {
             }
         }
 
-        if (oldSuites.size() > 0) {
+        if (!oldSuites.isEmpty()) {
             for (Test2SuiteDto oldSuite : oldSuites) {
                 test2SuiteController.delete(oldSuite, test.getProject_id());
             }
         }
+    }
+
+    private void checkReadPermissions(Integer projectId) throws AqualityException {
+        if (!(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer())) {
+            throw new AqualityPermissionsException("Account is not allowed to view Tests", baseUser);
+        }
+    }
+
+    private void checkCreatePermissions(Integer projectId) throws AqualityException {
+        if (!(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isEditor())) {
+            throw new AqualityPermissionsException("Account is not allowed to create Test", baseUser);
+        }
+    }
+
+    private List<TestSuiteDto> getProjectTestSuites(Integer projectId) throws AqualityException {
+        TestSuiteDto testSuiteDto = new TestSuiteDto();
+        testSuiteDto.setProject_id(projectId);
+        return suiteDao.searchAll(testSuiteDto);
+    }
+
+    private TestDto getOrCreateRawTest(TestDto test) throws AqualityException {
+        TestDto searchTemplate = new TestDto();
+        searchTemplate.setId(test.getId());
+        searchTemplate.setProject_id(test.getProject_id());
+        searchTemplate.setName(test.getName());
+
+        List<TestDto> existingTests = testDao.searchAll(searchTemplate);
+
+        return existingTests.isEmpty() ? testDao.create(test) : existingTests.get(0);
+    }
+
+    private TestDto updateTestSuites(TestDto testDto, Integer testSuiteId) throws AqualityException {
+        Integer projectId = testDto.getProject_id();
+        Test2SuiteDto test2SuiteDto = new Test2SuiteDto();
+        test2SuiteDto.setProject_id(projectId);
+        test2SuiteDto.setTest_id(testDto.getId());
+
+        List<Test2SuiteDto> existingTest2Suites = test2SuiteController.get(test2SuiteDto);
+        if (existingTest2Suites.stream().noneMatch(test2Suite -> test2Suite.getSuite_id().equals(testSuiteId))) {
+            test2SuiteDto.setSuite_id(testSuiteId);
+            Test2SuiteDto createdTest2Suite = test2SuiteController.create(test2SuiteDto, projectId);
+            existingTest2Suites.add(createdTest2Suite);
+        }
+
+        List<TestSuiteDto> projectTestSuites = getProjectTestSuites(projectId);
+        testDto.setSuites(test2SuiteController.convertToSuites(existingTest2Suites, projectTestSuites));
+
+        return testDto;
     }
 }
