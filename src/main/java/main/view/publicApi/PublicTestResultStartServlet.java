@@ -26,11 +26,13 @@ public class PublicTestResultStartServlet extends BaseServlet implements IGet {
 
             validateGet(testResult);
 
-            List<TestResultDto> oldResults = session.controllerFactory.getHandler(testResult).get(testResult);
+            List<TestResultDto> oldResults = session.controllerFactory.getHandler(testResult).getRaw(testResult);
 
-            if(oldResults.size() > 0) {
-                TestResultDto pending = oldResults.stream().filter(result -> result.getPending().equals(1)).findFirst().orElse(null);
-                if(pending != null) {
+            if(!oldResults.isEmpty()) {
+                TestResultDto pending = oldResults.stream()
+                        .filter(result -> result.getPending().equals(1))
+                        .findFirst().orElse(null);
+                if (pending != null) {
                     testResult.setId(pending.getId());
                 }
             }

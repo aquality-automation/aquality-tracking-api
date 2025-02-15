@@ -1,6 +1,7 @@
 package main.view.publicApi;
 
 import main.Session;
+import main.controllers.Project.ResultController;
 import main.exceptions.AqualityParametersException;
 import main.model.dto.project.TestResultDto;
 import main.view.BaseServlet;
@@ -10,7 +11,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
-import java.util.List;
 
 @WebServlet("/public/test/result/finish")
 public class PublicTestResultFinishServlet extends BaseServlet implements IPost {
@@ -25,25 +25,12 @@ public class PublicTestResultFinishServlet extends BaseServlet implements IPost 
 
             TestResultDto testResult = mapper.mapObject(TestResultDto.class, requestedJson);
             validatePost(testResult);
+            testResult.setFinish_date(new Date());
 
-            TestResultDto testResultSearchTemplate = new TestResultDto();
-            testResultSearchTemplate.setProject_id(testResult.getProject_id());
-            testResultSearchTemplate.setId(testResult.getId());
+            ResultController testResultController = session.controllerFactory.getHandler(testResult);
+            TestResultDto updatedTestResult = testResultController.updateWithFinalResultIdAndFailReason(testResult);
 
-            List<TestResultDto> oldResults = session.controllerFactory.getHandler(testResult).get(testResultSearchTemplate);
-
-            if(oldResults.size() > 0) {
-                TestResultDto currentResult = oldResults.get(0);
-                currentResult.setFinal_result_id(testResult.getFinal_result_id());
-                currentResult.setFail_reason(testResult.getFail_reason());
-                currentResult.setFinish_date(new Date());
-
-                testResult = session.controllerFactory.getHandler(testResult).create(currentResult);
-            } else {
-                throw new AqualityParametersException("Test Result with %s id was not found!", testResult.getId());
-            }
-
-            setResponseBody(resp, testResult);
+            setResponseBody(resp, updatedTestResult);
         } catch (Exception e) {
             handleException(resp, e);
         }
