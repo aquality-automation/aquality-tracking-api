@@ -1,0 +1,25 @@
+trigger:
+  - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+
+  - job: tests
+    displayName: Run tests
+
+    steps:
+
+      - task: Maven@4
+        displayName: 'Run tests'
+        inputs:
+          mavenOptions: '-Xmx3072m'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '8'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          goals: 'clean test'
+          options: '-P !run-migration'
+

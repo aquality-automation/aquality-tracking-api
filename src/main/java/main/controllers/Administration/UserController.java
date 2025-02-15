@@ -2,6 +2,7 @@ package main.controllers.Administration;
 
 import com.mysql.cj.conf.ConnectionUrlParser;
 import main.controllers.BaseController;
+import main.exceptions.AqualityAuthenticationException;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.model.db.dao.project.PasswordDao;
@@ -147,7 +148,7 @@ public class UserController extends BaseController<UserDto> {
             }
         }
 
-        throw new AqualityException("Credentials you've provided are not valid. Reenter please.");
+        throw new AqualityAuthenticationException("Credentials you've provided are not valid. Reenter please.");
     }
 
     private UserDto handleLDAPAuthorization(String userName, String password) throws AqualityException {
