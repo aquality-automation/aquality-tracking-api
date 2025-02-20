@@ -1,5 +1,6 @@
 package main.model.db.imports.SAXHandlers;
 
+import main.constants.DateFormats;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.ResultStatus;
@@ -154,7 +155,7 @@ public class TRXHandler extends Handler {
     private Date convertToDate(String dateString) throws ParseException {
         String[] parts = dateString.split("\\.");
         String t = parts[0].replace('T', ' ');
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat format = new SimpleDateFormat(DateFormats.SIMPLE_DATETIME);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.parse(t);
     }

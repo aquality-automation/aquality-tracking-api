@@ -1,5 +1,6 @@
 package main.model.db.imports.SAXHandlers;
 
+import main.constants.DateFormats;
 import main.model.db.imports.ResultStatus;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
@@ -127,7 +128,7 @@ public class NUnitV2Handler extends Handler {
     private Date convertToDate(String dateString, String timeString) throws ParseException {
         String date;
         date = String.format("%1$s %2$s", dateString, timeString);
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat format = new SimpleDateFormat(DateFormats.SIMPLE_DATETIME);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.parse(date);
     }

@@ -1,6 +1,7 @@
 package tests.workers.imports;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import main.constants.DateFormats;
 import main.model.db.imports.Handler;
 import main.model.dto.*;
 import main.model.dto.project.TestDto;
@@ -39,7 +40,7 @@ public interface IHandlerTest {
     default Date getFinishTime() {
         try {
             String string = "January 2, 2010";
-            DateFormat format = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+            DateFormat format = new SimpleDateFormat(DateFormats.DATE_WITH_MONTH_NAME, Locale.ENGLISH);
             format.setTimeZone(TimeZone.getTimeZone("UTC"));
             return format.parse(string);
         }catch (ParseException e){

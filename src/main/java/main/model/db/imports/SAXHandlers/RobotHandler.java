@@ -1,6 +1,6 @@
 package main.model.db.imports.SAXHandlers;
 
-
+import main.constants.DateFormats;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
 import main.model.db.imports.ResultStatus;
@@ -121,7 +121,7 @@ public class RobotHandler extends Handler {
     }
 
     private Date convertToDate(String dateString) throws ParseException {
-        DateFormat format = new SimpleDateFormat("yyyyMMdd hh:mm:ss.SSS");
+        DateFormat format = new SimpleDateFormat(DateFormats.COMPACT_12H_DATETIME);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.parse(dateString);
     }
