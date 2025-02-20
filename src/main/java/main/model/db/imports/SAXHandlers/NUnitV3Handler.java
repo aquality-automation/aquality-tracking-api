@@ -1,5 +1,6 @@
 package main.model.db.imports.SAXHandlers;
 
+import main.constants.DateFormats;
 import main.model.db.imports.ResultStatus;
 import main.exceptions.AqualityException;
 import main.model.db.imports.Handler;
@@ -8,12 +9,11 @@ import main.model.dto.project.TestDto;
 import main.model.dto.project.TestResultDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.project.TestSuiteDto;
+import org.apache.commons.lang3.time.DateUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static main.model.db.imports.ResultStatus.*;
@@ -186,9 +186,12 @@ public class NUnitV3Handler extends Handler {
     }
 
     private Date convertToDate(String dateString) throws ParseException {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return format.parse(dateString);
+        String[] supportedFormats = new String[]{
+                DateFormats.DATETIME_WITH_TIMEZONE,
+                DateFormats.ISO_DATETIME_WITH_NANOS
+        };
+
+        return DateUtils.parseDate(dateString, supportedFormats);
     }
 
     private ResultStatus getStatus(String status){

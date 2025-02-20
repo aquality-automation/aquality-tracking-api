@@ -1,6 +1,7 @@
 package tests.workers.imports;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import main.constants.DateFormats;
 import main.model.db.imports.ImportHandlers.Cucumber;
 import main.model.dto.*;
 import main.model.dto.project.TestDto;
@@ -28,7 +29,7 @@ public class CucumberHandlerTest {
     public void tryParse(){
         try {
             String string = "January 2, 2010";
-            DateFormat format = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+            DateFormat format = new SimpleDateFormat(DateFormats.DATE_WITH_MONTH_NAME, Locale.ENGLISH);
             format.setTimeZone(TimeZone.getTimeZone("UTC"));
             cucumber = new Cucumber(FileUtils.getResourceFile("reports/cucumber/cucumber.json"), format.parse(string));
         } catch (Exception e){

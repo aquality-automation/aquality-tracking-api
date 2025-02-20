@@ -1,6 +1,7 @@
 package main.controllers;
 
 import com.mysql.cj.conf.ConnectionUrlParser.Pair;
+import main.constants.DateFormats;
 import main.exceptions.AqualityException;
 import main.exceptions.AqualityPermissionsException;
 import main.exceptions.AqualityUserException;
@@ -30,7 +31,7 @@ public class AuditController extends BaseController<AuditDto> {
     private final AuditAttachmentsDao auditAttachmentsDao;
     private final AuditStatisticDao auditStatisticDao;
     private final UserDao userDao;
-    private final SimpleDateFormat formatter = new SimpleDateFormat("MM.dd.yyyy");
+    private final SimpleDateFormat formatter = new SimpleDateFormat(DateFormats.DOT_SEPARATED_DATE);
 
     public AuditController(UserDto user) {
         super(user);

@@ -1,5 +1,7 @@
 package main.utils;
 
+import main.constants.DateFormats;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,12 +38,12 @@ public class DateUtils {
     }
 
     public boolean compareByDateOnly(Date date1, Date date2) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat sdf = new SimpleDateFormat(DateFormats.COMPACT_DATE);
         return !(date1 == null || date2 == null) && sdf.format(date1).equals(sdf.format(date2));
     }
 
     public Date fromIsoFormat(String isoDTstring) {
-        SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+        SimpleDateFormat isoDateFormat = new SimpleDateFormat(DateFormats.ISO_DATETIME_WITH_TIMEZONE);
         try {
             return isoDateFormat.parse(isoDTstring);
         } catch (ParseException e) {
@@ -51,12 +53,12 @@ public class DateUtils {
     }
 
     public String toyyyyMMdd(Date date){
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        DateFormat dateFormat = new SimpleDateFormat(DateFormats.SLASHED_DATE);
         return dateFormat.format(date);
     }
 
     public Date fromyyyyMMdd(String date){
-        SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat isoDateFormat = new SimpleDateFormat(DateFormats.SLASHED_DATE);
         try {
             return isoDateFormat.parse(date);
         } catch (ParseException e) {

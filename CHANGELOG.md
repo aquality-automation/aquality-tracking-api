@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.5.2 (2025-02-20)
+Added support for NUnit v3 results xml date "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSX" format
+
 ## 1.5.1 (2023-11-15)
 Bugfixes:
 - Fixed an issue Invalid authorisation returns 500 status code 
