@@ -1,15 +1,7 @@
 # CHANGELOG
-## 1.5.2 (2024-08-11)
-Performance:
-- Decrease time of the response for test result by test_id
-- Decrease time of the response for test result by test_result_id
-
-## 1.5.1 (2024-04-12)
+## 1.5.3 (2024-08-11)
 Bugfixes:
-- Fixed 500 (Entity is locked) issue
-- Fixed SQL connections leak
-- Improved /public/test/create-or-update, /public/test/result/start, /public/test/result/finish performance
-- Fixed INSERT_TEST_RESULT final_result_id comparison
+- Improved performance of internal api endpoints: /testresult, /test
 
 ## 1.5.2 (2024-04-12)
 Bugfixes:
