@@ -1,11 +1,21 @@
 # CHANGELOG
+## 1.5.3 (2024-08-11)
+Bugfixes:
+- Improved performance of internal api endpoints: /testresult, /test
+
+## 1.5.2 (2024-04-12)
+Bugfixes:
+- Fixed 500 (Entity is locked) issue
+- Fixed SQL connections leak
+- Improved /public/test/create-or-update, /public/test/result/start, /public/test/result/finish performance
+- Fixed INSERT_TEST_RESULT final_result_id comparison
 
 ## 1.5.2 (2025-02-20)
 Added support for NUnit v3 results xml date "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSX" format
 
 ## 1.5.1 (2023-11-15)
 Bugfixes:
-- Fixed an issue Invalid authorisation returns 500 status code 
+- Fixed an issue Invalid authorisation returns 500 status code
 
 ## 1.5.0 (2023-07-28)
 - Added `/issues/assign` endpoint, which allows to check previously created Test Runs and Test Results and assign Issues to them if there's a RegEx match

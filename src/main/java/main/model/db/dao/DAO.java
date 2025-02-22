@@ -213,8 +213,9 @@ public abstract class DAO<T extends BaseDto> {
 
     protected JSONArray CallStoredProcedure(String sql, List<Pair<String, String>> parameters) throws AqualityException {
         JSONArray json = null;
-        CallableStatement callableStatement = executeCallableStatement(sql, parameters, null);
+        CallableStatement callableStatement = null;
         try {
+            callableStatement = executeCallableStatement(sql, parameters, null);
             ResultSet rs = callableStatement.getResultSet();
             if (rs != null) {
                 json = RS_Converter.convertToJSON(rs);
@@ -228,7 +229,7 @@ public abstract class DAO<T extends BaseDto> {
         return json;
     }
 
-    private T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
+    protected T getSingleResult(List<T> allResults, Integer id) throws AqualityException {
         if (!allResults.isEmpty()) {
             return allResults.get(0);
         } else {
@@ -284,18 +285,14 @@ public abstract class DAO<T extends BaseDto> {
     }
 
     private CallableStatement tryExecute(CallableStatement callableStatement) throws AqualitySQLException {
-        int counter = 0;
-        SQLException lastException = null;
-        while (counter < 5) {
-            try {
+        try {
+            synchronized (DAO.class) {
                 callableStatement.execute();
-                return callableStatement;
-            } catch (SQLException e) {
-                counter++;
-                lastException = e;
             }
+            return callableStatement;
+        } catch (SQLException e) {
+            throw new AqualitySQLException(e);
         }
-        throw new AqualitySQLException(lastException);
     }
 
     private CallableStatement getCallableStatement(String sql) throws AqualityException {

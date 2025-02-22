@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 import tests.workers.dao.IDaoTest;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
@@ -59,6 +60,13 @@ public class TestResultDaoTest extends TestResultDao implements IDaoTest {
     @Test
     public void selectLatestResultsByMilestoneTest() throws AqualityException {
         selectLatestResultsByMilestone(1);
+        assertSQLToParams(currentSql, currentParameters);
+    }
+
+    @Test
+    public void updateFinalResultIdAndFailReasonTest() throws AqualityException {
+        resultList.add(new TestResultDto());
+        updateFinalResultIdAndFailReason(1, 1, "failReason", new Date());
         assertSQLToParams(currentSql, currentParameters);
     }
 
