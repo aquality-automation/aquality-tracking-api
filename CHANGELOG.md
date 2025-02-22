@@ -1,4 +1,7 @@
 # CHANGELOG
+## 1.5.3 (2024-08-11)
+Bugfixes:
+- Improved performance of internal api endpoints: /testresult, /test
 
 ## 1.5.2 (2024-04-12)
 Bugfixes:

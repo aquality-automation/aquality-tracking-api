@@ -72,7 +72,7 @@ public class ResultController extends BaseController<TestResultDto> {
     @Override
     public List<TestResultDto> get(TestResultDto template) throws AqualityException {
         checkReadPermissions(template.getProject_id());
-        return fillResults(testResultDao.searchAll(template));
+        return fillResults(testResultDao.searchAll(template), template);
     }
 
     public List<TestResultDto> getRaw(TestResultDto template) throws AqualityException {
@@ -109,7 +109,7 @@ public class ResultController extends BaseController<TestResultDto> {
     public List<TestResultDto> getLatestResultsByMilestone(Integer projectId, Integer milestoneId)
             throws AqualityException {
         if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer()) {
-            return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId));
+            return fillResults(testResultDao.selectLatestResultsByMilestone(milestoneId), new TestResultDto());
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
         }
@@ -181,7 +181,7 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
-    private List<TestResultDto> fillResults(List<TestResultDto> results) throws AqualityException {
+    private List<TestResultDto> fillResults(List<TestResultDto> results, TestResultDto searchTemplate) throws AqualityException {
 
         if (!results.isEmpty()) {
             int projectId = results.get(0).getProject_id();
@@ -189,13 +189,16 @@ public class ResultController extends BaseController<TestResultDto> {
             IssueDto issueDto = new IssueDto();
             issueDto.setProject_id(projectId);
             List<IssueDto> issues = issueController.get(issueDto);
-
             TestDto testTemplate = new TestDto();
             testTemplate.setProject_id(projectId);
             List<TestDto> tests = testController.get(testTemplate);
 
             TestResultAttachmentDto testResultAttachmentTemplate = new TestResultAttachmentDto();
             testResultAttachmentTemplate.setProject_id(projectId);
+            testResultAttachmentTemplate.setTest_run_id(searchTemplate.getTest_run_id());
+            testResultAttachmentTemplate.setTest_id(searchTemplate.getTest_id());
+            testResultAttachmentTemplate.setTest_result_id(searchTemplate.getId());
+
             List<TestResultAttachmentDto> testResultAttachments = testResultAttachmentController
                     .get(testResultAttachmentTemplate);
 
