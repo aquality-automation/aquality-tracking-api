@@ -1,39 +1,44 @@
 # CHANGELOG
+
+## 1.5.4 (2025-02-20)
+Features:
+  - Added support for NUnit v3 results xml date "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSX" format
+
 ## 1.5.3 (2024-08-11)
 Bugfixes:
-- Improved performance of internal api endpoints: /testresult, /test
+  - Improved performance of internal api endpoints: /testresult, /test
 
 ## 1.5.2 (2024-04-12)
 Bugfixes:
-- Fixed 500 (Entity is locked) issue
-- Fixed SQL connections leak
-- Improved /public/test/create-or-update, /public/test/result/start, /public/test/result/finish performance
-- Fixed INSERT_TEST_RESULT final_result_id comparison
+  - Fixed 500 (Entity is locked) issue
+  - Fixed SQL connections leak
+  - Improved /public/test/create-or-update, /public/test/result/start, /public/test/result/finish performance
+  - Fixed INSERT_TEST_RESULT final_result_id comparison
 
 ## 1.5.1 (2023-11-15)
 Bugfixes:
-- Fixed an issue Invalid authorisation returns 500 status code
+  - Fixed an issue Invalid authorisation returns 500 status code
 
 ## 1.5.0 (2023-07-28)
-- Added `/issues/assign` endpoint, which allows to check previously created Test Runs and Test Results and assign Issues to them if there's a RegEx match
+  - Added `/issues/assign` endpoint, which allows to check previously created Test Runs and Test Results and assign Issues to them if there's a RegEx match
 
 ## 1.4.1 (2023-06-27)
 Bugfixes:
-- Fixed an issue with the 'SELECT_TEST_STATS' procedure referencing nonexisting column
+  - Fixed an issue with the 'SELECT_TEST_STATS' procedure referencing nonexisting column
 
 ## 1.3.0 (2021-02-26)
- - Added feature that allows to link aquality entities (tests, issues and test runs) with 3rd party systems like Jira, Xray, TestRail and etc.
+  - Added feature that allows to link aquality entities (tests, issues and test runs) with 3rd party systems like Jira, Xray, TestRail and etc.
  In this version only Jira and Xray support has been added.
- - Improved and generified work with controllers
+  - Improved and generified work with controllers
 
 ## 1.1.1 (2020-12-15)
 Bugfixes:
-- Added handling of non utf-8 body in the request
+  - Added handling of non utf-8 body in the request
 
 ## 1.1.0 (2020-12-02)
 Features:
-- Added option to enable/disable 'STARTTLS' in the email settings
-- Refactored email utilities class
+  - Added option to enable/disable 'STARTTLS' in the email settings
+  - Refactored email utilities class
 
 ## 1.0.4 (2020-11-02)
 
