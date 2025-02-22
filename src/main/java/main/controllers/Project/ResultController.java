@@ -14,6 +14,7 @@ import main.utils.RegexpUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ResultController extends BaseController<TestResultDto> {
@@ -56,13 +57,27 @@ public class ResultController extends BaseController<TestResultDto> {
         }
     }
 
+    public TestResultDto updateWithFinalResultIdAndFailReason(TestResultDto testResult) throws AqualityException {
+        if (baseUser.isManager() || baseUser.getProjectUser(testResult.getProject_id()).isEditor()) {
+            return testResultDao.updateFinalResultIdAndFailReason(
+                    testResult.getId(),
+                    testResult.getFinal_result_id(),
+                    testResult.getFail_reason(),
+                    testResult.getFinish_date());
+        } else {
+            throw new AqualityPermissionsException("Account is not allowed to update Test Result", baseUser);
+        }
+    }
+
     @Override
     public List<TestResultDto> get(TestResultDto template) throws AqualityException {
-        if (baseUser.isFromGlobalManagement() || baseUser.getProjectUser(template.getProject_id()).isViewer()) {
-            return fillResults(testResultDao.searchAll(template));
-        } else {
-            throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
-        }
+        checkReadPermissions(template.getProject_id());
+        return fillResults(testResultDao.searchAll(template));
+    }
+
+    public List<TestResultDto> getRaw(TestResultDto template) throws AqualityException {
+        checkReadPermissions(template.getProject_id());
+        return testResultDao.searchAll(template);
     }
 
     @Override
@@ -76,8 +91,11 @@ public class ResultController extends BaseController<TestResultDto> {
 
     public List<TestResultDto> getOnlyFailedResults(TestResultDto testResultTemplate) throws AqualityException {
         List<TestResultDto> testResults = this.get(testResultTemplate);
-        return testResults.stream().filter(x -> x.getFinal_result_id() != FAILED_STATUS_ID && x.getFail_reason() != null
-                && x.getIssue_id() == null).collect(Collectors.toList());
+        return testResults.stream()
+                .filter(x -> !Objects.equals(x.getFinal_result_id(), FAILED_STATUS_ID) &&
+                        x.getFail_reason() != null &&
+                        x.getIssue_id() == null)
+                .collect(Collectors.toList());
     }
 
     public boolean createMultiple(List<TestResultAttachmentDto> listOfAttachments) throws AqualityException {
@@ -98,7 +116,7 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     public boolean updateMultipleTestResults(List<TestResultDto> entities) throws AqualityException {
-        if (entities.size() > 0
+        if (!entities.isEmpty()
                 && (baseUser.isManager() || baseUser.getProjectUser(entities.get(0).getProject_id()).isEditor())) {
             return testResultDao.updateMultiply(entities);
         } else {
@@ -112,6 +130,38 @@ public class ResultController extends BaseController<TestResultDto> {
         } else {
             throw new AqualityPermissionsException("Account is not allowed to view Test Result Statistic", baseUser);
         }
+    }
+
+    public Map<String, Integer> matchIssues(Integer testResultId) throws AqualityException {
+        TestResultDto testResultTemplate = new TestResultDto();
+        testResultTemplate.setId(testResultId);
+        List<TestResultDto> testResults = this.getOnlyFailedResults(testResultTemplate);
+        if (testResults.isEmpty()) {
+            throw new AqualityParametersException("No test result found to update. Wrong ID might be provided.");
+        }
+        IssueDto issueTemplate = new IssueDto();
+        issueTemplate.setProject_id(testResults.get(0).getProject_id());
+        List<IssueDto> issues = issueController.get(issueTemplate);
+        Integer count = assignIssuesToResults(issues, testResults);
+        Map<String, Integer> results = new HashMap<>();
+        results.put("Issues assigned", count);
+        return results;
+    }
+
+    public Integer assignIssuesToResults(List<IssueDto> issues, List<TestResultDto> testResults)
+            throws AqualityException {
+        Integer count = 0;
+        for (TestResultDto testResult : testResults) {
+            for (IssueDto issue : issues) {
+                if (issue.getExpression() != null
+                        && RegexpUtil.match(testResult.getFail_reason(), issue.getExpression())) {
+                    testResult.setIssue_id(issue.getId());
+                    this.create(testResult);
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     private void createPendingStepResults(TestResultDto template) throws AqualityException {
@@ -133,7 +183,7 @@ public class ResultController extends BaseController<TestResultDto> {
 
     private List<TestResultDto> fillResults(List<TestResultDto> results) throws AqualityException {
 
-        if (results.size() > 0) {
+        if (!results.isEmpty()) {
             int projectId = results.get(0).getProject_id();
             List<FinalResultDto> finalResults = finalResultController.get(new FinalResultDto());
             IssueDto issueDto = new IssueDto();
@@ -163,7 +213,7 @@ public class ResultController extends BaseController<TestResultDto> {
     }
 
     private void fillResult(TestResultDto result, List<FinalResultDto> finalResults, List<TestDto> tests,
-            List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
+                            List<IssueDto> issues, List<TestResultAttachmentDto> attachments, boolean isStepsEnabled)
             throws AqualityException {
         if (isStepsEnabled) {
             fillResultSteps(result);
@@ -187,35 +237,9 @@ public class ResultController extends BaseController<TestResultDto> {
         result.setSteps(stepResultController.get(stepResultTemplate));
     }
 
-    public Map<String, Integer> matchIssues(Integer testResultId) throws AqualityException {
-        TestResultDto testResultTemplate = new TestResultDto();
-        testResultTemplate.setId(testResultId);
-        List<TestResultDto> testResults = this.getOnlyFailedResults(testResultTemplate);
-        if (testResults.isEmpty()) {
-            throw new AqualityParametersException("No test result found to update. Wrong ID might be provided.");
+    private void checkReadPermissions(Integer projectId) throws AqualityException {
+        if (!(baseUser.isFromGlobalManagement() || baseUser.getProjectUser(projectId).isViewer())) {
+            throw new AqualityPermissionsException("Account is not allowed to view Test Results", baseUser);
         }
-        IssueDto issueTemplate = new IssueDto();
-        issueTemplate.setProject_id(testResults.get(0).getProject_id());
-        List<IssueDto> issues = issueController.get(issueTemplate);
-        Integer count = assignIssuesToResults(issues, testResults);
-        Map<String, Integer> results = new HashMap<>();
-        results.put("Issues assigned", count);
-        return results;
-    }
-
-    public Integer assignIssuesToResults(List<IssueDto> issues, List<TestResultDto> testResults)
-            throws AqualityException {
-        Integer count = 0;
-        for (TestResultDto testResult : testResults) {
-            for (IssueDto issue : issues) {
-                if (issue.getExpression() != null
-                        && RegexpUtil.match(testResult.getFail_reason(), issue.getExpression())) {
-                            testResult.setIssue_id(issue.getId());
-                    this.create(testResult);
-                    count++;
-                }
-            }
-        }
-        return count;
     }
 }

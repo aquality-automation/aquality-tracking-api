@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtils {
+    private static final int MILLISECONDS_PER_SECOND = 1000;
 
     public Date addMS(Date date, Integer ms)
     {
@@ -63,5 +64,9 @@ public class DateUtils {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static Long toUnixTime(Date date) {
+        return date != null ? date.getTime() / MILLISECONDS_PER_SECOND : null;
     }
 }
