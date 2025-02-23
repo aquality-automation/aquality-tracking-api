@@ -38,6 +38,11 @@
         </rollback>
     </changeSet>
       <changeSet id="add index to tests name column" author="e.safronov">
+        <preConditions onFail="MARK_RAN">
+          <not>
+            <indexExists indexName="name_idx"/>
+          </not>
+        </preConditions>
         <createIndex tableName="tests" indexName="name_idx">
             <column name="name"/>
         </createIndex>
