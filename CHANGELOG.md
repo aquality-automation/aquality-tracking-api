@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.5.5(2025-08-23)
+Feature:
+  - Additional parameter onlyWithIssues for /stats/testresult endpoint (improving performance)
+
 ## 1.5.4 (2025-02-20)
 Features:
   - Added support for NUnit v3 results xml date "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSX" format
