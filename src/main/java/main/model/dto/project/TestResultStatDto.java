@@ -22,7 +22,7 @@ public class TestResultStatDto extends BaseDto {
     private String testrun_started_to_date;
     @DataBaseName(name="only_with_issues")
     @DataBaseSearchable
-    private int onlyWithIssues;
+    private Integer onlyWithIssues;
     private Integer test_run_id;
     @JsonDeserialize(using=CustomerDateAndTimeDeserialize.class)
     private Date test_run_started;
