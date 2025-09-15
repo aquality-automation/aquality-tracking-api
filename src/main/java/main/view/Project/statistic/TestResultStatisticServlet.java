@@ -24,6 +24,7 @@ public class TestResultStatisticServlet extends BaseServlet implements IGet {
             testResultStatDto.setProject_id(getProjectId(req));
             testResultStatDto.setTestrun_started_from_date(req.getParameter("testRunStartedFrom"));
             testResultStatDto.setTestrun_started_to_date(req.getParameter("testRunStartedTo"));
+            testResultStatDto.setOnlyWithIssues("true".equalsIgnoreCase(req.getParameter("onlyWithIssues"))? 1: 0);
             List<TestResultStatDto> testResultStats = session.controllerFactory.getHandler(new TestResultDto()).get(testResultStatDto);
             setJSONContentType(resp);
             resp.getWriter().write(mapper.serialize(testResultStats));

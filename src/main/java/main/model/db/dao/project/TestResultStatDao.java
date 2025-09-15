@@ -6,6 +6,6 @@ import main.model.dto.project.TestResultStatDto;
 public class TestResultStatDao extends DAO<TestResultStatDto>{
     public TestResultStatDao() {
         super(TestResultStatDto.class);
-        select = "{call SELECT_RESULTS_STAT(?,?,?)}";
+        select = "{call SELECT_RESULTS_STAT(?,?,?,?)}";
     }
 }

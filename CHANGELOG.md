@@ -1,4 +1,9 @@
 # CHANGELOG
+
+## 1.5.3(2025-08-23)
+Feature:
+- Additional parameter onlyWithIssues for /stats/testresult endpoint (improving performance)
+
 ## 1.5.2 (2024-08-11)
 Performance:
 - Decrease time of the response for test result by test_id
