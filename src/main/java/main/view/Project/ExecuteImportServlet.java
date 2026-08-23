@@ -31,40 +31,25 @@ import java.util.List;
 @MultipartConfig
 public class ExecuteImportServlet extends BaseServlet implements IPost {
 
-    private Integer projectId;
-    private String buildName;
-    private String author;
-    private String suiteName;
-    private Integer testRunId;
-    private Boolean addToLastTestRun;
-    private Boolean debug;
-    private String environment;
-    private String cilink;
-    private Boolean singleTestRun;
-    private String format;
-    private String importToken;
-    private SuiteController suiteController;
-    private TestRunController testRunController;
-
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
         try {
-            readParameters(req);
+            RequestData data = readParameters(req);
             Session session = createSession(req);
 
-            suiteController = session.controllerFactory.getHandler(new TestSuiteDto());
-            testRunController = session.controllerFactory.getHandler(new TestRunDto());
+            SuiteController suiteController = session.controllerFactory.getHandler(new TestSuiteDto());
+            TestRunController testRunController = session.controllerFactory.getHandler(new TestRunDto());
 
-            List<String> filePaths = doUpload(req, resp, projectId);
+            List<String> filePaths = doUpload(req, resp, data.projectId);
 
             Importer importer = session.getImporter(
                     filePaths,
-                    prepareTestRun(),
+                    prepareTestRun(data, suiteController, testRunController),
                     getStringQueryParameter(req, ImportParams.pattern.name()),
-                    getStringQueryParameter(req, ImportParams.format.name()),
-                    getTestNameNodeType(req),
-                    singleTestRun
+                    data.format,
+                    getTestNameNodeType(req, data.format),
+                    data.singleTestRun
             );
 
             List<ImportDto> imports = importer.executeImport();
@@ -81,73 +66,87 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         setOptionsResponseHeaders(resp);
     }
 
-    private void readParameters(HttpServletRequest req) throws AqualityQueryParameterException {
-        singleTestRun = getBooleanQueryParameter(req, ImportParams.singleTestRun.name());
-        format = getStringQueryParameter(req, ImportParams.format.name());
-        importToken = getStringQueryParameter(req, ImportParams.importToken.name());
-        projectId = getIntegerQueryParameter(req, ImportParams.projectId.name());
-        buildName = getStringQueryParameter(req, ImportParams.buildName.name());
-        author = getStringQueryParameter(req, ImportParams.author.name());
-        suiteName = getStringQueryParameter(req, ImportParams.suite.name());
-        testRunId = getIntegerQueryParameter(req, ImportParams.testRunId.name());
-        addToLastTestRun = getBooleanQueryParameter(req, ImportParams.addToLastTestRun.name());
-        environment = getStringQueryParameter(req, ImportParams.environment.name());
-        cilink = getStringQueryParameter(req, ImportParams.cilink.name());
-        debug = getBooleanQueryParameter(req, ImportParams.debug.name());
-        validateRequest();
+    private RequestData readParameters(HttpServletRequest req) throws AqualityQueryParameterException {
+        RequestData data = new RequestData();
+        data.singleTestRun = getBooleanQueryParameter(req, ImportParams.singleTestRun.name());
+        data.format = getStringQueryParameter(req, ImportParams.format.name());
+        data.importToken = getStringQueryParameter(req, ImportParams.importToken.name());
+        data.projectId = getIntegerQueryParameter(req, ImportParams.projectId.name());
+        data.buildName = getStringQueryParameter(req, ImportParams.buildName.name());
+        data.author = getStringQueryParameter(req, ImportParams.author.name());
+        data.suiteName = getStringQueryParameter(req, ImportParams.suite.name());
+        data.testRunId = getIntegerQueryParameter(req, ImportParams.testRunId.name());
+        data.addToLastTestRun = getBooleanQueryParameter(req, ImportParams.addToLastTestRun.name());
+        data.environment = getStringQueryParameter(req, ImportParams.environment.name());
+        data.cilink = getStringQueryParameter(req, ImportParams.cilink.name());
+        data.debug = getBooleanQueryParameter(req, ImportParams.debug.name());
+        validateRequest(data);
+        return data;
     }
 
-    private TestRunDto prepareTestRun() throws AqualityException {
+    private TestRunDto prepareTestRun(RequestData data, SuiteController suiteController, TestRunController testRunController) throws AqualityException {
         TestSuiteDto testSuiteTemplate = new TestSuiteDto();
-        testSuiteTemplate.setName(suiteName);
-        testSuiteTemplate.setProject_id(projectId);
+        testSuiteTemplate.setName(data.suiteName);
+        testSuiteTemplate.setProject_id(data.projectId);
 
         TestRunDto testRunTemplate = new TestRunDto();
-        testRunTemplate.setProject_id(projectId);
-        testRunTemplate.setBuild_name(buildName);
-        testRunTemplate.setCi_build(cilink);
-        testRunTemplate.setAuthor(author);
-        testRunTemplate.setExecution_environment(environment);
+        testRunTemplate.setProject_id(data.projectId);
+        testRunTemplate.setBuild_name(data.buildName);
+        testRunTemplate.setCi_build(data.cilink);
+        testRunTemplate.setAuthor(data.author);
+        testRunTemplate.setExecution_environment(data.environment);
         testRunTemplate.setTest_suite(testSuiteTemplate);
-        testRunTemplate.setId(getTestRunId());
-        testRunTemplate.setDebug(debug ? 1 : 0);
+        testRunTemplate.setId(getTestRunId(data, suiteController, testRunController));
+        testRunTemplate.setDebug(Boolean.TRUE.equals(data.debug) ? 1 : 0);
 
         return testRunTemplate;
     }
 
-    private Integer getTestRunId() throws AqualityException {
-        if(testRunId != null) {
-            return testRunId;
+    private Integer getTestRunId(RequestData data, SuiteController suiteController, TestRunController testRunController) throws AqualityException {
+        if(data.testRunId != null) {
+            return data.testRunId;
         }
 
-        if(addToLastTestRun) {
-            return testRunController.getLastSuiteTestRun(suiteController.get(suiteName, projectId).getId(), projectId).getId();
+        if (Boolean.TRUE.equals(data.addToLastTestRun)) {
+            return testRunController.getLastSuiteTestRun(suiteController.get(data.suiteName, data.projectId).getId(), data.projectId).getId();
         }
 
         return null;
     }
 
-    private void validateRequest() throws AqualityQueryParameterException {
-        if(importToken != null)
+    private void validateRequest(RequestData data) throws AqualityQueryParameterException {
+        if(data.importToken != null)
         {
             throw new AqualityQueryParameterException("Import Token is deprecated. Follow instructions on the API Token page.");
         }
 
-        if(singleTestRun)
-        {
-            if (projectId == null || format == null || buildName == null || author == null){
+        if (Boolean.TRUE.equals(data.singleTestRun)) {
+            if (data.projectId == null || data.format == null || data.buildName == null || data.author == null){
                 throw new AqualityQueryParameterException("ProjectId or/and Format or/and Author or/and BuildName parameters are missed.");
             }
-        }else{
-            if (projectId == null || format == null){
+        } else {
+            if (data.projectId == null || data.format == null){
                 throw new AqualityQueryParameterException("ProjectId or/and Format parameters are missed.");
             }
         }
-        if(format.equals(ImportTypes.MSTest.name()) || format.equals(ImportTypes.Cucumber.name())){
-            if (suiteName == null){
-                throw new AqualityQueryParameterException("Suite parameter is missed.");
-            }
+        if ((ImportTypes.MSTest.name().equals(data.format) || ImportTypes.Cucumber.name().equals(data.format)) && data.suiteName == null) {
+            throw new AqualityQueryParameterException("Suite parameter is missed.");
         }
+    }
+
+    private static class RequestData {
+        private Integer projectId;
+        private String buildName;
+        private String author;
+        private String suiteName;
+        private Integer testRunId;
+        private Boolean addToLastTestRun;
+        private Boolean debug;
+        private String environment;
+        private String cilink;
+        private Boolean singleTestRun;
+        private String format;
+        private String importToken;
     }
 
     private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
@@ -164,7 +163,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         }
     }
 
-    private TestNameNodeType getTestNameNodeType(HttpServletRequest req) {
+    private TestNameNodeType getTestNameNodeType(HttpServletRequest req, String format) {
         String testNameKey = getStringQueryParameter(req, ImportParams.testNameKey.name());
 
         if(testNameKey == null){
