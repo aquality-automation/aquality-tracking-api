@@ -3,7 +3,6 @@ package main.model.db.imports;
 import lombok.SneakyThrows;
 import main.exceptions.AqualityException;
 import main.model.dto.project.ImportDto;
-import main.model.dto.project.IssueDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.settings.UserDto;
 
@@ -11,11 +10,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 public class Importer extends BaseImporter {
+    private static final Logger log = Logger.getLogger(Importer.class.getName());
     private List<String> files;
     private String type;
     private TestNameNodeType testNameNodeType;
@@ -64,7 +65,16 @@ public class Importer extends BaseImporter {
         List<ImportDto> imports = new ArrayList<>();
         for (String pathToFile : this.files) {
             try{
+                if (pathToFile == null || pathToFile.trim().isEmpty()) {
+                    // defensive: skip empty entries that might appear due to multipart parsing issues
+                    log.info("Skipping empty file path in multi-import");
+                    continue;
+                }
                 File file = new File(pathToFile);
+                if (!file.exists()) {
+                    log.info("Skipping non-existing file: " + pathToFile);
+                    continue;
+                }
                 createImport("Import was started for file: " + file.getName());
                 readData(file);
                 executeResultsCreation();
@@ -88,7 +98,16 @@ public class Importer extends BaseImporter {
 
     private void readData(List<String> filePaths) throws AqualityException {
         for (String pathToFile : filePaths) {
-            Handler handler = handlerFactory.getHandler(new File(pathToFile), type, testNameNodeType, nextFinishTime);
+            if (pathToFile == null || pathToFile.trim().isEmpty()) {
+                log.info("Skipping empty file path in readData");
+                continue;
+            }
+            File f = new File(pathToFile);
+            if (!f.exists()) {
+                log.info("Skipping non-existing file in readData: " + pathToFile);
+                continue;
+            }
+            Handler handler = handlerFactory.getHandler(f, type, testNameNodeType, nextFinishTime);
             updateTestRun(handler);
             storeResults(handler);
         }

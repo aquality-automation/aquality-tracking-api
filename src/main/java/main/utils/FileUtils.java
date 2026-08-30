@@ -2,6 +2,7 @@ package main.utils;
 
 import main.exceptions.AqualityException;
 import org.apache.commons.io.IOUtils;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,20 +14,26 @@ import java.util.Collection;
 import java.util.List;
 
 public class FileUtils {
+    private static final Logger log = Logger.getLogger(FileUtils.class.getName());
+    private static final String HEADER_CONTENT_DISPOSITION = "content-disposition";
 
     public List<String> doUpload(HttpServletRequest request, HttpServletResponse response, String destination) throws ServletException, IOException {
         List<String> files = new ArrayList<>();
         new File(destination).mkdirs();
         Collection<Part> parts = request.getParts();
         for (Part filePart : parts) {
-            System.out.printf("part Type: %s", filePart.getContentType());
             OutputStream out = null;
             InputStream fileContent = null;
-            PrintWriter writer = response.getWriter();
             String fileName = getFileName(filePart);
 
+            if (fileName == null || fileName.trim().isEmpty()) {
+                log.info("Skipping non-file part: " + filePart.getName() + " content-type: " + filePart.getContentType());
+                continue;
+            }
+
             try {
-                String filePath = PathUtils.getUniquePath(PathUtils.createPath(destination, fileName));
+                String uniqueFileName = java.util.UUID.randomUUID() + "_" + fileName;
+                String filePath = PathUtils.createPath(destination, uniqueFileName);
                 out = new FileOutputStream(new File(filePath));
                 fileContent = filePart.getInputStream();
                 int read;
@@ -36,17 +43,14 @@ public class FileUtils {
                 }
                 files.add(filePath);
             } catch (FileNotFoundException fne) {
-                System.out.println("You either did not specify a file to upload or are trying to upload a file to a protected or nonexistent location.");
-                System.out.println("<br/> ERROR: " + fne.getMessage());
+                log.warning("You either did not specify a file to upload or are trying to upload a file to a protected or nonexistent location.");
+                log.warning("<br/> ERROR: " + fne.getMessage());
             } finally {
                 if (out != null) {
                     out.close();
                 }
                 if (fileContent != null) {
                     fileContent.close();
-                }
-                if (writer != null) {
-                    writer.close();
                 }
             }
         }
@@ -79,8 +83,8 @@ public class FileUtils {
     }
 
     private String getFileName(final Part part) {
-        part.getHeader("content-disposition");
-        for (String content : part.getHeader("content-disposition").split(";")) {
+        part.getHeader(HEADER_CONTENT_DISPOSITION);
+        for (String content : part.getHeader(HEADER_CONTENT_DISPOSITION).split(";")) {
             if (content.trim().startsWith("filename")) {
                 return content.substring(
                         content.indexOf('=') + 1).trim().replace("\"", "");

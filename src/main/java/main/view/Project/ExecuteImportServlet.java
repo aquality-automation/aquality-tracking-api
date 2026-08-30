@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.InvalidParameterException;
-import java.util.Date;
 import java.util.List;
 
 @WebServlet("/import")
@@ -42,6 +41,13 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
             TestRunController testRunController = session.controllerFactory.getHandler(new TestRunDto());
 
             List<String> filePaths = doUpload(req, resp, data.projectId);
+
+            // If no files were uploaded, do not create import entries (prevents empty/null imports triggered by malformed multipart)
+            if (filePaths == null || filePaths.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(mapper.serialize(new ImportDto[]{}));
+                return;
+            }
 
             Importer importer = session.getImporter(
                     filePaths,
@@ -151,7 +157,8 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
         FileUtils fileUtils = new FileUtils();
-        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString(), String.valueOf(new Date().getTime())));
+        String dest = PathUtils.createPathToBin("temp", projectId.toString(), java.util.UUID.randomUUID().toString());
+        return fileUtils.doUpload(req, resp, dest);
     }
 
     private void cleanup(List<String> filePaths){
