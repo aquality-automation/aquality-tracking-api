@@ -11,12 +11,14 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 public class Importer extends BaseImporter {
     private static final Logger log = Logger.getLogger(Importer.class.getName());
+    private static final boolean IMPORTS_DEBUG = "true".equalsIgnoreCase(System.getProperty("imports.debug", java.util.Optional.ofNullable(System.getenv("IMPORTS_DEBUG")).orElse("false")));
     private List<String> files;
     private String type;
     private TestNameNodeType testNameNodeType;
@@ -50,6 +52,7 @@ public class Importer extends BaseImporter {
     @SneakyThrows
     private ImportDto executeSingleTestRunImport() throws AqualityException {
         try {
+            if (IMPORTS_DEBUG && log.isLoggable(Level.FINE)) { log.fine("Starting single test run import: files=" + (files == null ? "[]" : files.toString()) + " suite=" + suiteName + " testRunId=" + testRunTemplate.getId()); }
             createImport("Import into One Test Run was started!");
             readData(this.files);
             executeResultsCreation();
@@ -75,6 +78,11 @@ public class Importer extends BaseImporter {
                     log.info("Skipping non-existing file: " + pathToFile);
                     continue;
                 }
+                if (file.length() == 0) {
+                    log.info("Skipping empty file on disk (length=0): " + pathToFile);
+                    continue;
+                }
+                if (IMPORTS_DEBUG && log.isLoggable(Level.FINE)) { log.fine("Starting file import: file=" + file.getAbsolutePath() + " suite=" + suiteName); }
                 createImport("Import was started for file: " + file.getName());
                 readData(file);
                 executeResultsCreation();
@@ -175,8 +183,14 @@ public class Importer extends BaseImporter {
         importDto.setFinished(new Date());
         importDto.setFinish_status(1);
         importDto.addToLog("Import was finished!");
-        return importDao.create(importDto);
-    }
+            ImportDto result = importDao.create(importDto);
+            if (IMPORTS_DEBUG && log.isLoggable(Level.FINE)) {
+                int resultsCount = this.testResults == null ? 0 : this.testResults.size();
+                int testsCount = this.tests == null ? 0 : this.tests.size();
+                log.fine("Finished import: id=" + result.getId() + " projectId=" + projectId + " suite=" + suiteName + " testsCount=" + testsCount + " resultsCount=" + resultsCount + " files=" + (files == null ? "[]" : files.toString()));
+            }
+            return result;
+        }
 
     private void finishImportWithError(String log) throws AqualityException {
         if(log == null){
@@ -190,12 +204,15 @@ public class Importer extends BaseImporter {
         importDao.create(importDto);
     }
 
-    private void createImport(String log) throws AqualityException {
+    private void createImport(String message) throws AqualityException {
         importDto = new ImportDto();
         importDto.setStarted(new Date());
         importDto.setProject_id(projectId);
         importDto.setFinish_status(0);
-        importDto.setLog(log);
+            importDto.setLog(message);
         importDto = importDao.create(importDto);
-    }
+            if (IMPORTS_DEBUG && log.isLoggable(Level.FINE)) {
+                log.fine("Created import: id=" + importDto.getId() + " projectId=" + projectId + " suite=" + suiteName + " message=" + message + " files=" + (files == null ? "[]" : files.toString()));
+            }
+        }
 }

@@ -31,6 +31,17 @@ public class FileUtils {
                 continue;
             }
 
+            long partSize = -1;
+            try {
+                partSize = filePart.getSize();
+            } catch (Throwable ignored) {
+                // Some servlet containers may not support getSize(); ignore and proceed
+            }
+            if (partSize == 0) {
+                log.info("Skipping zero-length file part: " + fileName + " size=" + partSize);
+                continue;
+            }
+
             try {
                 String uniqueFileName = java.util.UUID.randomUUID() + "_" + fileName;
                 String filePath = PathUtils.createPath(destination, uniqueFileName);
