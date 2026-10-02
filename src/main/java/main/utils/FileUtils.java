@@ -1,6 +1,7 @@
 package main.utils;
 
 import main.exceptions.AqualityException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletException;
@@ -19,11 +20,15 @@ public class FileUtils {
         new File(destination).mkdirs();
         Collection<Part> parts = request.getParts();
         for (Part filePart : parts) {
-            System.out.printf("part Type: %s", filePart.getContentType());
+            String fileName = getFileName(filePart);
+            if (fileName == null || fileName.trim().isEmpty()) {
+                // Skip non-file multipart fields (suite, projectId, format, etc.)
+                continue;
+            }
+
+            fileName = FilenameUtils.getName(fileName);
             OutputStream out = null;
             InputStream fileContent = null;
-            PrintWriter writer = response.getWriter();
-            String fileName = getFileName(filePart);
 
             try {
                 String filePath = PathUtils.getUniquePath(PathUtils.createPath(destination, fileName));
@@ -44,9 +49,6 @@ public class FileUtils {
                 }
                 if (fileContent != null) {
                     fileContent.close();
-                }
-                if (writer != null) {
-                    writer.close();
                 }
             }
         }
@@ -79,11 +81,13 @@ public class FileUtils {
     }
 
     private String getFileName(final Part part) {
-        part.getHeader("content-disposition");
-        for (String content : part.getHeader("content-disposition").split(";")) {
+        String contentDisposition = part.getHeader("content-disposition");
+        if (contentDisposition == null) {
+            return null;
+        }
+        for (String content : contentDisposition.split(";")) {
             if (content.trim().startsWith("filename")) {
-                return content.substring(
-                        content.indexOf('=') + 1).trim().replace("\"", "");
+                return content.substring(content.indexOf('=') + 1).trim().replace("\"", "");
             }
         }
         return null;

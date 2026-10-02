@@ -24,8 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.InvalidParameterException;
-import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @WebServlet("/import")
 @MultipartConfig
@@ -152,7 +152,8 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
         FileUtils fileUtils = new FileUtils();
-        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString(), String.valueOf(new Date().getTime())));
+        // UUID keeps parallel imports from sharing/cleaning the same temp folder
+        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString(), UUID.randomUUID().toString()));
     }
 
     private void cleanup(List<String> filePaths){
