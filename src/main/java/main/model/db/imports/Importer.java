@@ -3,7 +3,6 @@ package main.model.db.imports;
 import lombok.SneakyThrows;
 import main.exceptions.AqualityException;
 import main.model.dto.project.ImportDto;
-import main.model.dto.project.IssueDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.settings.UserDto;
 
@@ -23,6 +22,7 @@ public class Importer extends BaseImporter {
     private TestRunDto testRunTemplate;
     private boolean singleTestRun;
     private Date nextFinishTime = new Date();
+    private final List<ImportDto> pendingImports = new ArrayList<>();
 
     private HandlerFactory handlerFactory = new HandlerFactory();
 
@@ -36,20 +36,38 @@ public class Importer extends BaseImporter {
         this.singleTestRun = singleTestRun;
     }
 
-    public List<ImportDto> executeImport() throws AqualityException {
-        if(testRunTemplate.getId() == null && !singleTestRun){
-            List<ImportDto> multiTestRun = executeMultiTestRunImport();
-            return multiTestRun;
+    /**
+     * Creates Import records with status "in progress" so UI can show them immediately
+     * while executeImport() runs in background.
+     */
+    public List<ImportDto> startImport() throws AqualityException {
+        pendingImports.clear();
+        if (testRunTemplate.getId() == null && !singleTestRun) {
+            for (String pathToFile : this.files) {
+                File file = new File(pathToFile);
+                pendingImports.add(createImport("Import was started for file: " + file.getName()));
+            }
+        } else {
+            pendingImports.add(createImport("Import into One Test Run was started!"));
         }
-        List<ImportDto> singleTestRun = Collections.singletonList(executeSingleTestRunImport());
+        return new ArrayList<>(pendingImports);
+    }
 
-        return singleTestRun;
+    public List<ImportDto> executeImport() throws AqualityException {
+        if (pendingImports.isEmpty()) {
+            startImport();
+        }
+
+        if (testRunTemplate.getId() == null && !singleTestRun) {
+            return executeMultiTestRunImport();
+        }
+        return Collections.singletonList(executeSingleTestRunImport());
     }
 
     @SneakyThrows
     private ImportDto executeSingleTestRunImport() throws AqualityException {
+        importDto = pendingImports.get(0);
         try {
-            createImport("Import into One Test Run was started!");
             readData(this.files);
             executeResultsCreation();
             return finishImport();
@@ -62,20 +80,29 @@ public class Importer extends BaseImporter {
     @SneakyThrows
     private List<ImportDto> executeMultiTestRunImport() throws AqualityException {
         List<ImportDto> imports = new ArrayList<>();
-        for (String pathToFile : this.files) {
-            try{
+        for (int i = 0; i < this.files.size(); i++) {
+            importDto = pendingImports.get(i);
+            String pathToFile = this.files.get(i);
+            try {
                 File file = new File(pathToFile);
-                createImport("Import was started for file: " + file.getName());
                 readData(file);
                 executeResultsCreation();
                 imports.add(finishImport());
-            } catch (Exception e){
+            } catch (Exception e) {
                 finishImportWithError(e.getMessage());
+                failRemainingImports(i + 1, e.getMessage());
                 throw e;
             }
         }
 
         return imports;
+    }
+
+    private void failRemainingImports(int fromIndex, String error) throws AqualityException {
+        for (int i = fromIndex; i < pendingImports.size(); i++) {
+            importDto = pendingImports.get(i);
+            finishImportWithError("Skipped due to previous import error: " + error);
+        }
     }
 
     private void executeResultsCreation() throws AqualityException, IOException, URISyntaxException {
@@ -113,13 +140,13 @@ public class Importer extends BaseImporter {
 
     private void updateTestRun(Handler handler) {
         TestRunDto handlerTestRun = handler.getTestRun();
-        if(this.testRun != null){
+        if (this.testRun != null) {
 
-            if(this.testRun.getStart_time().before(handlerTestRun.getStart_time())){
+            if (this.testRun.getStart_time().before(handlerTestRun.getStart_time())) {
                 handlerTestRun.setStart_time(this.testRun.getStart_time());
             }
 
-            if(this.testRun.getFinish_time().after(handlerTestRun.getFinish_time())){
+            if (this.testRun.getFinish_time().after(handlerTestRun.getFinish_time())) {
                 handlerTestRun.setFinish_time(this.testRun.getFinish_time());
             }
         }
@@ -128,15 +155,15 @@ public class Importer extends BaseImporter {
         nextFinishTime = handlerTestRun.getStart_time();
     }
 
-    private void fillTestSuiteWithInputData(){
+    private void fillTestSuiteWithInputData() {
         testSuite.setName(suiteName);
     }
 
-    private void fillTestRunWithInputData(){
+    private void fillTestRunWithInputData() {
         fillTestRunWithInputData(null);
     }
 
-    private void fillTestRunWithInputData(String fileName){
+    private void fillTestRunWithInputData(String fileName) {
         testRun.setProject_id(this.projectId);
         testRun.setCi_build(testRunTemplate.getCi_build());
         this.testRun.setAuthor(testRunTemplate.getAuthor());
@@ -160,7 +187,7 @@ public class Importer extends BaseImporter {
     }
 
     private void finishImportWithError(String log) throws AqualityException {
-        if(log == null){
+        if (log == null) {
             log = "Without any error message :(";
         }
 
@@ -171,12 +198,13 @@ public class Importer extends BaseImporter {
         importDao.create(importDto);
     }
 
-    private void createImport(String log) throws AqualityException {
+    private ImportDto createImport(String log) throws AqualityException {
         importDto = new ImportDto();
         importDto.setStarted(new Date());
         importDto.setProject_id(projectId);
         importDto.setFinish_status(0);
         importDto.setLog(log);
         importDto = importDao.create(importDto);
+        return importDto;
     }
 }

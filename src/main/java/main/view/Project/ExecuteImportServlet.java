@@ -26,10 +26,15 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @WebServlet("/import")
 @MultipartConfig
 public class ExecuteImportServlet extends BaseServlet implements IPost {
+
+    private static final int IMPORT_THREAD_POOL_SIZE = 10;
+    private static final ExecutorService IMPORT_EXECUTOR = Executors.newFixedThreadPool(IMPORT_THREAD_POOL_SIZE);
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
@@ -52,10 +57,19 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
                     params.singleTestRun
             );
 
-            List<ImportDto> imports = importer.executeImport();
-            cleanup(filePaths);
+            List<ImportDto> acceptedImports = importer.startImport();
 
-            resp.getWriter().write(mapper.serialize(imports));
+            IMPORT_EXECUTOR.submit(() -> {
+                try {
+                    importer.executeImport();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    cleanup(filePaths);
+                }
+            });
+
+            resp.getWriter().write(mapper.serialize(acceptedImports));
         } catch (Exception e) {
             handleException(resp, e);
         }
