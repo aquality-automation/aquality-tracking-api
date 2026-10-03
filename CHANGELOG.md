@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 1.5.5(2025-08-23)
+## 1.5.6 (2026-10-03)
+Bugfixes:
+  - Fixed parallel /import requests mixing suite and build parameters
+
+## 1.5.5 (2025-08-23)
 Feature:
   - Additional parameter onlyWithIssues for /stats/testresult endpoint (improving performance)
 
