@@ -151,7 +151,6 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
         FileUtils fileUtils = new FileUtils();
-        // UUID keeps parallel imports from sharing/cleaning the same temp folder
         return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString(), UUID.randomUUID().toString()));
     }
 
