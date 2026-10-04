@@ -1,6 +1,7 @@
 package main.model.db.imports;
 
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 import main.model.db.imports.ImportHandlers.*;
 
 import java.io.File;
@@ -37,7 +38,7 @@ class HandlerFactory {
         }
     }
 
-    private void validateTypeOnNameNodeRequirements(ImportTypes type, TestNameNodeType nodeType) throws AqualityException {
+    void validateTypeOnNameNodeRequirements(ImportTypes type, TestNameNodeType nodeType) throws AqualityException {
         List<ImportTypes> nameNodeRequiredTypes = Arrays.asList(
                 ImportTypes.MSTest,
                 ImportTypes.JUnit,
@@ -45,7 +46,7 @@ class HandlerFactory {
                 ImportTypes.MavenSurefire,
                 ImportTypes.NUnit_v3);
         if (nameNodeRequiredTypes.contains(type) && nodeType == null) {
-            throw new AqualityException(String.format("While you are using import type '%1$s' the TestNameNodeType is required. Allowed values: %2$s",
+            throw new AqualityParametersException(String.format("While you are using import type '%1$s' the TestNameNodeType is required. Allowed values: %2$s",
                     type,
                     Arrays.stream(TestNameNodeType.values())
                             .map(TestNameNodeType::toString)

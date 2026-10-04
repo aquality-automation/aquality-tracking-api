@@ -2,6 +2,7 @@ package main.model.db.imports;
 
 import lombok.SneakyThrows;
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 import main.model.dto.project.ImportDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.settings.UserDto;
@@ -10,9 +11,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Importer extends BaseImporter {
     private List<String> files;
@@ -22,7 +28,10 @@ public class Importer extends BaseImporter {
     private TestRunDto testRunTemplate;
     private boolean singleTestRun;
     private Date nextFinishTime = new Date();
+    private static final Logger LOGGER = Logger.getLogger(Importer.class.getName());
     private final List<ImportDto> pendingImports = new ArrayList<>();
+    private final Set<Integer> closedImports = new HashSet<>();
+    private int currentImportIndex = -1;
 
     private HandlerFactory handlerFactory = new HandlerFactory();
 
@@ -37,11 +46,16 @@ public class Importer extends BaseImporter {
     }
 
     /**
-     * Creates Import records with status "in progress" so UI can show them immediately
-     * while executeImport() runs in background.
+     * Validates import settings and creates Import records with status "in progress"
+     * so UI can show them immediately while executeImport() runs in background.
+     * Validation errors are thrown here (before any record is created) so the caller
+     * can report them synchronously.
      */
     public List<ImportDto> startImport() throws AqualityException {
+        validateSettings();
         pendingImports.clear();
+        closedImports.clear();
+        currentImportIndex = -1;
         if (testRunTemplate.getId() == null && !singleTestRun) {
             for (String pathToFile : this.files) {
                 File file = new File(pathToFile);
@@ -51,6 +65,29 @@ public class Importer extends BaseImporter {
             pendingImports.add(createImport("Import into One Test Run was started!"));
         }
         return new ArrayList<>(pendingImports);
+    }
+
+    /**
+     * Marks every Import record that was not finished yet as failed.
+     * Safety net for failures that happen outside of the regular import flow
+     * (unexpected errors, rejected or dropped background tasks).
+     */
+    public void failUnfinishedImports(String reason) {
+        for (int i = 0; i < pendingImports.size(); i++) {
+            if (closedImports.contains(i)) {
+                continue;
+            }
+            // the import being processed holds the freshest state (log, test run id) in importDto
+            if (i != currentImportIndex) {
+                importDto = pendingImports.get(i);
+            }
+            try {
+                finishImportWithError(reason);
+                closedImports.add(i);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Cannot mark import as failed: id=" + importDto.getId(), e);
+            }
+        }
     }
 
     public List<ImportDto> executeImport() throws AqualityException {
@@ -66,13 +103,16 @@ public class Importer extends BaseImporter {
 
     @SneakyThrows
     private ImportDto executeSingleTestRunImport() throws AqualityException {
-        importDto = pendingImports.get(0);
+        openImport(0);
         try {
             readData(this.files);
             executeResultsCreation();
-            return finishImport();
+            ImportDto finished = finishImport();
+            closedImports.add(0);
+            return finished;
         } catch (Exception e) {
             finishImportWithError(e.getMessage());
+            closedImports.add(0);
             throw e;
         }
     }
@@ -81,15 +121,17 @@ public class Importer extends BaseImporter {
     private List<ImportDto> executeMultiTestRunImport() throws AqualityException {
         List<ImportDto> imports = new ArrayList<>();
         for (int i = 0; i < this.files.size(); i++) {
-            importDto = pendingImports.get(i);
+            openImport(i);
             String pathToFile = this.files.get(i);
             try {
                 File file = new File(pathToFile);
                 readData(file);
                 executeResultsCreation();
                 imports.add(finishImport());
+                closedImports.add(i);
             } catch (Exception e) {
                 finishImportWithError(e.getMessage());
+                closedImports.add(i);
                 failRemainingImports(i + 1, e.getMessage());
                 throw e;
             }
@@ -98,11 +140,32 @@ public class Importer extends BaseImporter {
         return imports;
     }
 
+    private void openImport(int index) {
+        currentImportIndex = index;
+        importDto = pendingImports.get(index);
+    }
+
     private void failRemainingImports(int fromIndex, String error) throws AqualityException {
         for (int i = fromIndex; i < pendingImports.size(); i++) {
-            importDto = pendingImports.get(i);
+            openImport(i);
             finishImportWithError("Skipped due to previous import error: " + error);
+            closedImports.add(i);
         }
+    }
+
+    private void validateSettings() throws AqualityException {
+        if (files == null || files.isEmpty()) {
+            throw new AqualityParametersException("There are no files to import. Attach at least one file to the request.");
+        }
+
+        ImportTypes importType;
+        try {
+            importType = ImportTypes.valueOf(type);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new AqualityParametersException("Import type '%s' is not supported. Allowed values: %s",
+                    type, Arrays.toString(ImportTypes.values()));
+        }
+        handlerFactory.validateTypeOnNameNodeRequirements(importType, testNameNodeType);
     }
 
     private void executeResultsCreation() throws AqualityException, IOException, URISyntaxException {

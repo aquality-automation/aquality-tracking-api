@@ -1,5 +1,6 @@
 package tests.workers.view;
 
+import main.exceptions.AqualityParametersException;
 import main.model.db.imports.ImportTypes;
 import main.view.Project.ExecuteImportServlet;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -7,6 +8,7 @@ import org.testng.annotations.Test;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 public class ExecuteImportServletTest {
 
@@ -96,6 +99,21 @@ public class ExecuteImportServletTest {
             }
         } finally {
             pool.shutdownNow();
+        }
+    }
+
+    @Test
+    public void readParameters_shouldRejectUnsupportedFormat() throws Exception {
+        ExecuteImportServlet servlet = new ExecuteImportServlet();
+        MockHttpServletRequest request = buildRequest(FIRST_PROJECT_ID, "Suite 1", "Build-1", "alice");
+        request.setParameter("format", "NotExistingFormat");
+
+        try {
+            invokeReadParameters(servlet, request);
+            fail("Unsupported format must be rejected before the import is accepted");
+        } catch (InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof AqualityParametersException, "Unexpected exception: " + e.getCause());
+            assertEquals(((AqualityParametersException) e.getCause()).getResponseCode(), Integer.valueOf(400));
         }
     }
 

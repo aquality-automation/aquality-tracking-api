@@ -706,7 +706,11 @@ paths:
           enum: ['className', 'testName', 'descriptionNode']
       responses:
         200:
-          description: 'Valid response'
+          description: 'Import was accepted. Response contains Import records with finish_status = 0 (in progress). Import is executed in background, use GET /import/results to get final status (1 - finished, 2 - failed) and log'
+        400:
+          description: 'Request parameters are not valid (unsupported format, testNameKey is required, no files were attached, etc.)'
+        503:
+          description: 'Import queue is full or server is shutting down. Try again later'
   /import/results:
     get:
       tags:

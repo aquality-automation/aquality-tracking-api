@@ -2,6 +2,7 @@ package tests.utils;
 
 import main.utils.FileUtils;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.Part;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -106,6 +108,62 @@ public class FileUtilsDoUploadTest {
         assertEquals(uploaded.size(), 2);
         assertTrue(uploaded.stream().anyMatch(path -> path.endsWith("a.trx")));
         assertTrue(uploaded.stream().anyMatch(path -> path.endsWith("b.trx")));
+    }
+
+    @Test
+    public void doUpload_shouldKeepSemicolonInFileName() throws Exception {
+        HttpServletRequest request = requestWithParts(
+                StubPart.file("file", "report;v2.trx", "data".getBytes(StandardCharsets.UTF_8))
+        );
+
+        List<String> uploaded = fileUtils.doUpload(request, new MockHttpServletResponse(), tempDir.getAbsolutePath());
+
+        assertEquals(uploaded.size(), 1);
+        assertEquals(new File(uploaded.get(0)).getName(), "report;v2.trx");
+    }
+
+    @Test(expectedExceptions = IOException.class)
+    public void doUpload_shouldFailWhenDestinationCannotBeCreated() throws Exception {
+        File regularFile = new File(tempDir, "regular-file");
+        assertTrue(regularFile.createNewFile());
+        HttpServletRequest request = requestWithParts(
+                StubPart.file("file", "a.trx", "A".getBytes(StandardCharsets.UTF_8))
+        );
+
+        // a directory cannot be created inside of a regular file
+        fileUtils.doUpload(request, new MockHttpServletResponse(), new File(regularFile, "upload").getAbsolutePath());
+    }
+
+    @Test(expectedExceptions = IOException.class)
+    public void doUpload_shouldNotSkipFileSilentlyWhenItCannotBeSaved() throws Exception {
+        File readOnlyDir = new File(tempDir, "read-only");
+        assertTrue(readOnlyDir.mkdirs());
+        assertTrue(readOnlyDir.setWritable(false));
+        try {
+            if (readOnlyDir.canWrite()) {
+                throw new SkipException("Cannot make directory read-only (running as privileged user)");
+            }
+            HttpServletRequest request = requestWithParts(
+                    StubPart.file("file", "a.trx", "A".getBytes(StandardCharsets.UTF_8))
+            );
+
+            fileUtils.doUpload(request, new MockHttpServletResponse(), readOnlyDir.getAbsolutePath());
+        } finally {
+            readOnlyDir.setWritable(true);
+        }
+    }
+
+    @Test
+    public void removeDirectory_shouldRemoveDirectoryWithItsContent() throws Exception {
+        File uploadDir = new File(tempDir, "upload");
+        assertTrue(uploadDir.mkdirs());
+        Files.write(new File(uploadDir, "partial.trx").toPath(), "x".getBytes(StandardCharsets.UTF_8));
+
+        fileUtils.removeDirectory(uploadDir.getAbsolutePath());
+
+        assertFalse(uploadDir.exists(), "Directory with files must be removed");
+        fileUtils.removeDirectory(uploadDir.getAbsolutePath());
+        fileUtils.removeDirectory(null);
     }
 
     private HttpServletRequest requestWithParts(Part... parts) {

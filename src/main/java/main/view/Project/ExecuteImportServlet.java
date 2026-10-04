@@ -5,9 +5,11 @@ import main.Session;
 import main.controllers.Project.SuiteController;
 import main.controllers.Project.TestRunController;
 import main.exceptions.AqualityException;
+import main.exceptions.AqualityParametersException;
 import main.exceptions.AqualityQueryParameterException;
 import main.model.db.imports.Importer;
 import main.model.db.imports.TestNameNodeType;
+import main.model.dto.ErrorDto;
 import main.model.dto.project.ImportDto;
 import main.model.dto.project.TestRunDto;
 import main.model.dto.project.TestSuiteDto;
@@ -23,22 +25,34 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 @WebServlet("/import")
 @MultipartConfig
 public class ExecuteImportServlet extends BaseServlet implements IPost {
 
     private static final int IMPORT_THREAD_POOL_SIZE = 10;
-    private static final ExecutorService IMPORT_EXECUTOR = Executors.newFixedThreadPool(IMPORT_THREAD_POOL_SIZE);
+    private static final int IMPORT_QUEUE_CAPACITY = 100;
+    private static final long SHUTDOWN_TIMEOUT_SECONDS = 60;
+
+    private final ThreadPoolExecutor importExecutor = createImportExecutor();
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) {
         setPostResponseHeaders(resp);
+        String uploadDir = null;
+        Importer importer = null;
+        boolean handedOver = false;
+        String notStartedReason = "Import was not started";
         try {
             ImportRequestParams params = readParameters(req);
             Session session = createSession(req);
@@ -46,9 +60,10 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
             SuiteController suiteController = session.controllerFactory.getHandler(new TestSuiteDto());
             TestRunController testRunController = session.controllerFactory.getHandler(new TestRunDto());
 
-            List<String> filePaths = doUpload(req, resp, params.projectId);
+            uploadDir = PathUtils.createPathToBin("temp", params.projectId.toString(), UUID.randomUUID().toString());
+            List<String> filePaths = doUpload(req, resp, uploadDir);
 
-            Importer importer = session.getImporter(
+            importer = session.getImporter(
                     filePaths,
                     prepareTestRun(params, suiteController, testRunController),
                     getStringQueryParameter(req, ImportParams.pattern.name()),
@@ -57,21 +72,47 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
                     params.singleTestRun
             );
 
+            // validates settings and creates "in progress" records; nothing is created if validation fails
             List<ImportDto> acceptedImports = importer.startImport();
 
-            IMPORT_EXECUTOR.submit(() -> {
-                try {
-                    importer.executeImport();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    cleanup(filePaths);
-                }
-            });
+            // serialize before the background import starts to modify the same DTOs
+            String responseBody = mapper.serialize(acceptedImports);
+            importExecutor.execute(new ImportTask(importer, uploadDir));
+            handedOver = true;
 
-            resp.getWriter().write(mapper.serialize(acceptedImports));
+            setEncoding(resp);
+            setJSONContentType(resp);
+            resp.getWriter().write(responseBody);
+        } catch (RejectedExecutionException e) {
+            notStartedReason = "Import was not started: queue is full or server is shutting down";
+            log.warning(notStartedReason);
+            respondServiceUnavailable(resp);
         } catch (Exception e) {
+            notStartedReason = "Import was not started: " + describe(e);
             handleException(resp, e);
+        } finally {
+            if (!handedOver) {
+                // startImport() can fail in the middle and leave already created records "in progress"
+                if (importer != null) {
+                    importer.failUnfinishedImports(notStartedReason);
+                }
+                cleanup(uploadDir);
+            }
+        }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        importExecutor.shutdown();
+        try {
+            if (!importExecutor.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                log.warning("Import tasks were not finished in " + SHUTDOWN_TIMEOUT_SECONDS + " seconds. Cancelling them.");
+                abortQueuedTasks(importExecutor.shutdownNow());
+            }
+        } catch (InterruptedException e) {
+            abortQueuedTasks(importExecutor.shutdownNow());
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -80,7 +121,45 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         setOptionsResponseHeaders(resp);
     }
 
-    private ImportRequestParams readParameters(HttpServletRequest req) throws AqualityQueryParameterException {
+    private static ThreadPoolExecutor createImportExecutor() {
+        ClassLoader appClassLoader = ExecuteImportServlet.class.getClassLoader();
+        AtomicInteger threadCounter = new AtomicInteger();
+        // Workers use JNDI (DataSource lookup), so they must run with the web application class loader.
+        ThreadFactory threadFactory = runnable -> {
+            Thread thread = new Thread(runnable, "import-worker-" + threadCounter.incrementAndGet());
+            thread.setDaemon(true);
+            thread.setContextClassLoader(appClassLoader);
+            return thread;
+        };
+
+        return new ThreadPoolExecutor(
+                IMPORT_THREAD_POOL_SIZE,
+                IMPORT_THREAD_POOL_SIZE,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(IMPORT_QUEUE_CAPACITY),
+                threadFactory,
+                new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    private void abortQueuedTasks(List<Runnable> queuedTasks) {
+        for (Runnable task : queuedTasks) {
+            if (task instanceof ImportTask) {
+                ((ImportTask) task).abort("Import was cancelled because the server is shutting down.");
+            }
+        }
+    }
+
+    private void respondServiceUnavailable(HttpServletResponse resp) {
+        try {
+            resp.setStatus(503);
+            setResponseBody(resp, new ErrorDto("Import queue is full or server is shutting down. Try again later."));
+        } catch (AqualityException e) {
+            handleException(resp, e);
+        }
+    }
+
+    private ImportRequestParams readParameters(HttpServletRequest req) throws AqualityException {
         ImportRequestParams params = new ImportRequestParams();
         params.singleTestRun = getBooleanQueryParameter(req, ImportParams.singleTestRun.name());
         params.format = getStringQueryParameter(req, ImportParams.format.name());
@@ -128,7 +207,7 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         return null;
     }
 
-    private void validateRequest(ImportRequestParams params) throws AqualityQueryParameterException {
+    private void validateRequest(ImportRequestParams params) throws AqualityException {
         if (params.importToken != null) {
             throw new AqualityQueryParameterException("Import Token is deprecated. Follow instructions on the API Token page.");
         }
@@ -142,6 +221,9 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
                 throw new AqualityQueryParameterException("ProjectId or/and Format parameters are missed.");
             }
         }
+
+        validateFormat(params.format);
+
         if (params.format.equals(ImportTypes.MSTest.name()) || params.format.equals(ImportTypes.Cucumber.name())) {
             if (params.suiteName == null) {
                 throw new AqualityQueryParameterException("Suite parameter is missed.");
@@ -149,21 +231,25 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         }
     }
 
-    private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, Integer projectId) throws ServletException, IOException {
-        FileUtils fileUtils = new FileUtils();
-        return fileUtils.doUpload(req, resp, PathUtils.createPathToBin("temp", projectId.toString(), UUID.randomUUID().toString()));
-    }
-
-    private void cleanup(List<String> filePaths) {
-        if (filePaths.size() > 0) {
-            FileUtils fileUtils = new FileUtils();
-            String fileFolderPath = fileUtils.getFileFolderPath(filePaths.get(0));
-            fileUtils.removeFiles(filePaths);
-            fileUtils.removeFile(fileFolderPath);
+    private void validateFormat(String format) throws AqualityParametersException {
+        try {
+            ImportTypes.valueOf(format);
+        } catch (IllegalArgumentException e) {
+            throw new AqualityParametersException("Import type '%s' is not supported. Allowed values: %s",
+                    format, Arrays.toString(ImportTypes.values()));
         }
     }
 
-    private TestNameNodeType getTestNameNodeType(HttpServletRequest req, String format) {
+    private List<String> doUpload(HttpServletRequest req, HttpServletResponse resp, String uploadDir) throws ServletException, IOException {
+        FileUtils fileUtils = new FileUtils();
+        return fileUtils.doUpload(req, resp, uploadDir);
+    }
+
+    private void cleanup(String uploadDir) {
+        new FileUtils().removeDirectory(uploadDir);
+    }
+
+    private TestNameNodeType getTestNameNodeType(HttpServletRequest req, String format) throws AqualityParametersException {
         String testNameKey = getStringQueryParameter(req, ImportParams.testNameKey.name());
 
         if (testNameKey == null) {
@@ -176,7 +262,45 @@ public class ExecuteImportServlet extends BaseServlet implements IPost {
         try {
             return TestNameNodeType.valueOf(testNameKey);
         } catch (IllegalArgumentException e) {
-            throw new InvalidParameterException("TestNameKey parameter you provide is not correct. The correct values are:'testName', 'className', 'descriptionNode', 'featureNameTestName'.");
+            throw new AqualityParametersException("TestNameKey parameter you provide is not correct. The correct values are:'testName', 'className', 'descriptionNode', 'featureNameTestName'.");
+        }
+    }
+
+    private static String describe(Throwable throwable) {
+        return throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getSimpleName();
+    }
+
+    /**
+     * Background import. Always leaves the import records in a final state and removes uploaded files.
+     */
+    private final class ImportTask implements Runnable {
+        private final Importer importer;
+        private final String uploadDir;
+
+        private ImportTask(Importer importer, String uploadDir) {
+            this.importer = importer;
+            this.uploadDir = uploadDir;
+        }
+
+        @Override
+        public void run() {
+            try {
+                importer.executeImport();
+            } catch (Throwable throwable) {
+                log.log(Level.SEVERE, "Error during background import execution", throwable);
+                // regular failures are already stored by Importer, this covers everything else (including Errors)
+                importer.failUnfinishedImports(describe(throwable));
+                if (throwable instanceof Error) {
+                    throw (Error) throwable;
+                }
+            } finally {
+                cleanup(uploadDir);
+            }
+        }
+
+        private void abort(String reason) {
+            importer.failUnfinishedImports(reason);
+            cleanup(uploadDir);
         }
     }
 
